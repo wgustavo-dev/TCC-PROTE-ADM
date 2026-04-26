@@ -1,0 +1,365 @@
+/* =========================================================
+   ORÇAMENTO - ESTILO ESPECÍFICO DA PÁGINA
+   Baseado no dashboard.css do sistema
+   ========================================================= */
+
+/* Cabeçalho com botão alinhado igual ao restante do sistema */
+.cabecalho-orcamento {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.titulo-orcamento {
+  color: var(--cor-principal);
+}
+/* */
+/* Botão azul do topo */
+.botao-primario-orcamento {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--cor-principal);
+  color: #fff;
+  border: none;
+  border-radius: var(--arredondamento-medio);
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.botao-primario-orcamento:hover {
+  background: var(--cor-principal-escura);
+}
+
+.botao-primario-orcamento:active {
+  transform: scale(0.97);
+}
+
+.icone-mais {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Barra de status */
+.barra-status {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 8px 14px;
+  margin-bottom: 14px;
+}
+
+.aba-status {
+  background: none;
+  border: none;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--texto-secundario);
+  cursor: pointer;
+  position: relative;
+}
+
+.aba-status + .aba-status::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 1px;
+  height: 18px;
+  background: var(--borda);
+}
+
+.aba-status.active[data-status="pendente"] {
+  color: #d88a00;
+}
+
+.aba-status.active[data-status="aprovado"] {
+  color: #16a34a;
+}
+
+.aba-status.active[data-status="reprovado"] {
+  color: var(--vermelho);
+}
+
+/* Busca */
+.caixa-busca-orcamento {
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.campo-busca-com-icone {
+  position: relative;
+}
+
+.icone-busca {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--texto-suave);
+}
+
+.input-busca-orcamento {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  padding: 0 14px 0 42px;
+  font-size: 13.5px;
+  outline: none;
+  background: var(--fundo-card);
+  color: var(--texto-primario);
+}
+
+.input-busca-orcamento:focus {
+  border-color: var(--cor-principal);
+}
+
+/* Card da tabela */
+.tabela-orcamentos-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tabela-responsiva {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Tabela */
+.tabela-orcamentos {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.tabela-orcamentos thead th {
+  font-size: 12px;
+  color: var(--texto-secundario);
+  font-weight: 700;
+  text-align: left;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--borda);
+  background: var(--fundo-card);
+  white-space: nowrap;
+}
+
+.tabela-orcamentos tbody td {
+  font-size: 13px;
+  color: var(--texto-primario);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--borda);
+  vertical-align: middle;
+}
+
+.tabela-orcamentos tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Status badge parecido com o print */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  height: 22px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.status-pendente {
+  background: #fecaca;
+  color: var(--vermelho);
+}
+
+.status-aprovado {
+  background: #d9f99d;
+  color: #16a34a;
+}
+
+.status-reprovado {
+  background: #fee2e2;
+  color: var(--vermelho);
+}
+
+/* Botão de ação */
+.botao-acao {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--cor-principal);
+}
+
+.botao-acao:hover {
+  color: var(--cor-principal-escura);
+}
+
+/* Aviso vazio */
+.aviso-vazio {
+  display: none;
+  padding: 28px 18px;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+/* Modal */
+.fundo-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 500;
+}
+
+.fundo-modal.ativo {
+  display: flex;
+}
+
+.caixa-modal {
+  width: 100%;
+  max-width: 460px;
+  background: var(--fundo-card);
+  border-radius: var(--arredondamento-grande);
+  padding: 0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.titulo-modal {
+  font-size: 22px;
+  font-weight: 700;
+  padding: 1.75rem 1.75rem 1.25rem;
+  border-bottom: 1px solid var(--borda);
+}
+
+.grupo-campo {
+  padding: 0 1.75rem;
+  margin-top: 16px;
+}
+
+.label-campo {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13.5px;
+  color: var(--texto-primario);
+}
+
+.input-campo,
+.select-campo {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  padding: 0 12px;
+  font-size: 13.5px;
+  outline: none;
+}
+
+.input-campo:focus,
+.select-campo:focus {
+  border-color: var(--cor-principal);
+}
+
+.mensagem-erro {
+  display: block;
+  min-height: 16px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--vermelho);
+}
+
+.acoes-modal {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 1.25rem 1.75rem 1.75rem;
+}
+
+.botao-cancelar,
+.botao-cadastrar {
+  min-width: 140px;
+  height: 40px;
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.botao-cancelar {
+  background: var(--fundo-card);
+  color: var(--texto-primario);
+  border: 1px solid var(--borda);
+}
+
+.botao-cadastrar {
+  background: var(--cor-principal);
+  color: #fff;
+  border: none;
+}
+
+.botao-cadastrar:hover {
+  background: var(--cor-principal-escura);
+}
+
+.icone-botao-topo {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.botao-acao {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--cor-principal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icone-editar {
+  width: 16px;
+  height: 16px;
+}
+
+.botao-acao:hover {
+  color: var(--cor-principal-escura);
+}
+
+/* Responsivo */
+@media (max-width: 700px) {
+  .cabecalho-orcamento {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .botao-primario-orcamento {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .acoes-modal {
+    flex-direction: column;
+  }
+
+  .botao-cancelar,
+  .botao-cadastrar {
+    width: 100%;
+  }
+}

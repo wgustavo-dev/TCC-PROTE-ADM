@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTE — Documentos Obrigatórios</title>
+
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href= "css/documentos.css" />
+</head>
+<body>
+  <div class="fundo-escuro" id="fundoEscuro"></div>
+  <div class="layout">
+    <header class="barra-topo">
+      <button class="botao-menu" id="botaoMenu" aria-label="Abrir menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <span class="nome-sistema-topo">PROTE</span>
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-title">PROTE</div>
+        <div class="logo-sub">Painel Administrativo</div>
+      </div>
+
+      <nav class="nav">
+        <a href="dashboard.html" class="nav-item" data-page="dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+          </svg>
+          Dashboard
+        </a>
+
+        <a href="despesas.html" class="nav-item" data-page="despesas">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+          Despesas
+        </a>
+
+        <a href="documentos.html" class="nav-item active" data-page="vistorias">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          Vistoria
+        </a>
+
+        <a href="alunos.html" class="nav-item" data-page="alunos">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Alunos
+        </a>
+
+        <a href="orcamento.html" class="nav-item" data-page="orcamentos">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          Orçamento
+        </a>
+
+        <a href="mensalidade.html" class="nav-item" data-page="mensalidades">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          Mensalidades
+        </a>
+
+        <a href="presenca.html" class="nav-item" data-page="presenca">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          Presença
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="cabecalho-pagina documentos-cabecalho">
+        <div>
+          <h1 class="page-title">Documentos Obrigatórios</h1>
+          <p class="page-sub">Controle de validade e alertas de vencimento</p>
+        </div>
+
+        <button class="btn-primary" id="btnAbrirModal" type="button">
+          <span>+</span>
+          Nova Vistoria
+        </button>
+      </div>
+
+      <div id="alertasContainer"></div>
+
+      <div class="documentos-stats">
+        <div class="card documento-card-resumo">
+          <div class="documento-card-topo">
+            <div class="documento-card-icon azul"></div>
+          </div>
+          <p class="rotulo-indicador">Total</p>
+          <p class="valor-indicador" id="totalDocs">0</p>
+          <p class="detalhe-indicador">Documentos cadastrados</p>
+        </div>
+
+        <div class="card documento-card-resumo">
+          <div class="documento-card-topo">
+            <div class="documento-card-icon verde"></div>
+          </div>
+          <p class="rotulo-indicador">Válidas</p>
+          <p class="valor-indicador" id="validosDocs">0</p>
+          <p class="detalhe-indicador">Dentro do prazo</p>
+        </div>
+
+        <div class="card documento-card-resumo">
+          <div class="documento-card-topo">
+            <div class="documento-card-icon vermelho"></div>
+          </div>
+          <p class="rotulo-indicador">Vencidas</p>
+          <p class="valor-indicador" id="vencidosDocs">0</p>
+          <p class="detalhe-indicador">Atenção necessária</p>
+        </div>
+      </div>
+
+      <div class="campo-busca">
+        <svg class="icone-busca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="inputBusca" class="input-busca" placeholder="Buscar por tipo..." />
+      </div>
+
+      <div class="barra-filtro">
+        <button class="botao-filtro" id="btnToggleFiltros" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+          Filtro
+        </button>
+      </div>
+
+      <div class="painel-filtros hidden" id="filtrosCard">
+        <div class="titulo-filtros">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+          Filtrar por:
+        </div>
+
+        <div class="campos-filtro">
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroStatus">Status</label>
+            <select id="filtroStatus" class="input-filtro">
+              <option value="">Selecionar status...</option>
+              <option value="valido">Válido</option>
+              <option value="proximo">Próximo do vencimento</option>
+              <option value="vencido">Vencido</option>
+            </select>
+          </div>
+
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroRealizacao">Data de Realização</label>
+            <input type="date" id="filtroRealizacao" class="input-filtro" />
+          </div>
+
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroValidade">Data de Validade</label>
+            <input type="date" id="filtroValidade" class="input-filtro" />
+          </div>
+
+          <div class="grupo-filtro grupo-botao-limpar">
+            <button class="botao-limpar-filtros" id="btnLimparFiltros" type="button">Limpar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card table-card">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>TIPO DE VISTORIA</th>
+                <th>DATA DE REALIZAÇÃO</th>
+                <th>DATA DE VALIDADE</th>
+                <th>STATUS</th>
+                <th>AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDocumentos"></tbody>
+          </table>
+        </div>
+
+        <div class="empty-state" id="emptyState">
+          Nenhum documento cadastrado ainda.
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modalTitulo">Nova Vistoria</h2>
+        <button class="btn-close" id="btnFecharModal" aria-label="Fechar">×</button>
+      </div>
+
+      <form id="formDocumento">
+        <input type="hidden" id="documentoId" />
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="tipoDocumento">Tipo de Documento</label>
+          <select id="tipoDocumento" class="input-filtro" required>
+            <option value="">Selecione...</option>
+            <option value="CNH">CNH</option>
+            <option value="Tacógrafo Vistoria">Tacógrafo Vistoria</option>
+            <option value="CRLV Perua">CRLV Perua</option>
+            <option value="Vistoria Inspeção DETRAN">Vistoria Inspeção DETRAN</option>
+            <option value="CRMC">CRMC</option>
+            <option value="Certificado de Registro Municipal">Certificado de Registro Municipal</option>
+          </select>
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="dataRealizacao">Data de Realização</label>
+          <input type="date" id="dataRealizacao" class="input-filtro" required />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="dataValidade">Data de Validade</label>
+          <input type="date" id="dataValidade" class="input-filtro" readonly />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="statusPreview">Status</label>
+          <input type="text" id="statusPreview" class="input-filtro" readonly />
+        </div>
+
+        <div class="info-box">
+          O prazo será calculado automaticamente de acordo com o tipo do documento.
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancelar">Cancelar</button>
+          <button type="submit" class="btn-primary solid">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/documentos.js"></script>
+</body>
+</html>

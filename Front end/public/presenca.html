@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTE — Presença</title>
+
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/presenca.css" />
+</head>
+<body>
+
+  <div class="fundo-escuro" id="fundoEscuro"></div>
+
+  <div class="layout">
+    <header class="barra-topo">
+      <button class="botao-menu" id="botaoMenu" aria-label="Abrir menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <span class="nome-sistema-topo">PROTE</span>
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-title">PROTE</div>
+        <div class="logo-sub">Painel Administrativo</div>
+      </div>
+
+      <nav class="nav">
+  <a href="dashboard.html" class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="7" height="7"/>
+      <rect x="14" y="3" width="7" height="7"/>
+      <rect x="3" y="14" width="7" height="7"/>
+      <rect x="14" y="14" width="7" height="7"/>
+    </svg>
+    Dashboard
+  </a>
+
+  <a href="despesas.html" class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="12" y1="1" x2="12" y2="23"/>
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+    </svg>
+    Despesas
+  </a>
+
+  <a href="documentos.html" class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="9 11 12 14 22 4"/>
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+    Vistoria
+  </a>
+
+  <a href="alunos.html" class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    Alunos
+  </a>
+
+  <a href="orcamento.html" class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+    </svg>
+    Orçamento
+  </a>
+
+  <a href="mensalidade.html" class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+      <line x1="1" y1="10" x2="23" y2="10"/>
+    </svg>
+    Mensalidades
+  </a>
+
+  <a href="presenca.html" class="nav-item active">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="9 11 12 14 22 4"/>
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+    Presença
+  </a>
+</nav>
+    </aside>
+
+    <main class="main">
+
+      <div class="cabecalho-pagina">
+        <h1 class="page-title titulo-presenca">Presença</h1>
+        <p class="page-sub">Registre a presença diária dos alunos</p>
+      </div>
+
+      <section class="card barra-data">
+        <div>
+          <label class="label-data" for="campoData">Data de registro</label>
+          <input type="date" id="campoData" class="input-data" />
+        </div>
+
+        <div class="acoes-topo">
+          <button class="botao-verde" id="botaoMarcarTodos">Marcar todos</button>
+          <button class="botao-vermelho" id="botaoDesmarcarTodos">Desmarcar todos</button>
+        </div>
+      </section>
+
+      <section class="cards-presenca">
+        <div class="card card-indicador-presenca">
+          <div class="linha-card">
+            <span class="quadrado verde">✓</span>
+            <span>Presentes</span>
+          </div>
+          <strong id="totalPresentes">0</strong>
+          <small>de alunos</small>
+        </div>
+
+        <div class="card card-indicador-presenca">
+          <div class="linha-card">
+            <span class="quadrado vermelho">!</span>>
+            <span>Ausentes</span>
+          </div>
+          <strong id="totalAusentes">0</strong>
+          <small>de alunos</small>
+        </div>
+
+        <div class="card card-indicador-presenca">
+          <div class="linha-card">
+            <span class="quadrado azul">%</span>
+            <span>Taxa de presença</span>
+          </div>
+          <strong id="taxaPresenca">0%</strong>
+          <div class="barra-taxa">
+            <div id="barraTaxaPreenchimento"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card lista-chamada">
+        <h2>Lista de chamada</h2>
+        <p class="sub-lista" id="textoDataLista">Selecione uma data para registrar a presença</p>
+
+        <div id="listaAlunosPresenca"></div>
+
+        <button class="botao-salvar" id="botaoSalvarChamada">
+          Salvar registro da chamada
+        </button>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/presenca.js"></script>
+</body>
+</html>

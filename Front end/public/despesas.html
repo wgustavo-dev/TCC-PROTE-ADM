@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTE — Despesas</title>
+<link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/despesas.css" />
+</head>
+<body>
+
+  <!-- Escurece o fundo quando a sidebar abre no celular -->
+  <div class="fundo-escuro" id="fundoEscuro"></div>
+  <div class="layout">
+
+    <!-- Barra do topo — só aparece no celular (≤ 700px) -->
+    <header class="barra-topo">
+      <button class="botao-menu" id="botaoMenu" aria-label="Abrir menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <span class="nome-sistema-topo">PROTE</span>
+    </header>
+
+    <!-- Sidebar de navegação lateral -->
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-title">PROTE</div>
+        <div class="logo-sub">Painel Administrativo</div>
+      </div>
+
+      <nav class="nav">
+        <a href="dashboard.html" class="nav-item" data-page="dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+          </svg>
+          Dashboard
+        </a>
+        <a href="despesas.html" class="nav-item active" data-page="despesas">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+          Despesas
+        </a>
+        <a href="documentos.html" class="nav-item" data-page="vistorias">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          Vistoria
+        </a>
+        <a href="alunos.html" class="nav-item" data-page="alunos">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Alunos
+        </a>
+        <a href="orcamento.html" class="nav-item" data-page="orcamentos">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          Orçamento
+        </a>
+        <a href="mensalidade.html" class="nav-item" data-page="mensalidades">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          Mensalidades
+        </a>
+        <a href="presenca.html" class="nav-item" data-page="presenca">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          Presença
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Conteúdo principal da página -->
+    <main class="main">
+
+      <!-- Cabeçalho com título e botão de nova despesa -->
+      <div class="cabecalho-pagina">
+        <div>
+          <h1 class="page-title">Controle de Despesas</h1>
+          <p class="page-sub">Gerencie todas as despesas operacionais</p>
+        </div>
+        <button class="botao-nova-despesa" id="botaoNovaDespesa">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Nova Despesa
+        </button>
+      </div>
+
+      <!-- Cards de resumo: total no mês e média por despesa -->
+      <div class="resumo-financeiro">
+
+        <div class="card cartao-resumo">
+          <div class="icone-resumo icon-red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <div>
+            <p class="rotulo-resumo">Total Mensal</p>
+            <p class="valor-resumo" id="totalMensal">R$ 0,00</p>
+            <p class="detalhe-resumo" id="quantidadeDespesas">0 despesas registradas</p>
+          </div>
+        </div>
+
+        <div class="card cartao-resumo">
+          <div class="icone-resumo icon-blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <div>
+            <p class="rotulo-resumo">Média de Gastos</p>
+            <p class="valor-resumo" id="mediaDespesas">R$ 0,00</p>
+            <p class="detalhe-resumo">Por despesa</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Campo de busca por tipo ou descrição -->
+      <div class="campo-busca">
+        <svg class="icone-busca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="text"
+          class="input-busca"
+          id="campoBusca"
+          placeholder="Buscar por tipo ou descrição..."
+        />
+      </div>
+
+      <!-- Botão que abre/fecha o painel de filtros -->
+      <div class="barra-filtro">
+        <button class="botao-filtro" id="botaoFiltro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filtro
+        </button>
+      </div>
+
+      <!-- Painel de filtros avançados (oculto por padrão) -->
+      <div class="painel-filtros" id="painelFiltros">
+        <p class="titulo-filtros">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filtrar por:
+        </p>
+        <div class="campos-filtro">
+          <div class="grupo-filtro">
+            <label class="label-filtro">Data</label>
+            <input type="date" class="input-filtro" id="filtroData" />
+          </div>
+          <div class="grupo-filtro">
+            <label class="label-filtro">Valor mínimo</label>
+            <input type="number" class="input-filtro" id="filtroMin" placeholder="R$ 0,00" min="0" step="0.01" />
+          </div>
+          <div class="grupo-filtro">
+            <label class="label-filtro">Valor máximo</label>
+            <input type="number" class="input-filtro" id="filtroMax" placeholder="R$ 0,00" min="0" step="0.01" />
+          </div>
+          <div class="grupo-filtro grupo-botao-limpar">
+            <button class="botao-limpar-filtros" id="botaoLimparFiltros">Limpar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela de despesas -->
+      <div class="card tabela-despesas-wrapper">
+        <table class="tabela-despesas" id="tabelaDespesas" style="display: none;">
+          <thead>
+            <tr>
+              <th>TIPO</th>
+              <th>VALOR</th>
+              <th>DESCRIÇÃO</th>
+              <th>DATA</th>
+              <th>AÇÕES</th>
+            </tr>
+          </thead>
+          <tbody id="linhasDespesas">
+            <!-- Preenchido pelo JavaScript -->
+          </tbody>
+        </table>
+        <!-- Exibido quando não há despesas ou nenhum resultado na busca -->
+        <div class="aviso-vazio" id="avisoVazio">
+          Nenhuma despesa cadastrada ainda.
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL: NOVA DESPESA / EDITAR DESPESA -->
+  <div class="fundo-modal" id="fundoModal">
+    <div class="caixa-modal" role="dialog" aria-modal="true" aria-labelledby="tituloModal">
+      <h2 class="titulo-modal" id="tituloModal">Nova Despesa</h2>
+
+      <div class="grupo-campo">
+        <label class="label-campo" for="campTipo">Tipo de Despesa</label>
+        <select class="select-campo" id="campTipo">
+          <option value="">Selecione...</option>
+          <option value="Combustível">Combustível</option>
+          <option value="Manutenção Mecânica">Manutenção Mecânica</option>
+          <option value="Pneus">Pneus</option>
+          <option value="Seguro">Seguro</option>
+          <option value="Licenciamento">Licenciamento</option>
+          <option value="Lavagem">Lavagem</option>
+          <option value="Outros">Outros</option>
+        </select>
+        <span class="mensagem-erro" id="erroTipo"></span>
+      </div>
+
+      <div class="grupo-campo">
+        <label class="label-campo" for="campValor">Valor (R$)</label>
+        <input type="number" class="input-campo" id="campValor" placeholder="0,00" min="0.01" step="0.01" />
+        <span class="mensagem-erro" id="erroValor"></span>
+      </div>
+
+      <div class="grupo-campo">
+        <label class="label-campo" for="campData">Data</label>
+        <input type="date" class="input-campo" id="campData" />
+        <span class="mensagem-erro" id="erroData"></span>
+      </div>
+
+      <div class="grupo-campo">
+        <label class="label-campo" for="campDescricao">Descrição</label>
+        <textarea class="textarea-campo" id="campDescricao" placeholder="Informações complementares..." maxlength="255"></textarea>
+        <span class="contador-caracteres" id="contadorCaracteres">0/255 caracteres</span>
+      </div>
+
+      <div class="acoes-modal">
+        <button class="botao-cancelar" id="botaoCancelar">Cancelar</button>
+        <button class="botao-cadastrar" id="botaoCadastrar">Cadastrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!--MODAL: CONFIRMAÇÃO DE EXCLUSÃO-->
+  <div class="fundo-modal" id="fundoModalExcluir">
+    <div class="caixa-modal caixa-modal-pequena" role="dialog" aria-modal="true">
+      <h2 class="titulo-modal">Excluir Despesa</h2>
+      <p class="texto-confirmacao">Tem certeza que deseja excluir esta despesa? Esta ação não pode ser desfeita.</p>
+      <div class="acoes-modal">
+        <button class="botao-cancelar" id="botaoCancelarExclusao">Cancelar</button>
+        <button class="botao-excluir"  id="botaoConfirmarExclusao">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <script  src="js/dashboard.js"></script>
+  <script  src="js/despesas.js"></script>
+</body>
+</html>

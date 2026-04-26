@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTE — Alunos</title>
+
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/alunos.css" />
+</head>
+<body>
+  <div class="fundo-escuro" id="fundoEscuro"></div>
+  <div class="layout">
+    <header class="barra-topo">
+      <button class="botao-menu" id="botaoMenu" aria-label="Abrir menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <span class="nome-sistema-topo">PROTE</span>
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-title">PROTE</div>
+        <div class="logo-sub">Painel Administrativo</div>
+      </div>
+
+      <nav class="nav">
+        <a href="dashboard.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+          </svg>
+          Dashboard
+        </a>
+
+        <a href="despesas.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+          Despesas
+        </a>
+
+        <a href="documentos.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          Vistoria
+        </a>
+
+        <a href="alunos.html" class="nav-item active">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Alunos
+        </a>
+
+        <a href="orcamento.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          Orçamento
+        </a>
+
+        <a href="mensalidade.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          Mensalidades
+        </a>
+
+        <a href="presenca.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          Presença
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="cabecalho-pagina alunos-cabecalho">
+        <div class="alunos-titulos">
+          <h1 class="page-title">Controle de alunos</h1>
+          <p class="page-sub">Gerencie dados dos alunos e responsáveis</p>
+        </div>
+
+        <button class="btn-primary btn-aluno-topo" id="btnAbrirModal" type="button">
+          <span>+</span>
+          Novo aluno
+        </button>
+      </div>
+
+      <div class="campo-busca">
+        <svg class="icone-busca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="inputBusca" class="input-busca" placeholder="Buscar por aluno..." />
+      </div>
+
+      <div class="card table-card tabela-alunos-wrapper">
+        <div class="table-wrapper">
+          <table class="tabela-alunos">
+            <thead>
+              <tr>
+                <th>FOTO</th>
+                <th>ALUNO</th>
+                <th>RESPONSÁVEIS</th>
+                <th>CONTATOS</th>
+                <th>ENDEREÇO EMBARQUE</th>
+                <th>ENDEREÇO DESEMBARQUE</th>
+                <th>AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyAlunos"></tbody>
+          </table>
+        </div>
+
+        <div class="empty-state" id="emptyState">
+          Nenhum aluno cadastrado ainda.
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal-card modal-card-aluno">
+      <div class="modal-header">
+        <h2 id="modalTitulo">Novo aluno</h2>
+        <button class="btn-close" id="btnFecharModal" type="button" aria-label="Fechar">×</button>
+      </div>
+
+      <form id="formAluno">
+        <input type="hidden" id="alunoId" />
+
+        <div class="avatar-modal-aluno" id="avatarModalAluno" aria-hidden="true">
+          <svg id="avatarPlaceholderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M3 7a2 2 0 0 1 2-2h3l1.2-1.6A2 2 0 0 1 10.8 3h2.4a2 2 0 0 1 1.6.8L16 5h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <circle cx="12" cy="12" r="3.6"></circle>
+          </svg>
+          <img id="previewFoto" alt="Pré-visualização da foto do aluno" />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="nomeAluno">Nome do aluno</label>
+          <input type="text" id="nomeAluno" class="input-filtro" placeholder="Digite..." required />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="nomeResponsavel1">Nome do responsável 1</label>
+          <input type="text" id="nomeResponsavel1" class="input-filtro" placeholder="Digite..." required />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="telefoneResponsavel1">Contato 1</label>
+          <input type="text" id="telefoneResponsavel1" class="input-filtro" placeholder="(00) 00000-0000" required />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="nomeResponsavel2">Nome do responsável 2</label>
+          <input type="text" id="nomeResponsavel2" class="input-filtro" placeholder="Digite..." />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="telefoneResponsavel2">Contato 2</label>
+          <input type="text" id="telefoneResponsavel2" class="input-filtro" placeholder="(00) 00000-0000" />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="enderecoEmbarque">Endereço de embarque</label>
+          <input type="text" id="enderecoEmbarque" class="input-filtro" placeholder="Digite..." required />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="enderecoDesembarque">Endereço de desembarque</label>
+          <input type="text" id="enderecoDesembarque" class="input-filtro" placeholder="Digite..." required />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="fotoAluno">Foto do aluno</label>
+          <input type="file" id="fotoAluno" class="input-arquivo" accept="image/*" />
+        </div>
+
+        <div class="info-box">
+          Somente o condutor poderá ter acesso a esta área quando o controle de acesso for integrado ao back-end.
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancelar">Cancelar</button>
+          <button type="submit" class="btn-primary solid">Cadastrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/alunos.js"></script>
+
+</body>
+</html>

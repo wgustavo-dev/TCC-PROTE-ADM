@@ -1,0 +1,447 @@
+.cabecalho-mensalidades {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+/* */
+.titulo-mensalidades {
+  color: var(--cor-principal);
+}
+
+.botao-primario-mensalidade {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--cor-principal);
+  color: #fff;
+  border: none;
+  border-radius: var(--arredondamento-medio);
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.botao-primario-mensalidade:hover {
+  background: var(--cor-principal-escura);
+}
+
+.botao-primario-mensalidade:active {
+  transform: scale(0.97);
+}
+
+.icone-botao-topo {
+  width: 16px;
+  height: 16px;
+}
+
+.resumo-mensalidades {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.card-resumo {
+  padding: 14px;
+}
+
+.linha-resumo-topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.icone-resumo {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--arredondamento-medio);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13.5px;
+}
+
+.icone-resumo.azul {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.icone-resumo.verde {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.icone-resumo.vermelho {
+  background: #fee2e2;
+  color: var(--vermelho);
+}
+
+.icone-resumo.amarelo {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.titulo-card-resumo {
+  font-size: 13px;
+  color: var(--texto-secundario);
+}
+
+.valor-card-resumo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--texto-primario);
+  margin-bottom: 2px;
+}
+
+.descricao-card-resumo {
+  font-size: 11px;
+  color: var(--texto-suave);
+}
+
+.caixa-busca-mensalidade {
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.campo-busca-com-icone {
+  position: relative;
+}
+
+.icone-busca {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--texto-suave);
+}
+
+.input-busca-mensalidade {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  padding: 0 14px 0 42px;
+  font-size: 13.5px;
+  outline: none;
+  background: var(--fundo-card);
+  color: var(--texto-primario);
+}
+
+.input-busca-mensalidade:focus {
+  border-color: var(--cor-principal);
+}
+
+.tabela-mensalidades-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tabela-responsiva {
+  overflow-x: auto;
+}
+
+.tabela-mensalidades {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+
+.tabela-mensalidades thead th {
+  font-size: 12px;
+  color: var(--texto-secundario);
+  font-weight: 700;
+  text-align: left;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--borda);
+  background: var(--fundo-card);
+  white-space: nowrap;
+}
+
+.tabela-mensalidades tbody td {
+  font-size: 13px;
+  color: var(--texto-primario);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--borda);
+  vertical-align: middle;
+}
+
+.tabela-mensalidades tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.celula-aluno {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-tabela {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #b6b6b6;
+  flex-shrink: 0;
+}
+
+.nome-aluno {
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  height: 22px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.status-pago {
+  background: #d9f99d;
+  color: #16a34a;
+}
+
+.status-atrasado {
+  background: #fecaca;
+  color: var(--vermelho);
+}
+
+.status-pendente {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.lista-contatos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.area-acoes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.botao-acao {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--cor-principal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.botao-acao:hover {
+  color: var(--cor-principal-escura);
+}
+
+.icone-acao {
+  width: 16px;
+  height: 16px;
+}
+
+.aviso-vazio {
+  display: none;
+  padding: 28px 18px;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.fundo-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
+}
+
+.fundo-modal.ativo {
+  display: flex;
+}
+
+.caixa-modal {
+  width: 100%;
+  max-width: 460px;
+  background: var(--fundo-card);
+  border-radius: var(--arredondamento-grande);
+  overflow: hidden;
+  max-height: calc(100vh - 44px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+.titulo-modal {
+  font-size: 20px;
+  font-weight: 700;
+  padding: 1.75rem 1.75rem 1.25rem;
+  border-bottom: 1px solid var(--borda);
+}
+
+.conteudo-modal-mensalidade {
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  padding-right: 1rem;
+  margin-right: 0.25rem;
+}
+
+.bloco-aluno-modal {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 1rem 1.75rem 0;
+}
+
+.avatar-aluno {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #b6b6b6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+}
+
+.dados-aluno-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--texto-secundario);
+}
+
+.grupo-campo {
+  padding: 0 1.75rem;
+  margin-top: 16px;
+}
+
+.label-campo {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--texto-secundario);
+  font-weight: 600;
+}
+
+.input-campo {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  padding: 0 12px;
+  font-size: 13.5px;
+  outline: none;
+}
+
+.input-campo:focus {
+  border-color: var(--cor-principal);
+}
+
+.mensagem-erro {
+  display: block;
+  min-height: 16px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--vermelho);
+}
+
+.acoes-modal {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 1.25rem 1.75rem 1.75rem;
+}
+
+.botao-cancelar,
+.botao-cadastrar {
+  min-width: 140px;
+  height: 40px;
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.botao-cancelar {
+  background: var(--fundo-card);
+  color: var(--texto-primario);
+  border: 1px solid var(--borda);
+}
+
+.botao-cadastrar {
+  background: var(--cor-principal);
+  color: #fff;
+  border: none;
+}
+
+.botao-cadastrar:hover {
+  background: var(--cor-principal-escura);
+}
+
+.conteudo-modal-mensalidade::-webkit-scrollbar {
+  width: 10px;
+}
+
+.conteudo-modal-mensalidade::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.conteudo-modal-mensalidade::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.conteudo-modal-mensalidade::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@media (max-width: 900px) {
+  .resumo-mensalidades {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .cabecalho-mensalidades {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .botao-primario-mensalidade {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .resumo-mensalidades {
+    grid-template-columns: 1fr;
+  }
+
+  .acoes-modal {
+    flex-direction: column;
+  }
+
+  .botao-cancelar,
+  .botao-cadastrar {
+    width: 100%;
+  }
+
+  .bloco-aluno-modal {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
