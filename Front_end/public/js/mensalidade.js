@@ -12,7 +12,8 @@ let mensalidades = [
     vencimento: '2026-04-03',
     pagamento: '',
     status: 'atrasado',
-    contato: ['(11) 91234-0000', '(11) 91457-0000']
+    contato: ['(11) 91234-0000', '(11) 91457-0000'],
+    foto: ''
   },
   {
     id: 2,
@@ -22,10 +23,11 @@ let mensalidades = [
     vencimento: '2026-04-20',
     pagamento: '2026-04-10',
     status: 'pago',
-    contato: ['(11) 91234-6159', '(11) 91628-2679']
+    contato: ['(11) 91234-6159', '(11) 91628-2679'],
+    foto: ''
   }
 ];
-/* */
+
 /* ================================
    ELEMENTOS
 ================================ */
@@ -36,7 +38,11 @@ const botaoSalvar = document.getElementById('botaoSalvarMensalidade');
 const campoBusca = document.getElementById('campoBuscaMensalidade');
 const linhasTabela = document.getElementById('linhasMensalidades');
 
+const campoFoto = document.getElementById('campoFotoMensalidade');
+const fotoTopo = document.getElementById('fotoTopoMensalidade');
+
 let idEditando = null;
+let fotoBase64 = '';
 
 /* ================================
    FUNÇÕES AUXILIARES
@@ -116,7 +122,13 @@ function renderizarTabela() {
     <tr>
       <td>
         <div class="celula-aluno">
-          <div class="avatar-tabela"></div>
+          <div class="avatar-tabela">
+            ${
+              item.foto
+                ? `<img src="${item.foto}" class="foto-tabela">`
+                : ''
+            }
+          </div>
           <div class="nome-aluno">${item.aluno}</div>
         </div>
       </td>
@@ -192,6 +204,14 @@ function abrirModalEditar(id) {
   document.getElementById('nomeAlunoModalInfo').textContent = mensalidade.aluno;
   document.getElementById('responsavelModalInfo').textContent = mensalidade.responsavel;
 
+  fotoBase64 = mensalidade.foto || '';
+
+ const avatarModal = document.getElementById('avatarModal');
+
+if (fotoBase64) {
+  fotoTopo.src = fotoBase64;
+  avatarModal.classList.add('com-foto');
+}
   fundoModal.classList.add('ativo');
 }
 
@@ -210,6 +230,15 @@ function limparCampos() {
 
   document.getElementById('nomeAlunoModalInfo').textContent = 'Novo cadastro';
   document.getElementById('responsavelModalInfo').textContent = 'Responsável';
+
+  fotoBase64 = '';
+
+  if (campoFoto) campoFoto.value = '';
+
+fotoTopo.src = '';
+
+const avatarModal = document.getElementById('avatarModal');
+avatarModal.classList.remove('com-foto');
 }
 
 /* ================================
@@ -235,7 +264,8 @@ function salvarMensalidade() {
     pagamento,
     vencimento,
     status: statusPorDatas(pagamento, vencimento),
-    contato: contatoTexto.split(',').map((fone) => fone.trim()).filter(Boolean)
+    contato: contatoTexto.split(',').map((fone) => fone.trim()).filter(Boolean),
+    foto: fotoBase64
   };
 
   if (idEditando) {
@@ -252,6 +282,29 @@ function salvarMensalidade() {
   fecharModal();
   renderizarTabela();
   atualizarResumo();
+}
+
+/* ================================
+   EVENTO DA FOTO
+================================ */
+if (campoFoto) {
+  campoFoto.addEventListener('change', () => {
+    const file = campoFoto.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      fotoBase64 = reader.result;
+
+    fotoTopo.src = fotoBase64;
+
+const avatarModal = document.getElementById('avatarModal');
+avatarModal.classList.add('com-foto');
+    };
+
+    reader.readAsDataURL(file);
+  });
 }
 
 /* ================================
