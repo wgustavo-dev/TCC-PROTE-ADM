@@ -139,14 +139,21 @@ function configurarFormulario() {
     }
 
     try {
-      // Espaço para o back-end depois:
-      // const metodo = payload.id ? 'PUT' : 'POST';
-      // const url = payload.id ? `/api/documentos/${payload.id}` : '/api/documentos';
+      const id = documentoId.value;
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `/api/documentos/${id}` : '/api/documentos';
 
-      console.log('Payload pronto para envio ao backend:', payload);
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-      fecharModal();
+      if (!response.ok) throw new Error('Erro ao salvar');
+
+      await carregarDocumentosDoBackend();
       renderizarTudo();
+      fecharModal();
     } catch (error) {
       console.error(error);
       alert('Não foi possível salvar o documento.');
@@ -161,11 +168,10 @@ function montarPayloadFormulario() {
   const status = validade ? calcularStatus(validade) : '';
 
   return {
-    id: documentoId.value || null,
-    tipo,
-    dataRealizacao: realizacao,
-    dataValidade: validade,
-    status
+    tipo_documento: tipo,
+    data_emissao: realizacao,
+    data_validade: validade,
+    status: status === 'vencido' ? 'VENCIDO' : 'VALIDO'
   };
 }
 
@@ -188,12 +194,17 @@ function atualizarPreviewDocumento() {
 
 async function carregarDocumentosDoBackend() {
   try {
-    // Espaço para o back-end depois:
-    // const response = await fetch('/api/documentos');
-    // if (!response.ok) throw new Error('Erro ao buscar documentos');
-    // documentos = await response.json();
+    const response = await fetch('/api/documentos');
+    if (!response.ok) throw new Error('Erro ao buscar documentos');
+    const dados = await response.json();
 
-    documentos = [];
+    documentos = dados.map((doc) => ({
+      id: doc.id_documento,
+      tipo: doc.tipo_documento,
+      dataRealizacao: doc.data_emissao ? doc.data_emissao.split('T')[0] : '',
+      dataValidade: doc.data_validade ? doc.data_validade.split('T')[0] : '',
+      status: calcularStatus(doc.data_validade ? doc.data_validade.split('T')[0] : '')
+    }));
   } catch (error) {
     console.error('Erro ao carregar documentos:', error);
     documentos = [];
@@ -368,10 +379,9 @@ tbodyDocumentos.addEventListener('click', async (event) => {
     if (!confirmar) return;
 
     try {
-      // Espaço para o back-end depois:
-      // await fetch(`/api/documentos/${id}`, { method: 'DELETE' });
-
-      console.log('Excluir documento no backend. ID:', id);
+      const response = await fetch(`/api/documentos/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Erro ao excluir');
+      await carregarDocumentosDoBackend();
       renderizarTudo();
     } catch (error) {
       console.error(error);

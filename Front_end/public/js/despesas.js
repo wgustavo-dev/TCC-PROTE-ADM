@@ -1,34 +1,32 @@
 /* 
    DADOS
-   Carrega do localStorage. Começa vazio — sem dados
-   de exemplo, pois o usuário vai cadastrar os seus.
+   Carrega da API /api/despesas
 */
-var CHAVE_STORAGE = 'rotaescolar_despesas';
+var API_BASE = '/api';
 
-function carregarDespesas() {
+async function carregarDespesas() {
   try {
-    var salvo = localStorage.getItem(CHAVE_STORAGE);
-    if (salvo) return JSON.parse(salvo);
+    var response = await fetch(API_BASE + '/despesas');
+    if (!response.ok) throw new Error('Erro ao buscar despesas');
+    var dados = await response.json();
+    /* Mapear do banco para frontend - ajustar campos conforme modelo */
+    return dados.map(function(d) {
+      return {
+        id: d.id_despesa,
+        tipo: d.tipo,
+        valor: d.valor,
+        data: d.data,
+        descricao: d.descricao
+      };
+    });
   } catch (e) {
-    console.error('Erro ao ler localStorage:', e);
+    console.error('Erro ao carregar despesas:', e);
   }
-  return []; /* sem dados de exemplo — começa zerado */
-}
-/* */
-function salvarDespesas(lista) {
-  try {
-    localStorage.setItem(CHAVE_STORAGE, JSON.stringify(lista));
-  } catch (e) {
-    console.error('Erro ao salvar no localStorage:', e);
-  }
+  return [];
 }
 
-var despesas = carregarDespesas();
-
-/* Próximo ID único: maior ID existente + 1, ou 1 se vazio */
-var proximoId = despesas.length
-  ? Math.max.apply(null, despesas.map(function(d) { return d.id; })) + 1
-  : 1;
+var despesas = [];
+var proximoId = 1;
 
 /* ID da despesa em edição ou exclusão no momento */
 var idEmEdicao   = null;
@@ -318,8 +316,7 @@ function validarFormulario() {
 botaoCadastrar.addEventListener('click', function() {
   if (!validarFormulario()) return;
 
-  var novaDespesa = {
-    id:        idEmEdicao || proximoId++,
+  var payload = {
     tipo:      campTipo.value,
     valor:     parseFloat(parseFloat(campValor.value).toFixed(2)),
     data:      campData.value,
@@ -327,17 +324,46 @@ botaoCadastrar.addEventListener('click', function() {
   };
 
   if (idEmEdicao) {
-    /* Substitui o registro existente mantendo a posição na lista */
-    despesas = despesas.map(function(d) {
-      return d.id === idEmEdicao ? novaDespesa : d;
+    /* Edição — PUT ao backend */
+    fetch(API_BASE + '/despesas/' + idEmEdicao, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(response) {
+      if (!response.ok) throw new Error('Erro ao atualizar');
+      return carregarDespesas();
+    })
+    .then(function(lista) {
+      despesas = lista;
+      fecharModal();
+      renderizar();
+    })
+    .catch(function(err) {
+      console.error(err);
+      alert('Erro ao salvar despesa');
     });
   } else {
-    despesas.push(novaDespesa);
+    /* Criação — POST ao backend */
+    fetch(API_BASE + '/despesas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(response) {
+      if (!response.ok) throw new Error('Erro ao criar');
+      return carregarDespesas();
+    })
+    .then(function(lista) {
+      despesas = lista;
+      fecharModal();
+      renderizar();
+    })
+    .catch(function(err) {
+      console.error(err);
+      alert('Erro ao salvar despesa');
+    });
   }
-
-  salvarDespesas(despesas);
-  fecharModal();
-  renderizar();
 });
 
 
@@ -380,11 +406,23 @@ fundoModalExcluir.addEventListener('click', function(e) {
 
 botaoConfirmarExclusao.addEventListener('click', function() {
   if (idEmExclusao !== null) {
-    despesas = despesas.filter(function(d) { return d.id !== idEmExclusao; });
-    salvarDespesas(despesas);
-    idEmExclusao = null;
-    fundoModalExcluir.classList.remove('aberto');
-    renderizar();
+    fetch(API_BASE + '/despesas/' + idEmExclusao, {
+      method: 'DELETE'
+    })
+    .then(function(response) {
+      if (!response.ok) throw new Error('Erro ao deletar');
+      return carregarDespesas();
+    })
+    .then(function(lista) {
+      despesas = lista;
+      idEmExclusao = null;
+      fundoModalExcluir.classList.remove('aberto');
+      renderizar();
+    })
+    .catch(function(err) {
+      console.error(err);
+      alert('Erro ao excluir despesa');
+    });
   }
 });
 
@@ -403,4 +441,10 @@ document.addEventListener('keydown', function(e) {
 /* 
    INICIALIZAÇÃO
 */
-renderizar();
+carregarDespesas().then(function(lista) {
+  despesas = lista;
+  renderizar();
+}).catch(function(err) {
+  console.error('Erro ao inicializar:', err);
+  renderizar();
+});
