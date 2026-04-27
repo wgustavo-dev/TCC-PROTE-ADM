@@ -193,17 +193,43 @@
   color: var(--vermelho);
 }
 
-/* Botão de ação */
+/* Botão de ação — igual ao padrão de despesas */
 .botao-acao {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 15px;
-  color: var(--cor-principal);
+  padding: 4px;
+  border-radius: var(--arredondamento-pequeno);
+  transition: background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.botao-acao:hover {
-  color: var(--cor-principal-escura);
+.botao-acao svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Editar — azul */
+.botao-acao.editar svg    { stroke: var(--cor-principal); }
+.botao-acao.editar:hover  { background: var(--cor-principal-clara); }
+
+/* Aprovar — verde */
+.botao-acao.aprovar svg         { stroke: #16a34a; }
+.botao-acao.aprovar:hover       { background: #dcfce7; }
+.botao-acao.aprovar:disabled    { opacity: 0.35; cursor: default; }
+.botao-acao.aprovar:disabled:hover { background: none; }
+
+/* Excluir — vermelho */
+.botao-acao.excluir svg   { stroke: var(--vermelho); }
+.botao-acao.excluir:hover { background: var(--vermelho-claro); }
+
+/* Linha de ações */
+.coluna-acoes {
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
 
 /* Aviso vazio */
@@ -322,25 +348,7 @@
   flex-shrink: 0;
 }
 
-.botao-acao {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  color: var(--cor-principal);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.icone-editar {
-  width: 16px;
-  height: 16px;
-}
-
-.botao-acao:hover {
-  color: var(--cor-principal-escura);
-}
 
 /* Responsivo */
 @media (max-width: 700px) {

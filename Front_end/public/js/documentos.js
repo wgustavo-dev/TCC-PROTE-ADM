@@ -133,7 +133,7 @@ function configurarFormulario() {
 
     const payload = montarPayloadFormulario();
 
-    if (!payload.tipo || !payload.dataRealizacao) {
+    if (!payload.tipo_documento || !payload.data_emissao) {
       alert('Preencha os campos obrigatórios.');
       return;
     }

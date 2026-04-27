@@ -14,8 +14,8 @@ async function carregarDespesas() {
       return {
         id: d.id_despesa,
         tipo: d.tipo,
-        valor: d.valor,
-        data: d.data,
+        valor: parseFloat(d.valor) || 0,
+        data: d.data ? (typeof d.data === 'string' ? d.data.split('T')[0] : d.data) : '',
         descricao: d.descricao
       };
     });

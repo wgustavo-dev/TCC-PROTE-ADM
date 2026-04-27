@@ -28,7 +28,7 @@ if (botao) {
   botao.addEventListener('click', () => {
     idEmEdicao = null;
     limparFormularioOrcamento();
-    modal.classList.add('aberto');
+    modal.classList.add('ativo');
   });
 }
 
@@ -37,7 +37,7 @@ if (botao) {
 ================================ */
 if (cancelar) {
   cancelar.addEventListener('click', () => {
-    modal.classList.remove('aberto');
+    modal.classList.remove('ativo');
   });
 }
 
@@ -47,7 +47,7 @@ if (cancelar) {
 if (modal) {
   modal.addEventListener('click', (event) => {
     if (event.target.id === 'fundoModal') {
-      modal.classList.remove('aberto');
+      modal.classList.remove('ativo');
     }
   });
 }
@@ -79,19 +79,23 @@ async function carregarOrcamentos() {
     const response = await fetch(`${API_BASE}/orcamentos`);
     if (!response.ok) throw new Error('Erro ao buscar orçamentos');
     const dados = await response.json();
-    orcamentos = dados.map((o) => ({
-      id: o.id_orcamento,
-      nome: o.nome_cliente,
-      telefone: o.telefone,
-      bairro: o.bairro,
-      escola: o.escola,
-      turno: o.turno,
-      tipo_trajeto: o.tipo_trajeto,
-      endereco_embarque: o.endereco_embarque,
-      endereco_desembarque: o.endereco_desembarque,
-      status: (o.status || 'pendente').toLowerCase(),
-      data_solicitacao: o.data_solicitacao
-    }));
+    orcamentos = dados.map((o) => {
+      let statusRaw = (o.status || 'pendente').toLowerCase();
+      if (statusRaw === 'recusado') statusRaw = 'reprovado';
+      return {
+        id: o.id_orcamento,
+        nome: o.nome_cliente,
+        telefone: o.telefone,
+        bairro: o.bairro,
+        escola: o.escola,
+        turno: o.turno,
+        tipo_trajeto: o.tipo_trajeto,
+        endereco_embarque: o.endereco_embarque,
+        endereco_desembarque: o.endereco_desembarque,
+        status: statusRaw,
+        data_solicitacao: o.data_solicitacao
+      };
+    });
   } catch (error) {
     console.error('Erro ao carregar orçamentos:', error);
     orcamentos = [];
@@ -119,11 +123,29 @@ function renderizarOrcamentos() {
       <td>${o.tipo_trajeto || '-'}</td>
       <td>${o.endereco_embarque || '-'}</td>
       <td>${o.endereco_desembarque || '-'}</td>
-      <td><span class="badge-status ${o.status}">${o.status.toUpperCase()}</span></td>
+      <td><span class="status-badge status-${o.status}">${o.status.toUpperCase()}</span></td>
       <td>
-        <button class="botao-acao editar" data-id="${o.id}" title="Editar">Editar</button>
-        <button class="botao-acao aprovar" data-id="${o.id}" title="Aprovar" ${o.status !== 'pendente' ? 'disabled' : ''}>Aprovar</button>
-        <button class="botao-acao excluir" data-id="${o.id}" title="Excluir">Excluir</button>
+        <div class="coluna-acoes">
+          <button class="botao-acao editar" data-id="${o.id}" title="Editar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button class="botao-acao aprovar" data-id="${o.id}" title="Aprovar" ${o.status !== 'pendente' ? 'disabled' : ''}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </button>
+          <button class="botao-acao excluir" data-id="${o.id}" title="Excluir">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6"/><path d="M14 11v6"/>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+          </button>
+        </div>
       </td>
     </tr>
   `).join('');
