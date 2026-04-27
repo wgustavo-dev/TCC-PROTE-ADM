@@ -262,7 +262,10 @@ function atualizarContador() {
 }
 
 /* Abre modal de criação ao clicar no botão */
-botaoNovaDespesa.addEventListener('click', function() { abrirModal(null); });
+botaoNovaDespesa.addEventListener('click', function() { 
+  console.log('Botão nova despesa clicado');
+  abrirModal(null); 
+});
 
 /* Fecha ao clicar em Cancelar ou fora da caixa do modal */
 botaoCancelar.addEventListener('click', fecharModal);
