@@ -28,7 +28,7 @@ if (botao) {
   botao.addEventListener('click', () => {
     idEmEdicao = null;
     limparFormularioOrcamento();
-    modal.classList.add('ativo');
+    modal.classList.add('aberto');
   });
 }
 
@@ -37,7 +37,7 @@ if (botao) {
 ================================ */
 if (cancelar) {
   cancelar.addEventListener('click', () => {
-    modal.classList.remove('ativo');
+    modal.classList.remove('aberto');
   });
 }
 
@@ -47,7 +47,7 @@ if (cancelar) {
 if (modal) {
   modal.addEventListener('click', (event) => {
     if (event.target.id === 'fundoModal') {
-      modal.classList.remove('ativo');
+      modal.classList.remove('aberto');
     }
   });
 }
