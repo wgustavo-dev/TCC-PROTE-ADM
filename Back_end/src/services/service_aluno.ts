@@ -10,7 +10,6 @@ export class ServiceAluno{
     const alunos = await alunoRepository.find({
         relations:{
             responsavel: true,
-            condutor:true,
         },
     });
     
@@ -24,7 +23,6 @@ export class ServiceAluno{
             where: { id_aluno: id},
             relations:{
                 responsavel: true,
-                condutor:true,
             },
         });
 
