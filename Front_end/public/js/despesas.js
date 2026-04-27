@@ -444,10 +444,12 @@ document.addEventListener('keydown', function(e) {
 /* 
    INICIALIZAÇÃO
 */
-carregarDespesas().then(function(lista) {
-  despesas = lista;
-  renderizar();
-}).catch(function(err) {
-  console.error('Erro ao inicializar:', err);
-  renderizar();
+window.addEventListener('load', function() {
+  carregarDespesas().then(function(lista) {
+    despesas = lista;
+    renderizar();
+  }).catch(function(err) {
+    console.error('Erro ao inicializar:', err);
+    renderizar();
+  });
 });
