@@ -48,9 +48,3 @@ Thumbs.db
 tmp/
 temp/
 
-# =========================
-# DATABASE (caso use dump local)
-# =========================
-*.sql
-*.sqlite
-*.db
