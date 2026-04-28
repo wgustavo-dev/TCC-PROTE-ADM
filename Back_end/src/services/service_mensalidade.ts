@@ -2,87 +2,108 @@ import { AppDataSource } from "../config/database";
 import { Mensalidade } from "../models/model_mensalidade";
 
 
-export class ServiceMensalidade{
+export class ServiceMensalidade {
 
-    async listar(){
+    async listar() {
+
+        await this.atualizarMensalidadesAtrasadas();
+
         const repo = AppDataSource.getRepository(Mensalidade);
 
         const mensalidade = await repo.find({
-            relations:{
-                aluno:true
+            relations: {
+                aluno: true
             }
         })
 
         return mensalidade
     }
 
-    async buscarPorId(id: number){
+    async buscarPorId(id: number) {
+
+        await this.atualizarMensalidadesAtrasadas();
+
         const repo = AppDataSource.getRepository(Mensalidade);
 
         const mensalidade = await repo.findOne({
-            where:{id_mensalidade:id},
-            relations:{
-                aluno:true
+            where: { id_mensalidade: id },
+            relations: {
+                aluno: true
             }
         })
 
         return mensalidade
     }
 
-    async criar(dados: Partial<Mensalidade>){
-        const repo=AppDataSource.getRepository(Mensalidade)
+    async criar(dados: Partial<Mensalidade>) {
+        const repo = AppDataSource.getRepository(Mensalidade)
 
-        const  mensalidade = repo.create(dados)
+        const mensalidade = repo.create(dados)
         await repo.save(mensalidade)
 
         return mensalidade
     }
 
-    async atualizar(id:number, dados:Partial<Mensalidade>){
+    async atualizar(id: number, dados: Partial<Mensalidade>) {
         const repo = AppDataSource.getRepository(Mensalidade)
 
         const mensalidade = await repo.findOne({
-            where:{id_mensalidade:id}
+            where: { id_mensalidade: id }
         })
 
-        if (!mensalidade){
-            throw new Error ("Mensalidade Não encontrada")
+        if (!mensalidade) {
+            throw new Error("Mensalidade Não encontrada")
         }
 
-        repo.merge(mensalidade,dados);
+        repo.merge(mensalidade, dados);
         await repo.save(mensalidade)
 
         return mensalidade;
     }
 
-    async deletar(id:number){
+    async deletar(id: number) {
         const repo = AppDataSource.getRepository(Mensalidade)
         const mensalidade = await repo.findOne({
-            where:{id_mensalidade:id}
+            where: { id_mensalidade: id }
         })
 
-        if(!mensalidade){
-            throw new Error (" Mensalidade não encontrada")
+        if (!mensalidade) {
+            throw new Error(" Mensalidade não encontrada")
         }
 
         await repo.remove(mensalidade)
-        return {message:"Mensalidade Removida"}
+        return { message: "Mensalidade Removida" }
     }
 
-    async marcarComoPago (id:number){
+    async marcarComoPago(id: number) {
         const repo = AppDataSource.getRepository(Mensalidade)
         const mensalidade = await repo.findOne({
-            where: {id_mensalidade:id}
+            where: { id_mensalidade: id }
         })
 
-        if(!mensalidade){
-            throw new Error ("Mensalidade não encontrada")
+        if (!mensalidade) {
+            throw new Error("Mensalidade não encontrada")
         }
 
-        mensalidade.status="PAGO"
+        mensalidade.status = "PAGO"
         mensalidade.data_pagamento = new Date
 
         await repo.save(mensalidade)
         return mensalidade
+    }
+
+    //mensalidade atualiza se estiver atrasada
+    async atualizarMensalidadesAtrasadas() {
+        const repo = AppDataSource.getRepository(Mensalidade);
+
+        await repo
+            .createQueryBuilder()
+            .update(Mensalidade)
+            .set({ status: "ATRASADO" })
+            .where("data_vencimento < CURDATE()")
+            .andWhere("status = :status", { status: "PENDENTE" })
+            .execute();
+
+        return { message: "Mensalidades atrasadas atualizadas" };
     }
 }

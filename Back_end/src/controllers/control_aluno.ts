@@ -29,15 +29,18 @@ export class ControlAluno {
 
     async criar(req: Request, res: Response) {
         try {
-
-
             const dados = req.body;
-            const aluno = await service.criar(dados);
 
+            if (req.file) {
+                dados.foto = `/uploads/alunos/${req.file.filename}`;
+            }
+
+            const aluno = await service.criar(dados);
             return res.status(201).json(aluno);
 
         } catch (error: any) {
-            return res.status(400).json({ erro: error.message })
+            
+            return res.status(400).json({ erro: error.message });
         }
     }
 
@@ -47,7 +50,7 @@ export class ControlAluno {
             const dados = req.body;
 
             const aluno = await service.atualizar(Number(id), dados);
-            
+
             return res.json(aluno);
         } catch (error: any) {
             return res.status(400).json({ error: error.message })
