@@ -105,6 +105,7 @@ export class ServiceOrcamento {
     orcamento.status = 'APROVADO';
     orcamento.convertido = true;
     orcamento.data_conversao = new Date();
+    orcamento.id_condutor = 1;
 
     await orcamentoRepository.save(orcamento);
 
