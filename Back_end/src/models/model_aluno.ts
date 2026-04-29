@@ -49,6 +49,9 @@ export class Aluno {
   @Column({ type: "int", nullable: true })
   id_condutor!: number;
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  foto!: string;
+
   @ManyToOne(() => Responsavel, { nullable: true })
   @JoinColumn({ name: "id_responsavel" })
   responsavel!: Responsavel;

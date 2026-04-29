@@ -135,6 +135,9 @@ CREATE TABLE documento (
     FOREIGN KEY (id_condutor) REFERENCES condutor(id_condutor)
 );
 
+--alterando a tabela alunos porque agora eles tem que ter foto
+ALTER TABLE aluno
+ADD foto VARCHAR(255);
 
 -- Tstando criação de alunos, cada aluno precisa de um resposavel e um condutor(apaga dps)
 

@@ -1,341 +1,239 @@
-console.log('mensalidades.js carregou');
-
-/* ================================
-   DADOS INICIAIS
-================================ */
-let mensalidades = [
-  {
-    id: 1,
-    aluno: 'João Silva',
-    responsavel: 'Filho da Jussara',
-    valor: 300,
-    vencimento: '2026-04-03',
-    pagamento: '',
-    status: 'atrasado',
-    contato: ['(11) 91234-0000', '(11) 91457-0000'],
-    foto: ''
-  },
-  {
-    id: 2,
-    aluno: 'Maria Souza',
-    responsavel: 'Responsável não informado',
-    valor: 300,
-    vencimento: '2026-04-20',
-    pagamento: '2026-04-10',
-    status: 'pago',
-    contato: ['(11) 91234-6159', '(11) 91628-2679'],
-    foto: ''
-  }
-];
-
-/* ================================
-   ELEMENTOS
-================================ */
-const botaoNova = document.getElementById('botaoNovaMensalidade');
-const fundoModal = document.getElementById('fundoModalMensalidade');
-const botaoCancelar = document.getElementById('botaoCancelarMensalidade');
-const botaoSalvar = document.getElementById('botaoSalvarMensalidade');
-const campoBusca = document.getElementById('campoBuscaMensalidade');
-const linhasTabela = document.getElementById('linhasMensalidades');
-
-const campoFoto = document.getElementById('campoFotoMensalidade');
-const fotoTopo = document.getElementById('fotoTopoMensalidade');
-
+let mensalidades = [];
+let alunos = [];
 let idEditando = null;
-let fotoBase64 = '';
 
-/* ================================
-   FUNÇÕES AUXILIARES
-================================ */
-function formatarBRL(valor) {
-  return 'R$ ' + Number(valor || 0).toLocaleString('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+const botaoNova = document.getElementById("botaoNovaMensalidade");
+const fundoModal = document.getElementById("fundoModalMensalidade");
+const botaoCancelar = document.getElementById("botaoCancelarMensalidade");
+const botaoSalvar = document.getElementById("botaoSalvarMensalidade");
+const campoBusca = document.getElementById("campoBuscaMensalidade");
+const linhasTabela = document.getElementById("linhasMensalidades");
+
+function initMenu() {
+  const botaoMenu = document.getElementById("botaoMenu");
+  const sidebar = document.getElementById("sidebar");
+  const fundoEscuro = document.getElementById("fundoEscuro");
+  if (!botaoMenu || !sidebar || !fundoEscuro) return;
+  botaoMenu.addEventListener("click", () => {
+    sidebar.classList.toggle("aberta");
+    fundoEscuro.classList.toggle("visivel");
+  });
+  fundoEscuro.addEventListener("click", () => {
+    sidebar.classList.remove("aberta");
+    fundoEscuro.classList.remove("visivel");
   });
 }
 
-function formatarData(data) {
-  if (!data) return '—';
-  const partes = data.split('-');
-  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+function formatarBRL(valor) {
+  return "R$ " + Number(valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function statusPorDatas(pagamento, vencimento) {
-  if (pagamento) return 'pago';
+function formatarData(data) {
+  if (!data) return "—";
+  const valor = String(data).slice(0, 10).split("-");
+  return `${valor[2]}/${valor[1]}/${valor[0]}`;
+}
 
-  const hoje = new Date();
-  const dataVencimento = new Date(vencimento + 'T00:00:00');
+function mapearMensalidade(item) {
+  return {
+    id: item.id_mensalidade,
+    idAluno: item.id_aluno,
+    aluno: item.aluno?.nome || `Aluno #${item.id_aluno}`,
+    responsavel: item.aluno?.responsavel?.nome || "Responsavel nao informado",
+    valor: Number(item.valor || 0),
+    vencimento: String(item.data_vencimento || "").slice(0, 10),
+    pagamento: item.data_pagamento ? String(item.data_pagamento).slice(0, 10) : "",
+    status: (item.status || "PENDENTE").toLowerCase(),
+    contato: [item.aluno?.responsavel?.telefone].filter(Boolean),
+    foto: item.aluno?.foto ? `http://localhost:3000${item.aluno.foto}` : "",
+  };
+}
 
-  return dataVencimento < hoje ? 'atrasado' : 'pendente';
+async function carregarDados() {
+  const [respMensalidades, respAlunos] = await Promise.all([window.API.get("/mensalidades"), window.API.get("/alunos")]);
+  mensalidades = (respMensalidades || []).map(mapearMensalidade);
+  alunos = respAlunos || [];
 }
 
 function badgeStatus(status) {
-  if (status === 'pago') {
-    return `<span class="status-badge status-pago">✔</span>`;
-  }
-
-  if (status === 'atrasado') {
-    return `<span class="status-badge status-atrasado">⚠</span>`;
-  }
-
+  if (status === "pago") return `<span class="status-badge status-pago">✔</span>`;
+  if (status === "atrasado") return `<span class="status-badge status-atrasado">⚠</span>`;
   return `<span class="status-badge status-pendente">◌</span>`;
 }
 
-function iconeEditar() {
-  return `
-    <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 20h9"/>
-      <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
-    </svg>
-  `;
+function atualizarResumo() {
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = String(value);
+  };
+
+  setText("resumoTotal", formatarBRL(mensalidades.reduce((acc, x) => acc + x.valor, 0)));
+  setText("resumoPago", mensalidades.filter((x) => x.status === "pago").length);
+  setText("resumoAtrasadas", mensalidades.filter((x) => x.status === "atrasado").length);
+  setText("resumoPendentes", mensalidades.filter((x) => x.status === "pendente").length);
 }
 
-function iconeMensagem() {
-  return `
-    <svg class="icone-acao" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
-  `;
-}
-
-/* ================================
-   RENDERIZAR TABELA
-================================ */
 function renderizarTabela() {
   const busca = campoBusca.value.toLowerCase().trim();
-
-  const listaFiltrada = mensalidades.filter((item) =>
-    item.aluno.toLowerCase().includes(busca)
-  );
+  const listaFiltrada = mensalidades.filter((item) => item.aluno.toLowerCase().includes(busca));
 
   if (!listaFiltrada.length) {
-    linhasTabela.innerHTML = '';
-    document.getElementById('tabelaMensalidades').style.display = 'none';
-    document.getElementById('avisoVazioMensalidade').style.display = 'block';
+    linhasTabela.innerHTML = "";
+    document.getElementById("tabelaMensalidades").style.display = "none";
+    document.getElementById("avisoVazioMensalidade").style.display = "block";
     return;
   }
 
-  document.getElementById('tabelaMensalidades').style.display = 'table';
-  document.getElementById('avisoVazioMensalidade').style.display = 'none';
+  document.getElementById("tabelaMensalidades").style.display = "table";
+  document.getElementById("avisoVazioMensalidade").style.display = "none";
 
-  linhasTabela.innerHTML = listaFiltrada.map((item) => `
+  linhasTabela.innerHTML = listaFiltrada
+    .map(
+      (item) => `
     <tr>
-      <td>
-        <div class="celula-aluno">
-          <div class="avatar-tabela">
-            ${
-              item.foto
-                ? `<img src="${item.foto}" class="foto-tabela">`
-                : ''
-            }
-          </div>
-          <div class="nome-aluno">${item.aluno}</div>
-        </div>
-      </td>
+      <td><div class="celula-aluno"><div class="avatar-tabela">${item.foto ? `<img src="${item.foto}" class="foto-tabela">` : ""}</div><div class="nome-aluno">${item.aluno}</div></div></td>
       <td>${formatarBRL(item.valor)}</td>
       <td>${formatarData(item.vencimento)}</td>
       <td>${badgeStatus(item.status)}</td>
       <td>${formatarData(item.pagamento)}</td>
-      <td>
-        <div class="lista-contatos">
-          ${item.contato.map((fone) => `<span>${fone}</span>`).join('')}
-        </div>
-      </td>
-      <td>
-        <div class="area-acoes">
-          <button class="botao-acao" data-acao="editar" data-id="${item.id}" title="Editar">
-            ${iconeEditar()}
-          </button>
-          <button class="botao-acao" data-acao="mensagem" data-id="${item.id}" title="Mensagem">
-            ${iconeMensagem()}
-          </button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
+      <td><div class="lista-contatos">${item.contato.map((fone) => `<span>${fone}</span>`).join("")}</div></td>
+      <td><div class="area-acoes">
+        <button class="botao-acao" data-acao="editar" data-id="${item.id}" title="Editar" aria-label="Editar mensalidade">
+          <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+          </svg>
+        </button>
+        <button class="botao-acao" data-acao="pagar" data-id="${item.id}" title="Marcar pago" aria-label="Marcar mensalidade como paga">
+          <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+        <button class="botao-acao" data-acao="excluir" data-id="${item.id}" title="Excluir" aria-label="Excluir mensalidade">
+          <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6l-1 14H6L5 6"></path>
+            <path d="M10 11v6"></path>
+            <path d="M14 11v6"></path>
+            <path d="M9 6V4h6v2"></path>
+          </svg>
+        </button>
+      </div></td>
+    </tr>`
+    )
+    .join("");
 }
 
-/* ================================
-   RESUMO
-================================ */
-function atualizarResumo() {
-  const total = mensalidades.reduce((soma, item) => soma + Number(item.valor || 0), 0);
-  const pago = mensalidades.filter((item) => item.status === 'pago').length;
-  const atrasadas = mensalidades.filter((item) => item.status === 'atrasado').length;
-  const pendentes = mensalidades.filter((item) => item.status === 'pendente').length;
-
-  document.getElementById('resumoTotal').textContent = formatarBRL(total);
-  document.getElementById('resumoPago').textContent = pago;
-  document.getElementById('resumoAtrasadas').textContent = atrasadas;
-  document.getElementById('resumoPendentes').textContent = pendentes;
+function preencherDadosModal(item) {
+  document.getElementById("campoIdMensalidade").value = item?.id || "";
+  document.getElementById("campoAlunoMensalidade").value = item?.aluno || "";
+  document.getElementById("campoValorMensalidade").value = item?.valor || "";
+  document.getElementById("campoPagamentoMensalidade").value = item?.pagamento || "";
+  document.getElementById("campoVencimentoMensalidade").value = item?.vencimento || "";
+  document.getElementById("campoContatoMensalidade").value = (item?.contato || []).join(", ");
+  document.getElementById("campoResponsavelMensalidade").value = item?.responsavel || "";
+  document.getElementById("nomeAlunoModalInfo").textContent = item?.aluno || "Novo cadastro";
+  document.getElementById("responsavelModalInfo").textContent = item?.responsavel || "Responsavel";
 }
 
-/* ================================
-   MODAL
-================================ */
 function abrirModalNova() {
   idEditando = null;
-
-  document.getElementById('tituloModalMensalidade').textContent = 'Nova mensalidade';
-  botaoSalvar.textContent = 'Cadastrar';
-
-  limparCampos();
-
-  fundoModal.classList.add('ativo');
+  document.getElementById("tituloModalMensalidade").textContent = "Nova mensalidade";
+  botaoSalvar.textContent = "Cadastrar";
+  preencherDadosModal(null);
+  fundoModal.classList.add("ativo");
 }
 
 function abrirModalEditar(id) {
-  const mensalidade = mensalidades.find((item) => item.id === Number(id));
-  if (!mensalidade) return;
-
-  idEditando = mensalidade.id;
-
-  document.getElementById('tituloModalMensalidade').textContent = 'Editar mensalidade';
-  botaoSalvar.textContent = 'Editar';
-
-  document.getElementById('campoIdMensalidade').value = mensalidade.id;
-  document.getElementById('campoAlunoMensalidade').value = mensalidade.aluno;
-  document.getElementById('campoValorMensalidade').value = mensalidade.valor;
-  document.getElementById('campoPagamentoMensalidade').value = mensalidade.pagamento;
-  document.getElementById('campoVencimentoMensalidade').value = mensalidade.vencimento;
-  document.getElementById('campoContatoMensalidade').value = mensalidade.contato.join(', ');
-  document.getElementById('campoResponsavelMensalidade').value = mensalidade.responsavel;
-
-  document.getElementById('nomeAlunoModalInfo').textContent = mensalidade.aluno;
-  document.getElementById('responsavelModalInfo').textContent = mensalidade.responsavel;
-
-  fotoBase64 = mensalidade.foto || '';
-
- const avatarModal = document.getElementById('avatarModal');
-
-if (fotoBase64) {
-  fotoTopo.src = fotoBase64;
-  avatarModal.classList.add('com-foto');
-}
-  fundoModal.classList.add('ativo');
+  const item = mensalidades.find((m) => m.id === Number(id));
+  if (!item) return;
+  idEditando = item.id;
+  document.getElementById("tituloModalMensalidade").textContent = "Editar mensalidade";
+  botaoSalvar.textContent = "Editar";
+  preencherDadosModal(item);
+  fundoModal.classList.add("ativo");
 }
 
 function fecharModal() {
-  fundoModal.classList.remove('ativo');
+  fundoModal.classList.remove("ativo");
 }
 
-function limparCampos() {
-  document.getElementById('campoIdMensalidade').value = '';
-  document.getElementById('campoAlunoMensalidade').value = '';
-  document.getElementById('campoValorMensalidade').value = '';
-  document.getElementById('campoPagamentoMensalidade').value = '';
-  document.getElementById('campoVencimentoMensalidade').value = '';
-  document.getElementById('campoContatoMensalidade').value = '';
-  document.getElementById('campoResponsavelMensalidade').value = '';
-
-  document.getElementById('nomeAlunoModalInfo').textContent = 'Novo cadastro';
-  document.getElementById('responsavelModalInfo').textContent = 'Responsável';
-
-  fotoBase64 = '';
-
-  if (campoFoto) campoFoto.value = '';
-
-fotoTopo.src = '';
-
-const avatarModal = document.getElementById('avatarModal');
-avatarModal.classList.remove('com-foto');
+function idAlunoPorNome(nomeAluno) {
+  const aluno = alunos.find((item) => item.nome?.trim().toLowerCase() === nomeAluno.trim().toLowerCase());
+  return aluno?.id_aluno || null;
 }
 
-/* ================================
-   SALVAR
-================================ */
-function salvarMensalidade() {
-  const aluno = document.getElementById('campoAlunoMensalidade').value.trim();
-  const valor = document.getElementById('campoValorMensalidade').value.trim();
-  const pagamento = document.getElementById('campoPagamentoMensalidade').value;
-  const vencimento = document.getElementById('campoVencimentoMensalidade').value;
-  const contatoTexto = document.getElementById('campoContatoMensalidade').value.trim();
-  const responsavel = document.getElementById('campoResponsavelMensalidade').value.trim();
+async function salvarMensalidade() {
+  const nomeAluno = document.getElementById("campoAlunoMensalidade").value.trim();
+  const valor = Number(document.getElementById("campoValorMensalidade").value || 0);
+  const pagamento = document.getElementById("campoPagamentoMensalidade").value;
+  const vencimento = document.getElementById("campoVencimentoMensalidade").value;
+  const idAluno = idAlunoPorNome(nomeAluno);
 
-  if (!aluno || !valor || !vencimento || !contatoTexto || !responsavel) {
-    alert('Preencha todos os campos obrigatórios.');
+  if (!nomeAluno || !valor || !vencimento || !idAluno) {
+    alert("Preencha os campos obrigatorios. O nome do aluno deve existir no cadastro.");
     return;
   }
 
-  const dados = {
-    aluno,
-    responsavel,
-    valor: Number(valor),
-    pagamento,
-    vencimento,
-    status: statusPorDatas(pagamento, vencimento),
-    contato: contatoTexto.split(',').map((fone) => fone.trim()).filter(Boolean),
-    foto: fotoBase64
+  const payload = {
+    id_aluno: idAluno,
+    valor,
+    data_vencimento: vencimento,
+    data_pagamento: pagamento || null,
+    status: pagamento ? "PAGO" : "PENDENTE",
   };
 
-  if (idEditando) {
-    mensalidades = mensalidades.map((item) =>
-      item.id === idEditando ? { ...item, ...dados } : item
-    );
-  } else {
-    mensalidades.push({
-      id: Date.now(),
-      ...dados
-    });
-  }
+  if (idEditando) await window.API.put(`/mensalidades/${idEditando}`, payload);
+  else await window.API.post("/mensalidades", payload);
 
-  fecharModal();
+  await carregarDados();
   renderizarTabela();
   atualizarResumo();
+  fecharModal();
 }
 
-/* ================================
-   EVENTO DA FOTO
-================================ */
-if (campoFoto) {
-  campoFoto.addEventListener('change', () => {
-    const file = campoFoto.files[0];
-    if (!file) return;
+botaoNova.addEventListener("click", abrirModalNova);
+botaoCancelar.addEventListener("click", fecharModal);
+botaoSalvar.addEventListener("click", async () => {
+  try {
+    await salvarMensalidade();
+  } catch (error) {
+    console.error(error);
+    alert("Nao foi possivel salvar a mensalidade.");
+  }
+});
+campoBusca.addEventListener("input", renderizarTabela);
 
-    const reader = new FileReader();
+fundoModal.addEventListener("click", (event) => {
+  if (event.target === fundoModal) fecharModal();
+});
 
-    reader.onload = () => {
-      fotoBase64 = reader.result;
-
-    fotoTopo.src = fotoBase64;
-
-const avatarModal = document.getElementById('avatarModal');
-avatarModal.classList.add('com-foto');
-    };
-
-    reader.readAsDataURL(file);
-  });
-}
-
-/* ================================
-   EVENTOS
-================================ */
-botaoNova.addEventListener('click', abrirModalNova);
-botaoCancelar.addEventListener('click', fecharModal);
-botaoSalvar.addEventListener('click', salvarMensalidade);
-campoBusca.addEventListener('input', renderizarTabela);
-
-fundoModal.addEventListener('click', (event) => {
-  if (event.target === fundoModal) {
-    fecharModal();
+linhasTabela.addEventListener("click", async (event) => {
+  const botao = event.target.closest("[data-acao]");
+  if (!botao) return;
+  const id = botao.dataset.id;
+  const acao = botao.dataset.acao;
+  try {
+    if (acao === "editar") return abrirModalEditar(id);
+    if (acao === "pagar") await window.API.put(`/mensalidades/${id}/pagar`, {});
+    if (acao === "excluir") await window.API.del(`/mensalidades/${id}`);
+    await carregarDados();
+    renderizarTabela();
+    atualizarResumo();
+  } catch (error) {
+    console.error(error);
+    alert("Falha ao executar acao da mensalidade.");
   }
 });
 
-linhasTabela.addEventListener('click', (event) => {
-  const botaoEditar = event.target.closest('[data-acao="editar"]');
-  const botaoMensagem = event.target.closest('[data-acao="mensagem"]');
-
-  if (botaoEditar) {
-    abrirModalEditar(botaoEditar.dataset.id);
-  }
-
-  if (botaoMensagem) {
-    alert('Função de mensagem será adicionada depois.');
+window.addEventListener("DOMContentLoaded", async () => {
+  initMenu();
+  try {
+    await carregarDados();
+    renderizarTabela();
+    atualizarResumo();
+  } catch (error) {
+    console.error(error);
+    alert("Nao foi possivel carregar as mensalidades.");
   }
 });
-
-/* ================================
-   INICIAR
-================================ */
-renderizarTabela();
-atualizarResumo();
