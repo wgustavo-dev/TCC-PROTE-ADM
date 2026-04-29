@@ -97,7 +97,7 @@ export class ServiceOrcamento {
       endereco_embarque: orcamento.endereco_embarque,
       endereco_desembarque: orcamento.endereco_desembarque,
       id_responsavel: responsavel.id_responsavel,
-      id_condutor: orcamento.id_condutor,
+      id_condutor: orcamento.id_condutor = 1,
     });
 
     await alunoRepository.save(aluno);
