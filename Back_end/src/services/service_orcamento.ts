@@ -83,24 +83,30 @@ export class ServiceOrcamento {
       nome: orcamento.nome_cliente,
       telefone: orcamento.telefone,
       endereco: orcamento.bairro,
-      quantidade_alunos: 1,
+      quantidade_alunos: orcamento.quantidade_alunos,
     });
 
     await responsavelRepository.save(responsavel);
 
-    const aluno = alunoRepository.create({
-      nome: 'XXXXX',
-      bairro: orcamento.bairro,
-      escola: orcamento.escola,
-      turno: orcamento.turno,
-      tipo_trajeto: orcamento.tipo_trajeto,
-      endereco_embarque: orcamento.endereco_embarque,
-      endereco_desembarque: orcamento.endereco_desembarque,
-      id_responsavel: responsavel.id_responsavel,
-      id_condutor: orcamento.id_condutor = 1,
-    });
+    const alunos = [];
+    const quantidadeAlunos = orcamento.quantidade_alunos || 1;
 
-    await alunoRepository.save(aluno);
+    for (let i = 0; i < quantidadeAlunos; i++) {
+      const aluno = alunoRepository.create({
+        nome: 'XXXXX',
+        bairro: orcamento.bairro,
+        escola: orcamento.escola,
+        turno: orcamento.turno,
+        tipo_trajeto: orcamento.tipo_trajeto,
+        endereco_embarque: orcamento.endereco_embarque,
+        endereco_desembarque: orcamento.endereco_desembarque,
+        id_responsavel: responsavel.id_responsavel,
+        id_condutor: orcamento.id_condutor = 1,
+      });
+      alunos.push(aluno);
+    }
+
+    await alunoRepository.save(alunos);
 
     orcamento.status = 'APROVADO';
     orcamento.convertido = true;
@@ -112,7 +118,7 @@ export class ServiceOrcamento {
     return {
       orcamento,
       responsavel,
-      aluno,
+      alunos,
     };
   }
 }

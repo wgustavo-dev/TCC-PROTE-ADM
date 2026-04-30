@@ -135,7 +135,7 @@ CREATE TABLE documento (
     FOREIGN KEY (id_condutor) REFERENCES condutor(id_condutor)
 );
 
---alterando a tabela alunos porque agora eles tem que ter foto
+-- alterando a tabela alunos porque agora eles tem que ter foto
 ALTER TABLE aluno
 ADD foto VARCHAR(255);
 
