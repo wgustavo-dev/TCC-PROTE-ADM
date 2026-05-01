@@ -94,6 +94,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   initMenu();
   iniciarMapa();
 
+  const dashboardRoot = document.getElementById("kpiReceita");
+  if (!dashboardRoot) return;
+
   try {
     const dados = await window.API.get("/dashboard/resumo");
     atualizarDashboard(dados);
