@@ -18,10 +18,47 @@ export class ServiceDashboard {
 
 
     const hoje = new Date();
-    const anoAtual = hoje.getFullYear();
-    const mesAtual = hoje.getMonth() + 1;
+    let anoAtual = hoje.getFullYear();
+    let mesAtual = hoje.getMonth() + 1;
 
     const alunosAtivos = await repoAluno.count();
+
+    const currentYearDespesaCount = await repoDespesa
+      .createQueryBuilder("despesa")
+      .select("COUNT(*)", "count")
+      .where("YEAR(despesa.data) = :ano", { ano: anoAtual })
+      .getRawOne();
+
+    const currentYearMensalidadeCount = await repoMensalidade
+      .createQueryBuilder("mensalidade")
+      .select("COUNT(*)", "count")
+      .where("YEAR(mensalidade.data_vencimento) = :ano", { ano: anoAtual })
+      .getRawOne();
+
+    const hasCurrentYearData =
+      Number(currentYearDespesaCount.count) > 0 ||
+      Number(currentYearMensalidadeCount.count) > 0;
+
+    if (!hasCurrentYearData) {
+      const latestDespesa = await repoDespesa
+        .createQueryBuilder("despesa")
+        .select("MAX(despesa.data)", "ultima")
+        .getRawOne();
+
+      const latestMensalidade = await repoMensalidade
+        .createQueryBuilder("mensalidade")
+        .select("MAX(mensalidade.data_vencimento)", "ultima")
+        .getRawOne();
+
+      const ultimaDespesaData = latestDespesa?.ultima ? new Date(latestDespesa.ultima) : null;
+      const ultimaMensalidadeData = latestMensalidade?.ultima ? new Date(latestMensalidade.ultima) : null;
+      const ultimaData = [ultimaDespesaData, ultimaMensalidadeData].filter(Boolean).sort((a, b) => Number(b) - Number(a))[0];
+
+      if (ultimaData) {
+        anoAtual = ultimaData.getFullYear();
+        mesAtual = ultimaData.getMonth() + 1;
+      }
+    }
 
     const receitaMensalResult = await repoMensalidade
       .createQueryBuilder("mensalidade")
