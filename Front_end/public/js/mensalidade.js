@@ -169,14 +169,16 @@ async function salvarMensalidade() {
   const pagamento = document.getElementById("campoPagamentoMensalidade").value;
   const vencimento = document.getElementById("campoVencimentoMensalidade").value;
   const idAluno = idAlunoPorNome(nomeAluno);
+  const mensalidadeEditando = mensalidades.find((item) => item.id === idEditando);
+  const idAlunoFinal = idAluno || mensalidadeEditando?.idAluno || null;
 
-  if (!nomeAluno || !valor || !vencimento || !idAluno) {
+  if (!nomeAluno || !valor || !vencimento || !idAlunoFinal) {
     alert("Preencha os campos obrigatorios. O nome do aluno deve existir no cadastro.");
     return;
   }
 
   const payload = {
-    id_aluno: idAluno,
+    id_aluno: idAlunoFinal,
     valor,
     data_vencimento: vencimento,
     data_pagamento: pagamento || null,

@@ -12,7 +12,9 @@ export class ServiceMensalidade {
 
         const mensalidade = await repo.find({
             relations: {
-                aluno: true
+                aluno: {
+                    responsavel: true
+                }
             }
         })
 
@@ -28,9 +30,15 @@ export class ServiceMensalidade {
         const mensalidade = await repo.findOne({
             where: { id_mensalidade: id },
             relations: {
-                aluno: true
+                aluno: {
+                    responsavel: true
+                }
             }
         })
+
+        if (!mensalidade) {
+            throw new Error("Mensalidade não encontrada")
+        }
 
         return mensalidade
     }
