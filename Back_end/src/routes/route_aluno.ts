@@ -5,6 +5,8 @@ import { uploadAluno } from "../config/upload";
 const router = Router();
 const controlAluno= new ControlAluno();
 
+router.get("/responsaveis", (req,res)=> controlAluno.listarResponsaveis(req,res));
+
 //busca todos os alunos
 router.get("/alunos", (req,res)=> controlAluno.listar(req,res));
 //busca 1 aluno

@@ -1,4 +1,5 @@
 let alunos = [];
+let responsaveis = [];
 let el = null;
 
 function initMenu() {
@@ -51,6 +52,23 @@ async function carregarAlunos() {
   }
 }
 
+async function carregarResponsaveis() {
+  try {
+    const data = await window.API.get("/responsaveis");
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error(error);
+    alert("Nao foi possivel carregar os responsaveis.");
+    return [];
+  }
+}
+
+function encontrarResponsavelPorNome(nome) {
+  const nomeNormalizado = (nome || "").trim().toLowerCase();
+  if (!nomeNormalizado) return null;
+  return responsaveis.find((item) => (item.nome || "").trim().toLowerCase() === nomeNormalizado) || null;
+}
+
 function configurarModal() {
   if (!el.btnAbrirModal) return;
 
@@ -99,6 +117,20 @@ function configurarMascaras() {
   );
 }
 
+function configurarAutocompletarResponsavel() {
+  if (!el.nomeResponsavel1 || !el.telefoneResponsavel1) return;
+
+  const sincronizar = () => {
+    const responsavel = encontrarResponsavelPorNome(el.nomeResponsavel1.value);
+    if (!responsavel) return;
+    el.nomeResponsavel1.value = responsavel.nome || "";
+    el.telefoneResponsavel1.value = aplicarMascaraTelefone(responsavel.telefone || "");
+  };
+
+  el.nomeResponsavel1.addEventListener("change", sincronizar);
+  el.nomeResponsavel1.addEventListener("blur", sincronizar);
+}
+
 function configurarPreviewFoto() {
   if (!el.fotoAluno) return;
   el.fotoAluno.addEventListener("change", () => {
@@ -126,6 +158,8 @@ async function salvarAluno(payload) {
   form.append("nome", payload.nome);
   form.append("endereco_embarque", payload.embarque);
   form.append("endereco_desembarque", payload.desembarque);
+  form.append("responsavel_nome", payload.responsavel1);
+  form.append("responsavel_telefone", payload.telefone1);
   if (el.fotoAluno.files[0]) form.append("foto", el.fotoAluno.files[0]);
 
   if (payload.id) {
@@ -140,10 +174,19 @@ function configurarFormulario() {
   el.formAluno.addEventListener("submit", async (event) => {
     event.preventDefault();
     const payload = montarPayloadAluno();
-    if (!payload.nome || !payload.embarque || !payload.desembarque) {
+    const responsavelSelecionado = encontrarResponsavelPorNome(payload.responsavel1);
+
+    if (!payload.nome || !payload.responsavel1 || !payload.embarque || !payload.desembarque) {
       alert("Preencha os campos obrigatorios.");
       return;
     }
+    if (!responsavelSelecionado) {
+      alert("Responsavel nao cadastrado.");
+      return;
+    }
+    payload.responsavel1 = responsavelSelecionado.nome || payload.responsavel1;
+    payload.telefone1 = aplicarMascaraTelefone(responsavelSelecionado.telefone || "");
+    el.telefoneResponsavel1.value = payload.telefone1;
 
     try {
       await salvarAluno(payload);
@@ -264,7 +307,7 @@ function abrirModalNovo() {
   el.modalTitulo.textContent = "Novo aluno";
   el.formAluno.reset();
   el.alunoId.value = "";
-  el.nomeResponsavel1.required = false;
+  el.nomeResponsavel1.required = true;
   el.telefoneResponsavel1.required = false;
   esconderPreviewFoto();
   el.modalOverlay.classList.remove("hidden");
@@ -273,7 +316,7 @@ function abrirModalNovo() {
 function abrirModalEditar(aluno) {
   el.modalTitulo.textContent = "Editar aluno";
   el.alunoId.value = aluno.id || "";
-  el.nomeResponsavel1.required = false;
+  el.nomeResponsavel1.required = true;
   el.telefoneResponsavel1.required = false;
   el.nomeAluno.value = aplicarMascaraNome(aluno.nome || "");
   el.nomeResponsavel1.value = aplicarMascaraNome(aluno.responsavel1 || "");
@@ -304,9 +347,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (!el || !el.formAluno) return;
 
   alunos = await carregarAlunos();
+  responsaveis = await carregarResponsaveis();
   configurarModal();
   configurarBusca();
   configurarMascaras();
+  configurarAutocompletarResponsavel();
   configurarPreviewFoto();
   configurarFormulario();
   configurarTabela();
