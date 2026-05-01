@@ -126,15 +126,10 @@ async function salvarAluno(payload) {
   form.append("nome", payload.nome);
   form.append("endereco_embarque", payload.embarque);
   form.append("endereco_desembarque", payload.desembarque);
-  if (payload.id) form.append("id_aluno", payload.id);
   if (el.fotoAluno.files[0]) form.append("foto", el.fotoAluno.files[0]);
 
   if (payload.id) {
-    await window.API.put(`/alunos/${payload.id}`, {
-      nome: payload.nome,
-      endereco_embarque: payload.embarque,
-      endereco_desembarque: payload.desembarque,
-    });
+    await window.API.put(`/alunos/${payload.id}`, form);
     return;
   }
 
@@ -145,7 +140,7 @@ function configurarFormulario() {
   el.formAluno.addEventListener("submit", async (event) => {
     event.preventDefault();
     const payload = montarPayloadAluno();
-    if (!payload.nome || !payload.responsavel1 || !payload.telefone1 || !payload.embarque || !payload.desembarque) {
+    if (!payload.nome || !payload.embarque || !payload.desembarque) {
       alert("Preencha os campos obrigatorios.");
       return;
     }
@@ -269,6 +264,8 @@ function abrirModalNovo() {
   el.modalTitulo.textContent = "Novo aluno";
   el.formAluno.reset();
   el.alunoId.value = "";
+  el.nomeResponsavel1.required = false;
+  el.telefoneResponsavel1.required = false;
   esconderPreviewFoto();
   el.modalOverlay.classList.remove("hidden");
 }
@@ -276,6 +273,8 @@ function abrirModalNovo() {
 function abrirModalEditar(aluno) {
   el.modalTitulo.textContent = "Editar aluno";
   el.alunoId.value = aluno.id || "";
+  el.nomeResponsavel1.required = false;
+  el.telefoneResponsavel1.required = false;
   el.nomeAluno.value = aplicarMascaraNome(aluno.nome || "");
   el.nomeResponsavel1.value = aplicarMascaraNome(aluno.responsavel1 || "");
   el.telefoneResponsavel1.value = aplicarMascaraTelefone(aluno.telefone1 || "");

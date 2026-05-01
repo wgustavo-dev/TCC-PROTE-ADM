@@ -20,7 +20,7 @@ export class ControlAluno {
             const { id } = req.params;
 
             const aluno = await service.buscarPorID(Number(id));
-            return res.status(201).json(aluno);
+            return res.json(aluno);
 
         } catch (error: any) {
             return res.status(404).json({ error: error.message });
@@ -48,6 +48,10 @@ export class ControlAluno {
         try {
             const { id } = req.params;
             const dados = req.body;
+
+            if (req.file) {
+                dados.foto = `/uploads/alunos/${req.file.filename}`;
+            }
 
             const aluno = await service.atualizar(Number(id), dados);
 

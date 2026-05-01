@@ -20,7 +20,7 @@ export class ControlMensalidade{
             const {id} = req.params;
 
             const mensalidade = await service.buscarPorId(Number(id));
-            return res.status(201).json(mensalidade)
+            return res.json(mensalidade)
 
         }catch( error:any){
             return res.status(404).json({error:error.message})

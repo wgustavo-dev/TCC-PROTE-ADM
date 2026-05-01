@@ -14,7 +14,7 @@ router.post("/alunos", uploadAluno.single("foto"), (req, res) =>
   controlAluno.criar(req, res)
 );
 //edita aluno existente
-router.put("/alunos/:id", (req,res)=> controlAluno.atualizar(req,res));
+router.put("/alunos/:id", uploadAluno.single("foto"), (req,res)=> controlAluno.atualizar(req,res));
 //deleta aluno
 router.delete("/alunos/:id", (req,res)=> controlAluno.deletar(req,res));
 
