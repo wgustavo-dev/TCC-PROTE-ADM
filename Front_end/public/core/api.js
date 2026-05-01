@@ -30,10 +30,11 @@
   }
 
   function put(path, body) {
+    const isFormData = body instanceof FormData;
     return request(path, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body || {}),
+      headers: isFormData ? undefined : { "Content-Type": "application/json" },
+      body: isFormData ? body : JSON.stringify(body || {}),
     });
   }
 

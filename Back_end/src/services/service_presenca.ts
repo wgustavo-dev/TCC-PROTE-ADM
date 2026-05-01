@@ -34,7 +34,20 @@ export class ServicePresenca{
 //criar
     async criar(dados: Partial<Presenca>){
         const repo=AppDataSource.getRepository(Presenca)
-        
+
+        const existente = await repo.findOne({
+            where: {
+                id_aluno: dados.id_aluno as number,
+                data: dados.data as any
+            }
+        });
+
+        if (existente) {
+            repo.merge(existente, dados);
+            await repo.save(existente);
+            return existente;
+        }
+
         const presenca = repo.create(dados)
         await repo.save(presenca)
 

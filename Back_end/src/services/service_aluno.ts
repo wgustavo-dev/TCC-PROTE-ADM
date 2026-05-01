@@ -1,7 +1,21 @@
 import {AppDataSource} from '../config/database';
 import {Aluno} from '../models/model_aluno';
+import { Responsavel } from '../models/model_responsavel';
 
 export class ServiceAluno{
+    async listarResponsaveis() {
+        const responsavelRepository = AppDataSource.getRepository(Responsavel);
+        return responsavelRepository.find({
+            select: {
+                id_responsavel: true,
+                nome: true,
+                telefone: true,
+            },
+            order: {
+                nome: "ASC",
+            },
+        });
+    }
 
     //método para listar todos os alunos e relações com responsavel e condutor
     async listar(){
@@ -37,6 +51,26 @@ export class ServiceAluno{
     //cria novo aluno, recebendo os dados parciais do aluno 
     async criar(dados: Partial<Aluno>){
         const alunoRepository = AppDataSource.getRepository(Aluno);
+        const responsavelRepository = AppDataSource.getRepository(Responsavel);
+
+        const nomeResponsavel = (dados as any).responsavel_nome?.toString().trim();
+        if (!nomeResponsavel) {
+            throw new Error("Responsavel nao cadastrado");
+        }
+
+        const responsavel = await responsavelRepository
+            .createQueryBuilder("responsavel")
+            .where("LOWER(responsavel.nome) = LOWER(:nome)", { nome: nomeResponsavel })
+            .getOne();
+
+        if (!responsavel) {
+            throw new Error("Responsavel nao cadastrado");
+        }
+
+        dados.id_responsavel = responsavel.id_responsavel;
+
+        delete (dados as any).responsavel_nome;
+        delete (dados as any).responsavel_telefone;
 
         const aluno = alunoRepository.create(dados);
         await alunoRepository.save(aluno);
@@ -46,6 +80,7 @@ export class ServiceAluno{
 
     async atualizar(id:number, dados: Partial<Aluno>){
         const alunoRepository = AppDataSource.getRepository(Aluno);
+        const responsavelRepository = AppDataSource.getRepository(Responsavel);
 
         const aluno = await alunoRepository.findOneBy({id_aluno: id});
 
@@ -53,6 +88,25 @@ export class ServiceAluno{
         if (!aluno){
             throw new Error("Aluno não encontrado")
         }   
+
+        const nomeResponsavel = (dados as any).responsavel_nome?.toString().trim();
+        if (!nomeResponsavel) {
+            throw new Error("Responsavel nao cadastrado");
+        }
+
+        const responsavel = await responsavelRepository
+            .createQueryBuilder("responsavel")
+            .where("LOWER(responsavel.nome) = LOWER(:nome)", { nome: nomeResponsavel })
+            .getOne();
+
+        if (!responsavel) {
+            throw new Error("Responsavel nao cadastrado");
+        }
+
+        dados.id_responsavel = responsavel.id_responsavel;
+
+        delete (dados as any).responsavel_nome;
+        delete (dados as any).responsavel_telefone;
 
         // mescla os dados existentes com os novos dados
         alunoRepository.merge(aluno,dados);
