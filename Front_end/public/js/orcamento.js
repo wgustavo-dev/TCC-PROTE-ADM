@@ -7,7 +7,7 @@ const salvarBtn = document.getElementById('botaoSalvar');
 const tabelaLinhas = document.getElementById('linhasOrcamentos');
 
 const campoId = document.getElementById('campoId');
-const campoAluno = document.getElementById('campoAluno');
+const campoResponsavel = document.getElementById('campoResponsavel');
 const campoTelefone = document.getElementById('campoTelefone');
 const campoBairro = document.getElementById('campoBairro');
 const campoEscola = document.getElementById('campoEscola');
@@ -57,7 +57,7 @@ if (modal) {
 ================================ */
 function limparFormularioOrcamento() {
   if (campoId) campoId.value = '';
-  if (campoAluno) campoAluno.value = '';
+  if (campoResponsavel) campoResponsavel.value = '';
   if (campoTelefone) campoTelefone.value = '';
   if (campoBairro) campoBairro.value = '';
   if (campoEscola) campoEscola.value = '';
@@ -167,7 +167,7 @@ function handleTabelaClick(event) {
     if (orcamento) {
       idEmEdicao = orcamento.id;
       if (campoId) campoId.value = orcamento.id;
-      if (campoAluno) campoAluno.value = orcamento.nome;
+      if (campoResponsavel) campoResponsavel.value = orcamento.nome;
       if (campoTelefone) campoTelefone.value = orcamento.telefone;
       if (campoBairro) campoBairro.value = orcamento.bairro || '';
       if (campoEscola) campoEscola.value = orcamento.escola || '';
@@ -189,13 +189,13 @@ function handleTabelaClick(event) {
 }
 
 async function salvarOrcamento() {
-  if (!campoAluno || !campoAluno.value.trim()) {
-    alert('Informe o nome do aluno');
+  if (!campoResponsavel || !campoResponsavel.value.trim()) {
+    alert('Informe o nome do responsável');
     return;
   }
 
   const payload = {
-    nome_cliente: campoAluno.value.trim(),
+    nome_cliente: campoResponsavel.value.trim(),
     telefone: campoTelefone ? campoTelefone.value.trim() : '',
     bairro: campoBairro ? campoBairro.value.trim() : '',
     escola: campoEscola ? campoEscola.value.trim() : '',
