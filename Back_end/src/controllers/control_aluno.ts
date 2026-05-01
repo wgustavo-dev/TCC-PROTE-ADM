@@ -4,6 +4,14 @@ import { ServiceAluno } from '../services/service_aluno';
 const service = new ServiceAluno();
 
 export class ControlAluno {
+    async listarResponsaveis(req: Request, res: Response) {
+        try {
+            const responsaveis = await service.listarResponsaveis();
+            return res.json(responsaveis);
+        } catch (error: any) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
 
     async listar(req: Request, res: Response) {
         try {
