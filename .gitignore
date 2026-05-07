@@ -44,4 +44,6 @@ tmp/
 temp/
 
 .env
+.env.*
+
 .cursorrules
