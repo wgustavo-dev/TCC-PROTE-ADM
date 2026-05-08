@@ -1,49 +1,118 @@
 # =========================
-# NODE
+# DEPENDÊNCIAS E PACOTES
 # =========================
 node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # =========================
-# BUILD / DIST
+# BUILD / DISTRIBUIÇÃO
 # =========================
 dist/
 build/
-
-# =========================
-# TYPESCRIPT
-# =========================
 *.tsbuildinfo
-
-
+out/
 
 # =========================
-# LOGS
+# ARQUIVOS DE CONFIGURAÇÃO SENSÍVEIS
+# =========================
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+
+# =========================
+# UPLOADS E ARQUIVOS DE MÍDIA
+# =========================
+Back_end/uploads/
+Front_end/uploads/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.svg
+*.ico
+*.mp4
+*.avi
+*.mov
+
+# =========================
+# LOGS E DEBUG
 # =========================
 logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
 
 # =========================
-# OS FILES
+# SISTEMA OPERACIONAL
 # =========================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+*~
 
 # =========================
 # IDE / EDITOR
 # =========================
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # =========================
-# TEMP FILES
+# ARQUIVOS TEMPORÁRIOS
 # =========================
 tmp/
 temp/
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
 
-.env
-.env.*
+# =========================
+# BANCO DE DADOS LOCAL
+# =========================
+*.db
+*.sqlite
+*.sqlite3
 
+# =========================
+# TESTES
+# =========================
+coverage/
+.nyc_output/
+*.lcov
+
+# =========================
+# DOCUMENTAÇÃO GERADA
+# =========================
+docs/dist/
+docs/build/
+
+# =========================
+# FERRAMENTAS DE DESENVOLVIMENTO
+# =========================
 .cursorrules
+.cursor/
+.history/
+
+# =========================
+# BACKUPS
+# =========================
+*.bak
+*.backup
+*.old
+*.orig
