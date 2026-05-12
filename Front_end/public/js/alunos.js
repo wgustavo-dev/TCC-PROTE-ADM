@@ -1,3 +1,75 @@
+/* =========================================================
+   ALERTAS PERSONALIZADOS - SWEETALERT2
+   Esses alerts substituem o alert() normal do navegador
+   ========================================================= */
+
+function showSuccess(message) {
+  return Swal.fire({
+    icon: "success",
+    title: "Sucesso!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showError(message) {
+  return Swal.fire({
+    icon: "error",
+    title: "Erro!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showWarning(message) {
+  return Swal.fire({
+    icon: "warning",
+    title: "Atenção!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showConfirm(message) {
+  return Swal.fire({
+    icon: "warning",
+    title: "Confirmar ação",
+    text: message,
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button",
+      cancelButton: "prote-alert-cancel-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+/* =========================================================
+   VARIÁVEIS GLOBAIS DA TELA DE ALUNOS
+   ========================================================= */
+
 let alunos = [];
 let responsaveis = [];
 let el = null;
@@ -47,7 +119,7 @@ async function carregarAlunos() {
     return Array.isArray(data) ? data.map(mapearAlunoApi) : [];
   } catch (error) {
     console.error(error);
-    alert("Nao foi possivel carregar os alunos.");
+   showError("Não foi possível carregar os alunos.");
     return [];
   }
 }
@@ -58,7 +130,7 @@ async function carregarResponsaveis() {
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error(error);
-    alert("Nao foi possivel carregar os responsaveis.");
+   showError("Não foi possível carregar os responsáveis.");
     return [];
   }
 }
@@ -148,8 +220,17 @@ function montarPayloadAluno() {
     nome: el.nomeAluno.value.trim(),
     responsavel1: el.nomeResponsavel1.value.trim(),
     telefone1: el.telefoneResponsavel1.value.trim(),
+    responsavel2: el.nomeResponsavel2 ? el.nomeResponsavel2.value.trim() : "",
+    telefone2: el.telefoneResponsavel2 ? el.telefoneResponsavel2.value.trim() : "",
     embarque: el.enderecoEmbarque.value.trim(),
     desembarque: el.enderecoDesembarque.value.trim(),
+
+    // Campos visuais do formulário antigo
+    escola: el.escolaAluno ? el.escolaAluno.value.trim() : "",
+    vencimento: el.vencimentoAluno ? el.vencimentoAluno.value : "",
+    tipoTrajeto: el.tipoTrajetoAluno ? el.tipoTrajetoAluno.value : "",
+    periodo: el.periodoAluno ? el.periodoAluno.value : "",
+    horarioTurma: el.horarioTurmaAluno ? el.horarioTurmaAluno.value : ""
   };
 }
 
@@ -173,53 +254,88 @@ async function salvarAluno(payload) {
 function configurarFormulario() {
   el.formAluno.addEventListener("submit", async (event) => {
     event.preventDefault();
+
     const payload = montarPayloadAluno();
     const responsavelSelecionado = encontrarResponsavelPorNome(payload.responsavel1);
 
     if (!payload.nome || !payload.responsavel1 || !payload.embarque || !payload.desembarque) {
-      alert("Preencha os campos obrigatorios.");
+      showWarning("Preencha os campos obrigatórios.");
       return;
     }
+
     if (!responsavelSelecionado) {
-      alert("Responsavel nao cadastrado.");
+      showWarning("Responsável não cadastrado.");
       return;
     }
+
     payload.responsavel1 = responsavelSelecionado.nome || payload.responsavel1;
     payload.telefone1 = aplicarMascaraTelefone(responsavelSelecionado.telefone || "");
     el.telefoneResponsavel1.value = payload.telefone1;
 
-    try {
-      await salvarAluno(payload);
-      alunos = await carregarAlunos();
-      fecharModal();
-      renderizar();
-    } catch (error) {
-      console.error(error);
-      alert("Nao foi possivel salvar o aluno.");
-    }
+   try {
+  const novoCadastro = !payload.id;
+
+  await salvarAluno(payload);
+
+  alunos = await carregarAlunos();
+
+  fecharModal();
+  renderizar();
+
+  await showSuccess(payload.id ? "Aluno atualizado com sucesso!" : "Aluno cadastrado com sucesso!");
+
+  if (novoCadastro) {
+    localStorage.setItem(
+      "novoAlunoMensalidade",
+      JSON.stringify({
+        aluno: payload.nome,
+        responsavel: payload.responsavel1,
+        contato: payload.telefone1,
+        escola: payload.escola || ""
+      })
+    );
+
+    window.location.href = "mensalidade.html?novoAluno=1";
+  }
+  } catch (error) {
+    console.error(error);
+    showError("Não foi possível salvar o aluno.");
+  }
   });
 }
 
 function configurarTabela() {
   el.tbodyAlunos.addEventListener("click", async (event) => {
     const botao = event.target.closest("button[data-action]");
+
     if (!botao) return;
+
     const id = botao.dataset.id;
     const aluno = alunos.find((item) => String(item.id) === String(id));
+
     if (!aluno) return;
 
-    if (botao.dataset.action === "editar") return abrirModalEditar(aluno);
+    if (botao.dataset.action === "editar") {
+      return abrirModalEditar(aluno);
+    }
+
     if (botao.dataset.action !== "excluir") return;
 
-    if (!confirm("Tem certeza que deseja excluir este aluno?")) return;
+    const resposta = await showConfirm("Tem certeza que deseja excluir este aluno?");
+
+    if (!resposta.isConfirmed) return;
 
     try {
       await window.API.del(`/alunos/${id}`);
+
       alunos = alunos.filter((item) => String(item.id) !== String(id));
+
       renderizar();
+
+      showSuccess("Aluno excluído com sucesso!");
     } catch (error) {
       console.error(error);
-      alert("Nao foi possivel excluir o aluno.");
+      showError("Não foi possível excluir o aluno.");
     }
   });
 }
@@ -296,6 +412,11 @@ function obterElementos() {
     fotoAluno: document.getElementById("fotoAluno"),
     previewFoto: document.getElementById("previewFoto"),
     avatarModalAluno: document.getElementById("avatarModalAluno"),
+    escolaAluno: document.getElementById("escolaAluno"),
+    vencimentoAluno: document.getElementById("vencimentoAluno"),
+    tipoTrajetoAluno: document.getElementById("tipoTrajetoAluno"),
+    periodoAluno: document.getElementById("periodoAluno"),
+    horarioTurmaAluno: document.getElementById("horarioTurmaAluno"),
     inputBusca: document.getElementById("inputBusca"),
     tbodyAlunos: document.getElementById("tbodyAlunos"),
     emptyState: document.getElementById("emptyState"),

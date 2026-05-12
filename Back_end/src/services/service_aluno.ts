@@ -1,6 +1,8 @@
-import {AppDataSource} from '../config/database';
-import {Aluno} from '../models/model_aluno';
+import { AppDataSource } from '../config/database';
+import { Aluno } from '../models/model_aluno';
 import { Responsavel } from '../models/model_responsavel';
+import { Mensalidade } from "../models/model_mensalidade";
+import { Presenca } from "../models/model_presenca";
 
 export class ServiceAluno{
     async listarResponsaveis() {
@@ -116,19 +118,27 @@ export class ServiceAluno{
 
     }
 
-    async deletar(id_aluno:number){
-        const alunoRepository = AppDataSource.getRepository(Aluno); 
-        const aluno = await alunoRepository.findOne({
-            where: { id_aluno: id_aluno},
-        })
+async deletar(id_aluno: number) {
+    const alunoRepository = AppDataSource.getRepository(Aluno);
+    const mensalidadeRepository = AppDataSource.getRepository(Mensalidade);
+    const presencaRepository = AppDataSource.getRepository(Presenca);
 
+    const aluno = await alunoRepository.findOne({
+        where: { id_aluno: id_aluno },
+    });
 
-        //valida existencia do aluno
-        if (!aluno){
-            throw new Error("Aluno não encontrado")
-        }               
-
-        await alunoRepository.remove(aluno);
-        return {message: "Aluno excluído com sucesso"};
+    // valida existência do aluno
+    if (!aluno) {
+        throw new Error("Aluno não encontrado");
     }
+
+    // Apaga primeiro os registros ligados ao aluno
+    await presencaRepository.delete({ id_aluno: id_aluno });
+    await mensalidadeRepository.delete({ id_aluno: id_aluno });
+
+    // Depois apaga o aluno
+    await alunoRepository.remove(aluno);
+
+    return { message: "Aluno excluído com sucesso" };
+}
 }

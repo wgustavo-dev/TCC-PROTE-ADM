@@ -409,58 +409,247 @@
   background: var(--cor-principal-escura);
 }
 
-.conteudo-modal-mensalidade::-webkit-scrollbar {
-  width: 10px;
-}
+/* MODAL MENSALIDADE - PADRÃO NOVO */
 
-.conteudo-modal-mensalidade::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.conteudo-modal-mensalidade::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 999px;
-}
-
-.conteudo-modal-mensalidade::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-.preview-foto {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  margin-top: 8px;
-  object-fit: cover;
+#fundoModalMensalidade {
   display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
 }
 
-.foto-tabela {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
+#fundoModalMensalidade.ativo {
+  display: flex;
 }
-.avatar-modal {
+
+.modal-card-mensalidade {
+  width: min(460px, 92vw);
+  max-height: calc(100vh - 44px);
+  overflow: hidden;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+.modal-card-mensalidade .modal-header {
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid var(--borda);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-card-mensalidade .modal-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--texto-primario);
+  margin: 0;
+}
+
+.modal-body-scroll {
+  padding: 22px 28px 12px;
+  max-height: calc(100vh - 190px);
+  overflow-y: auto;
+}
+
+.info-topo-mensalidade {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+#avatarModalMensalidade {
   width: 96px;
   height: 96px;
+  min-width: 96px;
   border-radius: 50%;
   background: #b6b6b6;
+  overflow: hidden;
+}
+
+#previewFotoMensalidade {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info-textos-mensalidade {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-textos-mensalidade strong {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.info-textos-mensalidade span {
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.modal-card-mensalidade .grupo-filtro {
+  margin-bottom: 16px;
+}
+
+.modal-card-mensalidade .label-filtro {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--texto-secundario);
+  font-weight: 600;
+}
+
+.modal-card-mensalidade .input-filtro {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  padding: 0 12px;
+  font-size: 13.5px;
+  outline: none;
+  background: #ffffff;
+  color: var(--texto-primario);
+}
+
+.modal-card-mensalidade .input-filtro:focus {
+  border-color: var(--cor-principal);
+  box-shadow: 0 0 0 3px rgba(36, 70, 184, 0.12);
+}
+
+.modal-card-mensalidade .info-box {
+  background: #eef4ff;
+  border: 1px solid #bcd3ff;
+  color: #1d4ed8;
+  border-radius: var(--arredondamento-medio);
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-top: 8px;
+}
+
+.modal-card-mensalidade .modal-actions {
+  padding: 18px 28px 24px;
+  border-top: 1px solid var(--borda);
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.modal-card-mensalidade .btn-secondary,
+.modal-card-mensalidade .btn-primary {
+  min-width: 140px;
+  height: 40px;
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modal-card-mensalidade .btn-secondary {
+  background: #ffffff;
+  color: var(--texto-primario);
+  border: 1px solid var(--borda);
+}
+
+.modal-card-mensalidade .btn-primary {
+  background: var(--cor-principal);
+  color: #ffffff;
+  border: none;
+}
+
+.modal-card-mensalidade .btn-primary:hover {
+  background: var(--cor-principal-escura);
+}
+
+.modal-card-mensalidade .btn-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.modal-card-mensalidade .btn-close:hover {
+  background: #e5e7eb;
+}
+.modal-card-mensalidade .input-arquivo {
+  width: 100%;
+  font-size: 13px;
+  color: #374151;
+  margin-top: 4px;
+}
+
+.modal-card-mensalidade .input-arquivo::file-selector-button {
+  border: 1px solid #dfe3ea;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 9px;
+  padding: 8px 12px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.modal-card-mensalidade .input-arquivo::file-selector-button:hover {
+  background: #f3f4f6;
+}
+/* Corrige foto da tabela de mensalidades */
+.avatar-tabela {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #b6b6b6;
+  flex-shrink: 0;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.avatar-modal img {
+.avatar-tabela img,
+.foto-tabela {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   object-fit: cover;
-  display: none; 
-}
-.avatar-modal.com-foto img {
+  border-radius: 50%;
   display: block;
+}
+/* Corrige foto do modal de mensalidade */
+#avatarModalMensalidade {
+  width: 120px;
+  height: 120px;
+  min-width: 120px;
+  border-radius: 50%;
+  background: #b8babf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#avatarPlaceholderMensalidade {
+  width: 52px;
+  height: 52px;
+  color: #73777d;
+}
+
+#previewFotoMensalidade {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+  border-radius: 50%;
 }
 
 @media (max-width: 900px) {

@@ -152,6 +152,11 @@
           <img id="previewFoto" alt="Pré-visualização da foto do aluno" />
         </div>
 
+                <div class="grupo-filtro">
+          <label class="label-filtro" for="fotoAluno">Foto do aluno</label>
+          <input type="file" id="fotoAluno" name="foto" class="input-arquivo" accept="image/*" />
+        </div>
+
         <div class="grupo-filtro">
           <label class="label-filtro" for="nomeAluno">Nome do aluno</label>
           <input type="text" id="nomeAluno" class="input-filtro" placeholder="Digite..." required />
@@ -186,11 +191,38 @@
           <label class="label-filtro" for="enderecoDesembarque">Endereço de desembarque</label>
           <input type="text" id="enderecoDesembarque" class="input-filtro" placeholder="Digite..." required />
         </div>
-
         <div class="grupo-filtro">
-          <label class="label-filtro" for="fotoAluno">Foto do aluno</label>
-          <input type="file" id="fotoAluno" name="foto" class="input-arquivo" accept="image/*" />
-        </div>
+  <label class="label-filtro" for="escolaAluno">Escola</label>
+  <input type="text" id="escolaAluno" class="input-filtro" placeholder="Digite a escola" />
+</div>
+
+<div class="grupo-filtro">
+  <label class="label-filtro" for="vencimentoAluno">Data de vencimento</label>
+  <input type="date" id="vencimentoAluno" class="input-filtro" />
+</div>
+
+<div class="grupo-filtro">
+  <label class="label-filtro" for="tipoTrajetoAluno">Tipo de trajeto</label>
+  <select id="tipoTrajetoAluno" class="input-filtro">
+    <option value="ida">Apenas ir para escola</option>
+    <option value="volta">Apenas voltar da escola</option>
+    <option value="ida_e_volta" selected>Ir e voltar</option>
+  </select>
+</div>
+
+<div class="grupo-filtro">
+  <label class="label-filtro" for="periodoAluno">Período</label>
+  <select id="periodoAluno" class="input-filtro">
+    <option value="manha">Manhã</option>
+    <option value="tarde">Tarde</option>
+    <option value="noite">Noite</option>
+  </select>
+</div>
+
+<div class="grupo-filtro">
+  <label class="label-filtro" for="horarioTurmaAluno">Horário da turma</label>
+  <input type="time" id="horarioTurmaAluno" class="input-filtro" />
+</div>
 
         <div class="info-box">
           Somente o condutor poderá ter acesso a esta área quando o controle de acesso for integrado ao back-end.
@@ -205,6 +237,7 @@
   </div>
 
   <script src="core/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="js/alunos.js"></script>
 
 </body>
