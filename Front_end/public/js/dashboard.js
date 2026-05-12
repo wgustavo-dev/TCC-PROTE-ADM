@@ -59,13 +59,143 @@ function renderizarAlertas(alertas) {
     .join("");
 }
 
-function iniciarMapa() {
-  if (typeof L === "undefined") return;
-  const mapa = L.map("mapa-rotas", { zoomControl: true, scrollWheelZoom: false }).setView([-23.5489, -46.6388], 13);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 19,
-  }).addTo(mapa);
+/*
+   LINHA DE ROTA — estilo metrô, SVG puro
+   1. Busca alunos da API (/alunos)
+   2. Busca presenças de hoje (/presencas/data/DATA)
+   3. Filtra só os presentes que têm endereço de embarque
+   4. Desenha a linha SVG com paradas e nomes inclinados
+*/
+async function iniciarMapa() {
+  const container = document.getElementById("linha-rota");
+  const aviso = document.getElementById("avisoRota");
+  if (!container) return;
+
+  function exibirAviso(texto) {
+    if (aviso) aviso.textContent = texto;
+  }
+
+  /* Busca alunos e presenças de hoje em paralelo */
+  const dataHoje = new Date().toISOString().split("T")[0];
+  let todosAlunos, presencasHoje;
+
+  try {
+    [todosAlunos, presencasHoje] = await Promise.all([
+      window.API.get("/alunos"),
+      window.API.get(`/presencas/data/${dataHoje}`),
+    ]);
+  } catch (erro) {
+    console.error("Linha de rota: erro ao buscar dados:", erro);
+    exibirAviso("Não foi possível carregar a rota.");
+    return;
+  }
+
+  /* IDs dos alunos presentes hoje */
+  const idsPresentes = new Set(
+    (presencasHoje || [])
+      .filter((p) => p.status === "PRESENTE")
+      .map((p) => p.id_aluno)
+  );
+
+  /* Monta lista de paradas: só presentes com endereço de embarque */
+  const paradas = (todosAlunos || [])
+    .filter((a) => idsPresentes.has(a.id_aluno) && a.endereco_embarque)
+    .map((a) => ({
+      nome: a.nome,
+      endereco: a.endereco_embarque,
+    }));
+
+  if (paradas.length === 0) {
+    exibirAviso(
+      presencasHoje?.length
+        ? "Nenhum aluno presente hoje."
+        : "Chamada não registrada ainda."
+    );
+    return;
+  }
+
+  /* Remove o aviso e desenha o SVG */
+  if (aviso) aviso.style.display = "none";
+  container.appendChild(desenharLinhaSVG(paradas));
+}
+
+/*
+   Gera e retorna um elemento <svg> com a linha de rota.
+   Cada parada tem: círculo branco com borda azul + nome inclinado.
+   A linha horizontal conecta todos os círculos.
+*/
+function desenharLinhaSVG(paradas) {
+  const ESPACO_ENTRE = 88;   /* distância horizontal entre paradas (px) */
+  const RAIO_CIRCULO = 10;   /* raio dos círculos de parada */
+  const ALTURA_NOMES = 110;  /* espaço reservado para os nomes acima da linha */
+  const Y_LINHA = ALTURA_NOMES + RAIO_CIRCULO; /* posição vertical da linha */
+  const MARGEM_LATERAL = 32;
+
+  const largura = MARGEM_LATERAL * 2 + (paradas.length - 1) * ESPACO_ENTRE;
+  const altura = Y_LINHA + RAIO_CIRCULO + 16;
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", String(largura));
+  svg.setAttribute("height", String(altura));
+  svg.setAttribute("viewBox", `0 0 ${largura} ${altura}`);
+
+  /* Linha principal (trilho) */
+  const linha = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  linha.setAttribute("x1", String(MARGEM_LATERAL));
+  linha.setAttribute("y1", String(Y_LINHA));
+  linha.setAttribute("x2", String(largura - MARGEM_LATERAL));
+  linha.setAttribute("y2", String(Y_LINHA));
+  linha.setAttribute("stroke", "#1a56db");
+  linha.setAttribute("stroke-width", "6");
+  linha.setAttribute("stroke-linecap", "round");
+  svg.appendChild(linha);
+
+  paradas.forEach(function (parada, i) {
+    const x = MARGEM_LATERAL + i * ESPACO_ENTRE;
+
+    /* Grupo da parada — agrupa círculo + texto */
+    const grupo = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    grupo.style.cursor = "default";
+
+    /* Tooltip nativo via <title> */
+    const titulo = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    titulo.textContent = parada.nome + "\n" + parada.endereco;
+    grupo.appendChild(titulo);
+
+    /* Círculo externo (borda azul) */
+    const bordaCirculo = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    bordaCirculo.setAttribute("cx", String(x));
+    bordaCirculo.setAttribute("cy", String(Y_LINHA));
+    bordaCirculo.setAttribute("r", String(RAIO_CIRCULO));
+    bordaCirculo.setAttribute("fill", "#1a56db");
+    bordaCirculo.setAttribute("stroke", "#ffffff");
+    bordaCirculo.setAttribute("stroke-width", "3");
+    grupo.appendChild(bordaCirculo);
+
+    /* Círculo interno branco */
+    const centroCirculo = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    centroCirculo.setAttribute("cx", String(x));
+    centroCirculo.setAttribute("cy", String(Y_LINHA));
+    centroCirculo.setAttribute("r", String(RAIO_CIRCULO - 4));
+    centroCirculo.setAttribute("fill", "#ffffff");
+    grupo.appendChild(centroCirculo);
+
+    /* Nome inclinado — igual ao metrô */
+    const texto = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    texto.setAttribute("x", String(x));
+    texto.setAttribute("y", String(Y_LINHA - RAIO_CIRCULO - 6));
+    texto.setAttribute("text-anchor", "start");
+    texto.setAttribute("font-size", "12");
+    texto.setAttribute("font-family", "Segoe UI, system-ui, sans-serif");
+    texto.setAttribute("fill", "#111827");
+    texto.setAttribute("transform", `rotate(-45, ${x}, ${Y_LINHA - RAIO_CIRCULO - 6})`);
+    texto.textContent = parada.nome;
+    grupo.appendChild(texto);
+
+    svg.appendChild(grupo);
+  });
+
+  return svg;
 }
 
 function iniciarGrafico(dados) {
