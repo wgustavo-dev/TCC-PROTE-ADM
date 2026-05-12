@@ -1,7 +1,78 @@
+/* =========================================================
+   ALERTAS PERSONALIZADOS - SWEETALERT2
+   ========================================================= */
+
+function showSuccess(message) {
+  return Swal.fire({
+    icon: "success",
+    title: "Sucesso!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showError(message) {
+  return Swal.fire({
+    icon: "error",
+    title: "Erro!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showWarning(message) {
+  return Swal.fire({
+    icon: "warning",
+    title: "Atenção!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showConfirm(message) {
+  return Swal.fire({
+    icon: "warning",
+    title: "Confirmar ação",
+    text: message,
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button",
+      cancelButton: "prote-alert-cancel-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+
 let mensalidades = [];
 let alunos = [];
 let idEditando = null;
 
+const fotoMensalidade = document.getElementById("fotoMensalidade");
+const previewFotoMensalidade = document.getElementById("previewFotoMensalidade");
+const botaoFecharTopo = document.getElementById("btnFecharModalMensalidade");
 const botaoNova = document.getElementById("botaoNovaMensalidade");
 const fundoModal = document.getElementById("fundoModalMensalidade");
 const botaoCancelar = document.getElementById("botaoCancelarMensalidade");
@@ -9,18 +80,55 @@ const botaoSalvar = document.getElementById("botaoSalvarMensalidade");
 const campoBusca = document.getElementById("campoBuscaMensalidade");
 const linhasTabela = document.getElementById("linhasMensalidades");
 
+
+
 function initMenu() {
   const botaoMenu = document.getElementById("botaoMenu");
   const sidebar = document.getElementById("sidebar");
   const fundoEscuro = document.getElementById("fundoEscuro");
+
   if (!botaoMenu || !sidebar || !fundoEscuro) return;
+
   botaoMenu.addEventListener("click", () => {
     sidebar.classList.toggle("aberta");
     fundoEscuro.classList.toggle("visivel");
+    botaoMenu.classList.toggle("aberto");
   });
+
   fundoEscuro.addEventListener("click", () => {
     sidebar.classList.remove("aberta");
     fundoEscuro.classList.remove("visivel");
+    botaoMenu.classList.remove("aberto");
+  });
+}
+
+function configurarPreviewFotoMensalidade() {
+  if (!fotoMensalidade || !previewFotoMensalidade) return;
+
+  const avatar = document.getElementById("avatarModalMensalidade");
+  const placeholder = document.getElementById("avatarPlaceholderMensalidade");
+
+  fotoMensalidade.addEventListener("change", () => {
+    const arquivo = fotoMensalidade.files[0];
+
+    if (!arquivo) {
+      previewFotoMensalidade.src = "";
+      previewFotoMensalidade.style.display = "none";
+      if (placeholder) placeholder.style.display = "block";
+      if (avatar) avatar.classList.remove("com-foto");
+      return;
+    }
+
+    const leitor = new FileReader();
+
+    leitor.onload = (evento) => {
+      previewFotoMensalidade.src = evento.target.result;
+      previewFotoMensalidade.style.display = "block";
+      if (placeholder) placeholder.style.display = "none";
+      if (avatar) avatar.classList.add("com-foto");
+    };
+
+    leitor.readAsDataURL(arquivo);
   });
 }
 
@@ -173,8 +281,8 @@ async function salvarMensalidade() {
   const idAlunoFinal = idAluno || mensalidadeEditando?.idAluno || null;
 
   if (!nomeAluno || !valor || !vencimento || !idAlunoFinal) {
-    alert("Preencha os campos obrigatorios. O nome do aluno deve existir no cadastro.");
-    return;
+          showWarning("Preencha os campos obrigatórios. O nome do aluno deve existir no cadastro.");
+          return;
   }
 
   const payload = {
@@ -196,12 +304,15 @@ async function salvarMensalidade() {
 
 botaoNova.addEventListener("click", abrirModalNova);
 botaoCancelar.addEventListener("click", fecharModal);
+if (botaoFecharTopo) {
+  botaoFecharTopo.addEventListener("click", fecharModal);
+}
 botaoSalvar.addEventListener("click", async () => {
   try {
     await salvarMensalidade();
   } catch (error) {
     console.error(error);
-    alert("Nao foi possivel salvar a mensalidade.");
+    showError("Não foi possível salvar a mensalidade.");
   }
 });
 campoBusca.addEventListener("input", renderizarTabela);
@@ -224,18 +335,59 @@ linhasTabela.addEventListener("click", async (event) => {
     atualizarResumo();
   } catch (error) {
     console.error(error);
-    alert("Falha ao executar acao da mensalidade.");
+    showError("Falha ao executar acao da mensalidade.");
   }
 });
 
+
+function carregarNovoAlunoDaTelaAlunos() {
+  const params = new URLSearchParams(window.location.search);
+  const veioDeAluno = params.get("novoAluno") === "1";
+
+  if (!veioDeAluno) return;
+
+  const dadosSalvos = localStorage.getItem("novoAlunoMensalidade");
+
+  if (!dadosSalvos) return;
+
+  const dados = JSON.parse(dadosSalvos);
+
+  idEditando = null;
+
+  document.getElementById("tituloModalMensalidade").textContent = "Nova mensalidade";
+  botaoSalvar.textContent = "Cadastrar";
+
+  document.getElementById("campoIdMensalidade").value = "";
+  document.getElementById("campoAlunoMensalidade").value = dados.aluno || "";
+  document.getElementById("campoResponsavelMensalidade").value = dados.responsavel || "";
+  document.getElementById("campoContatoMensalidade").value = dados.contato || "";
+  document.getElementById("campoValorMensalidade").value = "";
+  document.getElementById("campoPagamentoMensalidade").value = "";
+  document.getElementById("campoVencimentoMensalidade").value = "";
+
+  document.getElementById("nomeAlunoModalInfo").textContent = dados.aluno || "Novo cadastro";
+  document.getElementById("responsavelModalInfo").textContent = dados.responsavel || "Responsável";
+
+  fundoModal.classList.add("ativo");
+
+  localStorage.removeItem("novoAlunoMensalidade");
+
+  window.history.replaceState({}, document.title, "mensalidade.html");
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   initMenu();
+  configurarPreviewFotoMensalidade();
+
   try {
     await carregarDados();
+
+    carregarNovoAlunoDaTelaAlunos();
+
     renderizarTabela();
     atualizarResumo();
   } catch (error) {
     console.error(error);
-    alert("Nao foi possivel carregar as mensalidades.");
+    showError("Não foi possível carregar as mensalidades.");
   }
 });

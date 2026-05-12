@@ -1,3 +1,70 @@
+/* =========================================================
+   ALERTAS PERSONALIZADOS - SWEETALERT2
+   ========================================================= */
+
+function showSuccess(message) {
+  return Swal.fire({
+    icon: "success",
+    title: "Sucesso!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showError(message) {
+  return Swal.fire({
+    icon: "error",
+    title: "Erro!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showWarning(message) {
+  return Swal.fire({
+    icon: "warning",
+    title: "Atenção!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showConfirm(message) {
+  return Swal.fire({
+    icon: "warning",
+    title: "Confirmar ação",
+    text: message,
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button",
+      cancelButton: "prote-alert-cancel-button"
+    },
+    buttonsStyling: false
+  });
+}
+
 const API_BASE = '/api';
 
 const botao = document.getElementById('botaoNovoOrcamento');
@@ -155,7 +222,7 @@ function renderizarOrcamentos() {
   tabelaLinhas.addEventListener('click', handleTabelaClick);
 }
 
-function handleTabelaClick(event) {
+async function handleTabelaClick(event) {
   const btn = event.target.closest('button');
   if (!btn) return;
 
@@ -178,19 +245,23 @@ function handleTabelaClick(event) {
       modal.classList.add('ativo');
     }
   } else if (btn.classList.contains('aprovar')) {
-    if (confirm('Aprovar este orçamento?')) {
-      aprovarOrcamento(id);
-    }
-  } else if (btn.classList.contains('excluir')) {
-    if (confirm('Excluir este orçamento?')) {
-      excluirOrcamento(id);
-    }
+  const resposta = await showConfirm('Aprovar este orçamento?');
+
+  if (resposta.isConfirmed) {
+    aprovarOrcamento(id);
   }
+} else if (btn.classList.contains('excluir')) {
+  const resposta = await showConfirm('Excluir este orçamento?');
+
+  if (resposta.isConfirmed) {
+    excluirOrcamento(id);
+  }
+}
 }
 
 async function salvarOrcamento() {
   if (!campoResponsavel || !campoResponsavel.value.trim()) {
-    alert('Informe o nome do responsável');
+    showWarning("Informe o nome do responsável");
     return;
   }
 
@@ -220,11 +291,11 @@ async function salvarOrcamento() {
     if (!response.ok) throw new Error('Erro ao salvar');
 
     await carregarOrcamentos();
-    renderizarOrcamentos();
+    showSuccess("Orçamento aprovado com sucesso!");
     modal.classList.remove('ativo');
   } catch (error) {
     console.error(error);
-    alert('Erro ao salvar orçamento');
+    showError("Não foi possível salvar orçamento.");
   }
 }
 
@@ -233,10 +304,10 @@ async function aprovarOrcamento(id) {
     const response = await fetch(`${API_BASE}/orcamentos/${id}/aprovar`, { method: 'PUT' });
     if (!response.ok) throw new Error('Erro ao aprovar');
     await carregarOrcamentos();
-    renderizarOrcamentos();
+    showSuccess("Orçamento aprovado com sucesso!");
   } catch (error) {
     console.error(error);
-    alert('Erro ao aprovar orçamento');
+    showError("Não foi possível aprovar orçamento.");
   }
 }
 
@@ -245,10 +316,10 @@ async function excluirOrcamento(id) {
     const response = await fetch(`${API_BASE}/orcamentos/${id}`, { method: 'DELETE' });
     if (!response.ok) throw new Error('Erro ao excluir');
     await carregarOrcamentos();
-    renderizarOrcamentos();
+    showSuccess("Orçamento excluído com sucesso!");
   } catch (error) {
     console.error(error);
-    alert('Erro ao excluir orçamento');
+    showError("Não foi possível excluir orçamento.");
   }
 }
 

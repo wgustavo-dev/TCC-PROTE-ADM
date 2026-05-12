@@ -136,75 +136,83 @@
   </div>
 
   <!-- MODAL -->
-  <div class="fundo-modal" id="fundoModalMensalidade">
-    <div class="caixa-modal">
-      <h2 class="titulo-modal" id="tituloModalMensalidade">Nova mensalidade</h2>
+<div class="fundo-modal" id="fundoModalMensalidade">
+  <div class="modal-card modal-card-aluno modal-card-mensalidade">
+    <div class="modal-header">
+      <h2 id="tituloModalMensalidade">Nova mensalidade</h2>
+      <button
+        class="btn-close"
+        id="btnFecharModalMensalidade"
+        type="button"
+        aria-label="Fechar"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="modal-body-scroll">
+      <div class="info-topo-mensalidade">
+  <div class="avatar-modal-aluno" id="avatarModalMensalidade" aria-hidden="true">
+    <img id="previewFotoMensalidade" alt="Foto do aluno" style="display: none;" />
+  </div>
+
+  <div class="info-textos-mensalidade">
+    <strong id="nomeAlunoModalInfo">Novo cadastro</strong>
+    <span id="responsavelModalInfo">Responsável</span>
+  </div>
+</div>
+
+<div class="grupo-filtro">
+  <label class="label-filtro" for="fotoMensalidade">Foto do aluno</label>
+  <input type="file" id="fotoMensalidade" class="input-arquivo" accept="image/*" />
+</div>
+
+      <div class="grupo-filtro">
+        <label class="label-filtro" for="campoAlunoMensalidade">Nome do aluno</label>
+        <input type="text" id="campoAlunoMensalidade" class="input-filtro" placeholder="Digite..." />
+      </div>
+
+      <div class="grupo-filtro">
+        <label class="label-filtro" for="campoValorMensalidade">Valor</label>
+        <input type="number" id="campoValorMensalidade" class="input-filtro" placeholder="Digite o valor" />
+      </div>
+
+      <div class="grupo-filtro">
+        <label class="label-filtro" for="campoPagamentoMensalidade">Data de pagamento</label>
+        <input type="date" id="campoPagamentoMensalidade" class="input-filtro" />
+      </div>
+
+      <div class="grupo-filtro">
+        <label class="label-filtro" for="campoVencimentoMensalidade">Data de vencimento</label>
+        <input type="date" id="campoVencimentoMensalidade" class="input-filtro" />
+      </div>
+
+      <div class="grupo-filtro">
+        <label class="label-filtro" for="campoContatoMensalidade">Contato</label>
+        <input type="text" id="campoContatoMensalidade" class="input-filtro" placeholder="Digite..." />
+      </div>
+
+      <div class="grupo-filtro">
+        <label class="label-filtro" for="campoResponsavelMensalidade">Responsável</label>
+        <input type="text" id="campoResponsavelMensalidade" class="input-filtro" placeholder="Digite..." />
+      </div>
 
       <input type="hidden" id="campoIdMensalidade" />
 
-      <div class="conteudo-modal-mensalidade">
-
-        <!-- BLOCO ALUNO -->
-        <div class="bloco-aluno-modal">
-          <div class="avatar-modal" id="avatarModal">
-            <img id="fotoTopoMensalidade" />
-          </div>
-
-          <div class="dados-aluno-modal">
-            <strong id="nomeAlunoModalInfo">Novo cadastro</strong>
-            <span id="responsavelModalInfo">Responsável</span>
-          </div>
-        </div>
-
- 
-        <div class="grupo-campo">
-          <label class="label-campo">Foto do aluno</label>
-          <input type="file" id="campoFotoMensalidade" accept="image/*" />
-        </div>
-
-        <!-- CAMPOS -->
-        <div class="grupo-campo">
-          <label class="label-campo">Nome do aluno</label>
-          <input type="text" id="campoAlunoMensalidade" class="input-campo" />
-        </div>
-
-        <div class="grupo-campo">
-          <label class="label-campo">Valor</label>
-          <input type="number" id="campoValorMensalidade" class="input-campo" />
-        </div>
-
-        <div class="grupo-campo">
-          <label class="label-campo">Data de pagamento</label>
-          <input type="date" id="campoPagamentoMensalidade" class="input-campo" />
-        </div>
-
-        <div class="grupo-campo">
-          <label class="label-campo">Data de vencimento</label>
-          <input type="date" id="campoVencimentoMensalidade" class="input-campo" />
-        </div>
-
-        <div class="grupo-campo">
-          <label class="label-campo">Contato</label>
-          <input type="text" id="campoContatoMensalidade" class="input-campo" />
-        </div>
-
-        <div class="grupo-campo">
-          <label class="label-campo">Responsável</label>
-          <input type="text" id="campoResponsavelMensalidade" class="input-campo" />
-        </div>
-
-        <!-- AÇÕES -->
-        <div class="acoes-modal">
-          <button class="botao-cancelar" id="botaoCancelarMensalidade">Cancelar</button>
-          <button class="botao-cadastrar" id="botaoSalvarMensalidade">Cadastrar</button>
-        </div>
-
+      <div class="info-box">
+        Cadastre a mensalidade do aluno e acompanhe vencimento, pagamento e responsável.
       </div>
     </div>
-  </div>
 
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="botaoCancelarMensalidade">Cancelar</button>
+      <button type="button" class="btn-primary solid" id="botaoSalvarMensalidade">Cadastrar</button>
+    </div>
+  </div>
+</div>
   <!-- SCRIPT -->
   <script src="core/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="js/mensalidade.js"></script>
 
 </body>
