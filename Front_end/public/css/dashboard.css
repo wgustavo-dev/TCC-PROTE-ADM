@@ -1,0 +1,657 @@
+/* 
+   RESET
+   Zera margens, paddings e padroniza o box-sizing em
+   todos os elementos para evitar surpresas de layout.
+*/
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+   
+ */
+/*
+   VARIÁVEIS GLOBAIS (Custom Properties)
+   Ficam aqui para serem reutilizadas em todo o sistema.
+ */
+:root {
+  /* Azul principal — botões, itens ativos, links */
+  --cor-principal:        #1a56db;
+  --cor-principal-clara:  #dbeafe; /* fundo de badges e ícones */
+  --cor-principal-escura: #1e40af; /* hover de botões */
+
+  /* Fundos */
+  --fundo-pagina:  #f3f4f6; /* cinza claro da página */
+  --fundo-card:    #ffffff; /* branco dos cards */
+  --fundo-sidebar: #ffffff; /* branco da sidebar */
+
+  /* Textos */
+  --texto-primario:   #111827; /* títulos e valores */
+  --texto-secundario: #6b7280; /* rótulos e descrições */
+  --texto-suave:      #9ca3af; /* metadados, avisos */
+
+  /* Bordas — semitransparente para funcionar em qualquer fundo */
+  --borda: rgba(0, 0, 0, 0.08);
+
+  /* Verde — receitas, sucesso */
+  --verde:        #16a34a;
+  --verde-claro:  #dcfce7;
+  --verde-texto:  #166534;
+
+  /* Vermelho — despesas, erros, alertas críticos */
+  --vermelho:        #dc2626;
+  --vermelho-claro:  #fee2e2;
+  --vermelho-texto:  #991b1b;
+
+  /* Amarelo — alertas de atenção */
+  --amarelo-claro:  #fefce8;
+  --amarelo-borda:  #fde047;
+  --amarelo-texto:  #854d0e;
+  --amarelo-desc:   #a16207;
+
+  /* Ciano — presença, informações secundárias */
+  --ciano-claro: #bae6fd;
+  --ciano:       #0369a1;
+
+  /* Arredondamentos */
+  --arredondamento-pequeno: 6px;
+  --arredondamento-medio:   8px;
+  --arredondamento-grande:  12px;
+
+  /* Sombra padrão dos cards */
+  --sombra-card: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+
+  /* Altura da barra do topo no celular */
+  --altura-barra-topo: 56px;
+
+  /* Largura da sidebar no desktop */
+  --largura-sidebar: 220px;
+}
+
+
+/* 
+   CORPO DA PÁGINA
+   Define fonte, fundo e tamanho base para todo o sistema.
+ */
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--fundo-pagina);
+  color: var(--texto-primario);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+
+/* 
+   FUNDO ESCURO (overlay da sidebar no celular)
+   Cobre a tela quando a sidebar está aberta no mobile,
+   permitindo fechar ao clicar fora dela.
+   Escondido por padrão; o JS adiciona .visivel.
+ */
+.fundo-escuro {
+  display: none;
+  position: fixed;
+  inset: 0;                       /* cobre toda a tela */
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 299;                   /* abaixo da sidebar (z-index 300) */
+}
+
+.fundo-escuro.visivel { display: block; }
+
+
+/* 
+   BARRA DO TOPO (mobile only)
+   Só aparece em telas ≤ 700px (ver @media no final).
+   Contém o botão de menu e o nome do sistema.
+ */
+.barra-topo {
+  display: none;                  /* escondida no desktop */
+  align-items: center;
+  gap: 14px;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--altura-barra-topo);
+  background: var(--fundo-card);
+  border-bottom: 1px solid var(--borda);
+  padding: 0 1rem;
+  z-index: 200;
+}
+
+/* Nome do sistema exibido na barra do topo */
+.nome-sistema-topo {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--cor-principal);
+}
+
+
+/* 
+   BOTÃO DE MENU (hambúrguer)
+   Três traços que viram X quando o menu está aberto.
+   A animação usa transform e opacity via :nth-child.
+ */
+.botao-menu {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--arredondamento-pequeno);
+  transition: background 0.15s;
+}
+
+.botao-menu:hover { background: var(--fundo-pagina); }
+
+/* Cada traço do hambúrguer */
+.botao-menu span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--texto-primario);
+  border-radius: 2px;
+  transition: transform 0.25s, opacity 0.25s;
+  transform-origin: center;
+}
+
+/* Quando o JS adiciona .aberto, os três traços viram X */
+.botao-menu.aberto span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.botao-menu.aberto span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.botao-menu.aberto span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+
+/* 
+   LAYOUT PRINCIPAL
+   Flex row: sidebar fixa à esquerda + conteúdo à direita.
+*/
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+
+/*
+   SIDEBAR
+   Desktop: coluna fixa com scroll próprio (sticky).
+   Mobile: drawer que desliza da esquerda (translateX).
+*/
+.sidebar {
+  width: var(--largura-sidebar);
+  min-width: var(--largura-sidebar);
+  background: var(--fundo-sidebar);
+  border-right: 1px solid var(--borda);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 1.25rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 300;
+  transition: transform 0.28s cubic-bezier(.4, 0, .2, 1);
+}
+
+/* Logo / nome do sistema no topo da sidebar */
+.logo {
+  padding: 1.5rem 1.25rem 1.1rem;
+  border-bottom: 1px solid var(--borda);
+  margin-bottom: 0.5rem;
+}
+
+.logo-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cor-principal);
+  letter-spacing: -0.3px;
+}
+
+.logo-sub {
+  font-size: 11px;
+  color: var(--texto-suave);
+  margin-top: 2px;
+}
+
+/* Lista de itens de navegação */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 10px;
+}
+
+/* Cada link da navegação */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  font-size: 13.5px;
+  color: var(--texto-secundario);
+  text-decoration: none;
+  border-radius: var(--arredondamento-medio);
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-item:hover {
+  background: var(--fundo-pagina);
+  color: var(--texto-primario);
+}
+
+/* Item da página atual — fundo azul, texto branco */
+.nav-item.active {
+  background: var(--cor-principal);
+  color: #ffffff;
+}
+
+/* Ícone SVG dentro de cada item de navegação */
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0; /* garante que o ícone não encolha */
+}
+
+
+/*
+   CONTEÚDO PRINCIPAL
+   Ocupa todo o espaço restante ao lado da sidebar.
+*/
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.75rem;
+  overflow-x: hidden;
+  min-width: 0; /* evita overflow no flex container */
+}
+
+/* Cabeçalho da página: título + subtítulo */
+.cabecalho-pagina { margin-bottom: 1.5rem; }
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--cor-principal);
+  letter-spacing: -0.4px;
+}
+
+.page-sub {
+  font-size: 13px;
+  color: var(--texto-secundario);
+  margin-top: 3px;
+}
+
+
+/* 
+   CARD BASE
+   Estilo compartilhado por todos os cards do sistema:
+   indicadores, tabelas, alertas, resumo financeiro, etc.
+*/
+.card {
+  background: var(--fundo-card);
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-grande);
+  padding: 1.25rem;
+  box-shadow: var(--sombra-card);
+}
+
+
+/* 
+   GRADES DE INDICADORES (cards de KPI)
+   .grade-indicadores = container grid.
+   .grade-3-colunas e .grade-2-colunas definem o número
+   de colunas de cada linha de cards.
+*/
+.grade-indicadores {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.grade-3-colunas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grade-2-colunas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* Topo do card: ícone à esquerda, etiqueta à direita */
+.topo-indicador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+/* Ícone quadrado colorido dentro do card */
+.icone-indicador {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--arredondamento-medio);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icone-indicador svg { width: 18px; height: 18px; }
+
+/* Variações de cor para os ícones */
+.icon-green     { background: var(--verde-claro); }
+.icon-green svg { stroke: var(--verde); }
+
+.icon-red       { background: var(--vermelho-claro); }
+.icon-red svg   { stroke: var(--vermelho); }
+
+.icon-blue      { background: var(--cor-principal-clara); }
+.icon-blue svg  { stroke: var(--cor-principal); }
+
+.icon-yellow    { background: #fde68a; }
+.icon-yellow svg{ stroke: #92400e; }
+
+.icon-cyan      { background: var(--ciano-claro); }
+.icon-cyan svg  { stroke: var(--ciano); }
+
+/* Etiqueta de variação no canto superior direito do card */
+.etiqueta-variacao {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.etiqueta-verde { background: var(--verde-claro);        color: var(--verde-texto); }
+.etiqueta-azul  { background: var(--cor-principal-clara); color: var(--cor-principal-escura); }
+
+/* Textos internos do card de indicador */
+.rotulo-indicador {
+  font-size: 12px;
+  color: var(--texto-secundario);
+  margin-bottom: 4px;
+}
+
+.valor-indicador {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--texto-primario);
+  letter-spacing: -0.5px;
+}
+
+.detalhe-indicador {
+  font-size: 11.5px;
+  color: var(--texto-suave);
+  margin-top: 5px;
+}
+
+
+/*
+   BARRA DE PROGRESSO (card de Presença Média)
+   A trilha é o elemento pai; o preenchimento é o filho.
+   A largura do filho é definida via style="width: X%"
+   no HTML, e animada via transition no CSS.
+*/
+.barra-progresso {
+  height: 7px;
+  background: #e5e7eb;
+  border-radius: 20px;
+  margin-top: 14px;
+  overflow: hidden;
+}
+
+.barra-progresso-preenchimento {
+  height: 100%;
+  background: var(--cor-principal);
+  border-radius: 20px;
+  transition: width 0.7s ease; /* animação ao carregar (ver dashboard.js) */
+}
+
+
+/*
+   TÍTULO DE SEÇÃO
+   Linha com ícone + texto, usada nos cards de conteúdo:
+   Mapa de Rotas, Gráfico, Alertas, Resumo Financeiro.
+*/
+.titulo-secao {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--texto-primario);
+  margin-bottom: 14px;
+}
+
+.icone-secao {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Texto complementar "(por mês)" ao lado do título do gráfico */
+.subtitulo-grafico {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--texto-secundario);
+  margin-left: 2px;
+}
+
+
+/*
+   GRADE MAPA + GRÁFICO
+   Dois cards lado a lado: mapa (1fr) e gráfico (1.3fr).
+   No tablet (≤ 1024px) empilham verticalmente.
+*/
+.grade-mapa-grafico {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+/* -------------------------------------------------------
+   LINHA DE ROTA (estilo metrô)
+   Container horizontal com scroll para telas menores.
+   O SVG é gerado dinamicamente pelo dashboard.js.
+------------------------------------------------------- */
+.linha-rota-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 1rem 0.5rem 0.5rem;
+  /* Barra de scroll discreta */
+  scrollbar-width: thin;
+  scrollbar-color: var(--borda) transparent;
+}
+
+.linha-rota-wrapper::-webkit-scrollbar {
+  height: 4px;
+}
+
+.linha-rota-wrapper::-webkit-scrollbar-thumb {
+  background: var(--borda);
+  border-radius: 4px;
+}
+
+/* SVG da linha */
+.linha-rota-wrapper svg {
+  display: block;
+  overflow: visible;
+}
+
+/* Container do canvas Chart.js
+   position: relative é obrigatório para o Chart.js
+   calcular as dimensões corretamente. */
+.area-grafico {
+  position: relative;
+  height: 240px;
+}
+
+
+/* 
+   GRADE ALERTAS + RESUMO FINANCEIRO
+   Alertas ocupa 1.4fr; resumo ocupa 1fr.
+*/
+.grade-alertas-resumo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+
+/* 
+   ALERTAS E PENDÊNCIAS
+   Gerados dinamicamente pelo JS conforme os dados das
+   outras telas (vistoria vencida, mensalidade atrasada, etc.)
+   Cores: amarelo = atenção, vermelho = urgente, azul = info.
+*/
+.alerta {
+  border-radius: var(--arredondamento-medio);
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+
+.alerta:last-child { margin-bottom: 0; }
+
+.alerta-amarelo  { background: var(--amarelo-claro);  border: 1px solid var(--amarelo-borda); }
+.alerta-vermelho { background: #fef2f2;               border: 1px solid #fca5a5; }
+.alerta-azul     { background: #eff6ff;               border: 1px solid #bfdbfe; }
+
+.titulo-alerta { font-size: 13px; font-weight: 600; }
+.titulo-alerta.amarelo  { color: var(--amarelo-texto); }
+.titulo-alerta.vermelho { color: var(--vermelho-texto); }
+.titulo-alerta.azul     { color: #1e3a8a; }
+
+.descricao-alerta { font-size: 11.5px; margin-top: 2px; }
+.descricao-alerta.amarelo  { color: var(--amarelo-desc); }
+.descricao-alerta.vermelho { color: #b91c1c; }
+.descricao-alerta.azul     { color: #1d4ed8; }
+
+/* Mensagem exibida quando não há dados ainda */
+.aviso-sem-dados {
+  font-size: 13px;
+  color: var(--texto-suave);
+  text-align: center;
+  padding: 1rem 0;
+}
+
+
+/*
+   RESUMO FINANCEIRO
+   Linhas com rótulo à esquerda e valor colorido à direita.
+   A linha de saldo (total) tem estilo diferenciado.
+*/
+.linha-resumo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--borda);
+  font-size: 13px;
+}
+
+/* Linha de saldo: sem borda inferior, fonte maior e negrito */
+.linha-resumo-total {
+  border-bottom: none;
+  font-weight: 700;
+  font-size: 14.5px;
+  padding-top: 12px;
+}
+
+.rotulo-resumo-financeiro { color: var(--texto-secundario); }
+
+.valor-resumo-financeiro          { font-weight: 600; }
+.valor-resumo-financeiro.verde    { color: var(--verde); }
+.valor-resumo-financeiro.vermelho { color: var(--vermelho); }
+.valor-resumo-financeiro.azul     { color: var(--cor-principal); }
+
+/* Banner de status do saldo — azul quando positivo */
+.banner-saldo-positivo {
+  background: var(--cor-principal);
+  border-radius: var(--arredondamento-medio);
+  padding: 12px 14px;
+  margin-top: 14px;
+}
+
+/* Banner vermelho quando o saldo é negativo */
+.banner-saldo-positivo.negativo {
+  background: var(--vermelho);
+}
+
+.titulo-banner {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.descricao-banner {
+  font-size: 11.5px;
+  color: #bfdbfe;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+/* Texto do banner quando negativo fica levemente diferente */
+.banner-saldo-positivo.negativo .descricao-banner {
+  color: #fecaca;
+}
+
+
+/* 
+   RESPONSIVIDADE — TABLET (≤ 1024px)
+   Mapa e gráfico empilham verticalmente.
+ */
+@media (max-width: 1024px) {
+  .grade-mapa-grafico {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* 
+   RESPONSIVIDADE — TABLET PEQUENO (≤ 900px)
+   3 cards de indicadores passam para 2 por linha.
+*/
+@media (max-width: 900px) {
+  .grade-3-colunas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* 
+   RESPONSIVIDADE — CELULAR (≤ 700px)
+   - Barra do topo aparece
+   - Conteúdo desce para não ficar atrás da barra
+   - Sidebar vira drawer deslizante (fora da tela)
+   - Todas as grades viram 1 coluna
+*/
+@media (max-width: 700px) {
+
+  .barra-topo { display: flex; }
+
+  .layout { padding-top: var(--altura-barra-topo); }
+
+  /* Sidebar escondida fora da tela — entra ao adicionar .aberta */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+  }
+
+  .sidebar.aberta {
+    transform: translateX(0);
+  }
+
+  .grade-3-colunas,
+  .grade-2-colunas,
+  .grade-mapa-grafico,
+  .grade-alertas-resumo {
+    grid-template-columns: 1fr;
+  }
+
+  .main { padding: 1.25rem 1rem; }
+}
