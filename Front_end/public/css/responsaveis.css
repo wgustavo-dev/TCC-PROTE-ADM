@@ -1,1 +1,634 @@
-.main{padding:22px; width:100%}.head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}.head h1{font-size:34px;color:#0f4db3;line-height:1}.head p{font-size:12px;color:#6b7280}.btn-primary{background:var(--cor-principal);color:#fff;border:0;border-radius:999px;padding:8px 14px;font-weight:600}.linha-filtros{display:flex;gap:10px;margin-bottom:12px}.input-busca,.select{height:34px;border:1px solid var(--borda);border-radius:8px;padding:0 10px}.input-busca{flex:1}.table-card{padding:0;overflow:hidden}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:10px;border-bottom:1px solid var(--borda);text-align:left}th{font-size:10px;color:#6b7280}.acao{border:0;background:transparent;cursor:pointer}.editar{color:#1a56db}.excluir{color:#ef4444}.detalhes{margin-top:14px;padding:0}.det-head{padding:10px 14px;background:#e8edf5;color:#1a56db;font-size:11px}.det-grid{display:grid;grid-template-columns:1fr 180px;gap:14px;padding:14px}.perfil{display:flex;align-items:center;gap:14px;border:1px solid #c7d2fe;padding:12px;border-radius:10px}.avatar{width:62px;height:62px;border-radius:50%;background:#0f4db3;color:#fff;display:grid;place-items:center;font-weight:700;font-size:28px}.qtd{border:1px solid var(--borda);border-radius:10px;display:grid;place-items:center}.qtd span{font-size:11px;color:#1a56db}.qtd strong{font-size:24px}.modal-overlay{position:fixed;inset:0;background:rgba(17,24,39,.45);display:grid;place-items:center}.hidden{display:none}.modal-card{background:#fff;width:360px;max-width:calc(100vw - 24px);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:8px}.modal-card input{height:34px;border:1px solid var(--borda);border-radius:6px;padding:0 10px}.lg{width:90px;height:90px;margin:8px auto}.acoes-modal{display:flex;gap:8px;justify-content:flex-end}#cancelar{border:1px solid var(--borda);background:#fff;border-radius:8px;padding:8px 14px}
+/* =========================================================
+   CSS RESPONSÁVEIS - PADRÃO ALINHADO COM ALUNOS
+   ========================================================= */
+
+/* REAPROVEITANDO ESTILOS DE ALUNOS */
+.alunos-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: nowrap;
+}
+
+.alunos-titulos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.page-sub {
+  font-size: 13.5px;
+  color: var(--texto-secundario);
+  margin: 0;
+}
+
+/* BOTÕES PRINCIPAIS */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--cor-principal);
+  color: #fff;
+  border: none;
+  border-radius: var(--arredondamento-medio);
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-primary:hover {
+  background: var(--cor-principal-escura);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-primary.solid {
+  min-width: 140px;
+}
+
+.btn-aluno-topo {
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+/* BARRA DE FILTRO */
+.barra-filtro {
+  margin-bottom: 8px;
+}
+
+.botao-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  padding: 7px 14px;
+  font-size: 13px;
+  color: var(--cor-principal);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.botao-filtro svg {
+  width: 14px;
+  height: 14px;
+  stroke: var(--cor-principal);
+}
+
+.botao-filtro:hover {
+  background: var(--cor-principal-clara);
+}
+
+.botao-filtro.aberto {
+  background: var(--cor-principal-clara);
+  border-color: var(--cor-principal);
+}
+
+/* PAINEL DE FILTROS */
+.painel-filtros {
+  display: block;
+  background: var(--fundo-card);
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-grande);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--sombra-card);
+}
+
+.painel-filtros.hidden {
+  display: none !important;
+}
+
+.campos-filtro {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.grupo-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 130px;
+}
+
+.grupo-botao-limpar {
+  flex: 0 0 auto;
+}
+
+.label-filtro {
+  font-size: 12px;
+  color: var(--cor-principal);
+  font-weight: 500;
+}
+
+.input-filtro {
+  padding: 8px 10px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+  color: var(--texto-primario);
+  background: var(--fundo-card);
+  outline: none;
+  transition: border-color 0.15s;
+  height: 40px;
+}
+
+.input-filtro:focus {
+  border-color: var(--cor-principal);
+}
+
+.input-filtro::placeholder {
+  color: var(--texto-suave);
+}
+
+.botao-limpar-filtros {
+  padding: 8px 16px;
+  background: var(--cor-principal);
+  color: #fff;
+  border: none;
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  height: 40px;
+}
+
+.botao-limpar-filtros:hover {
+  background: var(--cor-principal-escura);
+}
+
+/* CAMPO DE BUSCA */
+.campo-busca {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.icone-busca {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  stroke: var(--texto-suave);
+  pointer-events: none;
+}
+
+.input-busca {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  background: var(--fundo-card);
+  font-size: 13.5px;
+  color: var(--texto-primario);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input-busca::placeholder {
+  color: var(--texto-suave);
+}
+
+.input-busca:focus {
+  border-color: var(--cor-principal);
+}
+
+/* TABELA - IGUAL ALUNOS */
+.table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tabela-alunos-wrapper {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tabela-alunos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  min-width: 1100px;
+}
+
+.tabela-alunos thead tr {
+  background: var(--fundo-card);
+  border-bottom: 1px solid var(--borda);
+}
+
+.tabela-alunos th {
+  text-align: left;
+  padding: 14px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--texto-secundario);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.tabela-alunos td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--borda);
+  color: var(--texto-primario);
+  vertical-align: middle;
+}
+
+.tabela-alunos tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabela-alunos tbody tr:hover {
+  background: var(--fundo-pagina);
+}
+
+/* AÇÕES DA TABELA */
+.acoes {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.acao-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  padding: 0;
+  color: var(--cor-principal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+  font-size: 16px;
+}
+
+.acao-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.acao-btn.ver {
+  color: var(--cor-principal);
+}
+
+.acao-btn.ver:hover {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.acao-btn.excluir {
+  color: #ef4444;
+}
+
+.acao-btn.excluir:hover {
+  background: rgba(220, 38, 38, 0.12);
+}
+
+.acao-btn[data-ac="editar"] {
+  color: var(--cor-principal);
+}
+
+.acao-btn[data-ac="editar"]:hover {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--texto-suave);
+  font-size: 13.5px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* DETALHES */
+.detalhes {
+  margin-top: 14px;
+  padding: 0;
+}
+
+.detalhes-head {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #e8edf5;
+  color: #1a56db;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.detalhes-head button {
+  border: 0;
+  background: transparent;
+  color: #1a56db;
+  cursor: pointer;
+}
+
+.linha-detalhes {
+  display: grid;
+  grid-template-columns: 1fr 170px;
+  gap: 12px;
+  padding: 12px;
+}
+
+.box {
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+}
+
+.perfil {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #0f4db3;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.resumo {
+  display: grid;
+  place-items: center;
+}
+
+.resumo span {
+  font-size: 12px;
+  color: #1a56db;
+}
+
+.resumo strong {
+  font-size: 28px;
+}
+
+.subsecao {
+  padding: 0 12px 12px;
+}
+
+.subsecao h3 {
+  font-size: 12px;
+  color: #1a56db;
+  margin-bottom: 8px;
+}
+
+.cards-alunos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.aluno-card {
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.cards-financeiro {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.mini-card {
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.mini-card span {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.mini-card strong {
+  display: block;
+  color: #111827;
+  margin-top: 4px;
+}
+
+/* MODAL - IGUAL ALUNOS */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 22px 20px;
+  z-index: 999;
+  overflow-y: auto;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--fundo-card);
+  border-radius: var(--arredondamento-grande);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  max-height: calc(100vh - 44px);
+}
+
+.modal-card-aluno {
+  max-width: 460px;
+}
+
+.modal-header {
+  padding: 1.75rem 1.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--borda);
+}
+
+.modal-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--texto-primario);
+}
+
+.btn-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-close:hover {
+  background: #e5e7eb;
+}
+
+/* AVATAR DO MODAL */
+.avatar-modal-aluno {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  margin: 16px auto 14px;
+  background: #b4b6ba;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  color: #7a7d81;
+}
+
+.avatar-modal-aluno svg {
+  width: 62px;
+  height: 62px;
+}
+
+/* FORMULÁRIO RESPONSÁVEIS */
+#formResponsavel {
+  padding: 0 1.75rem 1.75rem;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  padding-right: 1rem;
+  margin-right: 0.25rem;
+}
+
+#formResponsavel::-webkit-scrollbar {
+  width: 10px;
+}
+
+#formResponsavel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#formResponsavel::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+#formResponsavel::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* AÇÕES DO MODAL */
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-secondary {
+  min-width: 140px;
+  height: 40px;
+  border: 1px solid var(--borda);
+  background: var(--fundo-card);
+  color: var(--texto-primario);
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-secondary:hover {
+  background: #f3f4f6;
+}
+
+.modal-actions .btn-primary.solid {
+  min-width: 140px;
+  height: 40px;
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+}
+
+/* RESPONSIVIDADE - IGUAL ALUNOS */
+@media (max-width: 900px) {
+  .tabela-alunos {
+    min-width: 900px;
+  }
+}
+
+@media (max-width: 700px) {
+  .alunos-cabecalho {
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .btn-aluno-topo {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .linha-detalhes,
+  .cards-financeiro {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .modal-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal-card-aluno {
+    max-width: 100%;
+  }
+
+  .campos-filtro {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .grupo-botao-limpar {
+    margin-top: 8px;
+  }
+}

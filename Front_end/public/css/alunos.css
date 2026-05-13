@@ -661,3 +661,175 @@
     margin-top: 8px;
   }
 }
+/* =========================================================
+   SEPARAÇÃO DE TURMAS - MANHÃ, TARDE, NOITE
+   ========================================================= */
+
+.turmas-wrapper {
+  margin-top: 20px;
+}
+
+.turmas-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--borda);
+  padding: 0 16px;
+  margin-bottom: 16px;
+}
+
+.turma-tab {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--texto-secundario);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.turma-tab:hover {
+  color: var(--cor-principal);
+}
+
+.turma-tab.active {
+  color: var(--cor-principal);
+}
+
+.turma-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--cor-principal);
+  border-radius: 2px;
+}
+
+.turma-badge {
+  display: inline-block;
+  background: #e8edf5;
+  color: #1a56db;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-left: 8px;
+}
+
+.turma-content {
+  display: none;
+  padding: 0 16px 16px;
+}
+
+.turma-content.active {
+  display: block;
+}
+
+.turma-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--borda);
+}
+
+.turma-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--texto-primario);
+  margin: 0;
+}
+
+.turma-header span {
+  font-size: 13px;
+  color: var(--texto-secundario);
+}
+
+.turma-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.turma-card {
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  padding: 14px;
+  background: var(--fundo-card);
+  transition: all 0.2s ease;
+}
+
+.turma-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.turma-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.turma-card-header strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--texto-primario);
+}
+
+.turma-horario {
+  font-size: 11px;
+  color: var(--cor-principal);
+  background: #e8edf5;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.turma-card-info {
+  font-size: 12px;
+  color: var(--texto-secundario);
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.turma-card-info span {
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.turma-card-endereco {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--borda);
+}
+
+.turma-empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .turmas-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  
+  .turma-tab {
+    white-space: nowrap;
+  }
+  
+  .turma-lista {
+    grid-template-columns: 1fr;
+  }
+}
