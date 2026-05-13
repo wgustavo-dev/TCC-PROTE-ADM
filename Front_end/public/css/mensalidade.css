@@ -1,3 +1,7 @@
+/* =========================================================
+   CSS UNIFICADO - TELA DE MENSALIDADES
+   ========================================================= */
+
 .cabecalho-mensalidades {
   display: flex;
   justify-content: space-between;
@@ -5,11 +9,12 @@
   gap: 16px;
   margin-bottom: 16px;
 }
-/* */
+
 .titulo-mensalidades {
   color: var(--cor-principal);
 }
 
+/* BOTÃO PRINCIPAL */
 .botao-primario-mensalidade {
   display: flex;
   align-items: center;
@@ -39,6 +44,7 @@
   height: 16px;
 }
 
+/* CARDS DE RESUMO */
 .resumo-mensalidades {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -104,6 +110,7 @@
   color: var(--texto-suave);
 }
 
+/* BARRA DE BUSCA */
 .caixa-busca-mensalidade {
   padding: 10px 12px;
   margin-bottom: 14px;
@@ -139,6 +146,114 @@
   border-color: var(--cor-principal);
 }
 
+/* FILTROS */
+.barra-filtro {
+  margin-bottom: 8px;
+}
+
+.botao-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  padding: 7px 14px;
+  font-size: 13px;
+  color: var(--cor-principal);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.botao-filtro svg {
+  width: 14px;
+  height: 14px;
+  stroke: var(--cor-principal);
+}
+
+.botao-filtro:hover {
+  background: var(--cor-principal-clara);
+}
+
+.botao-filtro.aberto {
+  background: var(--cor-principal-clara);
+  border-color: var(--cor-principal);
+}
+
+.painel-filtros {
+  display: block;
+  background: var(--fundo-card);
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-grande);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--sombra-card);
+}
+
+.painel-filtros.hidden {
+  display: none !important;
+}
+
+.campos-filtro {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.grupo-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 130px;
+}
+
+.grupo-botao-limpar {
+  flex: 0 0 auto;
+}
+
+.label-filtro {
+  font-size: 12px;
+  color: var(--cor-principal);
+  font-weight: 500;
+}
+
+.input-filtro {
+  padding: 8px 10px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+  color: var(--texto-primario);
+  background: var(--fundo-card);
+  outline: none;
+  transition: border-color 0.15s;
+  height: 40px;
+}
+
+.input-filtro:focus {
+  border-color: var(--cor-principal);
+}
+
+.botao-limpar-filtros {
+  padding: 8px 16px;
+  background: var(--cor-principal);
+  color: #fff;
+  border: none;
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  height: 40px;
+}
+
+.botao-limpar-filtros:hover {
+  background: var(--cor-principal-escura);
+}
+
+/* TABELA */
 .tabela-mensalidades-card {
   padding: 0;
   overflow: hidden;
@@ -189,12 +304,26 @@
   border-radius: 50%;
   background: #b6b6b6;
   flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-tabela img,
+.foto-tabela {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .nome-aluno {
   font-weight: 600;
 }
 
+/* STATUS BADGES */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -222,6 +351,7 @@
   color: #d97706;
 }
 
+/* CONTATOS E AÇÕES */
 .lista-contatos {
   display: flex;
   flex-direction: column;
@@ -278,6 +408,7 @@
   font-size: 13px;
 }
 
+/* MODAL MENSALIDADE - ESTILO MODERNO */
 .fundo-modal {
   display: none;
   position: fixed;
@@ -293,145 +424,12 @@
   display: flex;
 }
 
-.caixa-modal {
-  width: 100%;
-  max-width: 460px;
-  background: var(--fundo-card);
-  border-radius: var(--arredondamento-grande);
-  overflow: hidden;
-  max-height: calc(100vh - 44px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
-}
-
-.titulo-modal {
-  font-size: 20px;
-  font-weight: 700;
-  padding: 1.75rem 1.75rem 1.25rem;
-  border-bottom: 1px solid var(--borda);
-}
-
-.conteudo-modal-mensalidade {
-  max-height: calc(100vh - 220px);
-  overflow-y: auto;
-  padding-right: 1rem;
-  margin-right: 0.25rem;
-}
-
-.bloco-aluno-modal {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 1rem 1.75rem 0;
-}
-
-.avatar-aluno {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: #b6b6b6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 34px;
-}
-
-.dados-aluno-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  color: var(--texto-secundario);
-}
-
-.grupo-campo {
-  padding: 0 1.75rem;
-  margin-top: 16px;
-}
-
-.label-campo {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 12px;
-  color: var(--texto-secundario);
-  font-weight: 600;
-}
-
-.input-campo {
-  width: 100%;
-  height: 40px;
-  border: 1px solid var(--borda);
-  border-radius: var(--arredondamento-medio);
-  padding: 0 12px;
-  font-size: 13.5px;
-  outline: none;
-}
-
-.input-campo:focus {
-  border-color: var(--cor-principal);
-}
-
-.mensagem-erro {
-  display: block;
-  min-height: 16px;
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--vermelho);
-}
-
-.acoes-modal {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  padding: 1.25rem 1.75rem 1.75rem;
-}
-
-.botao-cancelar,
-.botao-cadastrar {
-  min-width: 140px;
-  height: 40px;
-  border-radius: var(--arredondamento-medio);
-  font-size: 13.5px;
-  cursor: pointer;
-}
-
-.botao-cancelar {
-  background: var(--fundo-card);
-  color: var(--texto-primario);
-  border: 1px solid var(--borda);
-}
-
-.botao-cadastrar {
-  background: var(--cor-principal);
-  color: #fff;
-  border: none;
-}
-
-.botao-cadastrar:hover {
-  background: var(--cor-principal-escura);
-}
-
-/* MODAL MENSALIDADE - PADRÃO NOVO */
-
-#fundoModalMensalidade {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-  z-index: 9999;
-}
-
-#fundoModalMensalidade.ativo {
-  display: flex;
-}
-
 .modal-card-mensalidade {
   width: min(460px, 92vw);
   max-height: calc(100vh - 44px);
   overflow: hidden;
   border-radius: 18px;
-  background: #ffffff;
+  background: var(--fundo-card);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
 }
 
@@ -450,12 +448,45 @@
   margin: 0;
 }
 
+.modal-card-mensalidade .btn-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.modal-card-mensalidade .btn-close:hover {
+  background: #e5e7eb;
+}
+
 .modal-body-scroll {
   padding: 22px 28px 12px;
   max-height: calc(100vh - 190px);
   overflow-y: auto;
 }
 
+.modal-body-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modal-body-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-body-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.modal-body-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* INFO TOPO DO MODAL */
 .info-topo-mensalidade {
   display: flex;
   align-items: center;
@@ -464,11 +495,14 @@
 }
 
 #avatarModalMensalidade {
-  width: 96px;
-  height: 96px;
-  min-width: 96px;
+  width: 120px;
+  height: 120px;
+  min-width: 120px;
   border-radius: 50%;
-  background: #b6b6b6;
+  background: #b8babf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 }
 
@@ -476,6 +510,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: none;
+  border-radius: 50%;
 }
 
 .info-textos-mensalidade {
@@ -495,6 +531,7 @@
   color: #6b7280;
 }
 
+/* CAMPOS DO MODAL */
 .modal-card-mensalidade .grupo-filtro {
   margin-bottom: 16px;
 }
@@ -515,7 +552,7 @@
   padding: 0 12px;
   font-size: 13.5px;
   outline: none;
-  background: #ffffff;
+  background: var(--fundo-card);
   color: var(--texto-primario);
 }
 
@@ -524,6 +561,29 @@
   box-shadow: 0 0 0 3px rgba(36, 70, 184, 0.12);
 }
 
+.modal-card-mensalidade .input-arquivo {
+  width: 100%;
+  font-size: 13px;
+  color: #374151;
+  margin-top: 4px;
+}
+
+.modal-card-mensalidade .input-arquivo::file-selector-button {
+  border: 1px solid #dfe3ea;
+  background: var(--fundo-card);
+  color: #111827;
+  border-radius: 9px;
+  padding: 8px 12px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.modal-card-mensalidade .input-arquivo::file-selector-button:hover {
+  background: #f3f4f6;
+}
+
+/* INFO BOX */
 .modal-card-mensalidade .info-box {
   background: #eef4ff;
   border: 1px solid #bcd3ff;
@@ -535,6 +595,7 @@
   margin-top: 8px;
 }
 
+/* AÇÕES DO MODAL */
 .modal-card-mensalidade .modal-actions {
   padding: 18px 28px 24px;
   border-top: 1px solid var(--borda);
@@ -554,7 +615,7 @@
 }
 
 .modal-card-mensalidade .btn-secondary {
-  background: #ffffff;
+  background: var(--fundo-card);
   color: var(--texto-primario);
   border: 1px solid var(--borda);
 }
@@ -569,89 +630,7 @@
   background: var(--cor-principal-escura);
 }
 
-.modal-card-mensalidade .btn-close {
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 50%;
-  background: #f3f4f6;
-  color: #111827;
-  font-size: 22px;
-  cursor: pointer;
-}
-
-.modal-card-mensalidade .btn-close:hover {
-  background: #e5e7eb;
-}
-.modal-card-mensalidade .input-arquivo {
-  width: 100%;
-  font-size: 13px;
-  color: #374151;
-  margin-top: 4px;
-}
-
-.modal-card-mensalidade .input-arquivo::file-selector-button {
-  border: 1px solid #dfe3ea;
-  background: #ffffff;
-  color: #111827;
-  border-radius: 9px;
-  padding: 8px 12px;
-  margin-right: 10px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.modal-card-mensalidade .input-arquivo::file-selector-button:hover {
-  background: #f3f4f6;
-}
-/* Corrige foto da tabela de mensalidades */
-.avatar-tabela {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: #b6b6b6;
-  flex-shrink: 0;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.avatar-tabela img,
-.foto-tabela {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  display: block;
-}
-/* Corrige foto do modal de mensalidade */
-#avatarModalMensalidade {
-  width: 120px;
-  height: 120px;
-  min-width: 120px;
-  border-radius: 50%;
-  background: #b8babf;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-#avatarPlaceholderMensalidade {
-  width: 52px;
-  height: 52px;
-  color: #73777d;
-}
-
-#previewFotoMensalidade {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: none;
-  border-radius: 50%;
-}
-
+/* RESPONSIVIDADE */
 @media (max-width: 900px) {
   .resumo-mensalidades {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -673,17 +652,66 @@
     grid-template-columns: 1fr;
   }
 
-  .acoes-modal {
+  .campos-filtro {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .grupo-botao-limpar {
+    margin-top: 8px;
+  }
+
+  .modal-card-mensalidade .modal-actions {
     flex-direction: column;
   }
 
-  .botao-cancelar,
-  .botao-cadastrar {
+  .modal-card-mensalidade .btn-secondary,
+  .modal-card-mensalidade .btn-primary {
     width: 100%;
   }
 
-  .bloco-aluno-modal {
+  .info-topo-mensalidade {
     flex-direction: column;
-    align-items: flex-start;
+    text-align: center;
   }
+}
+/* SWEETALERT2 PERSONALIZADO */
+.prote-alert {
+  border-radius: 20px;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+}
+
+.prote-alert-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.prote-alert-button {
+  background-color: #2446b8 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 12px 26px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.prote-alert-button:hover {
+  background-color: #1d3691 !important;
+  transform: translateY(-1px);
+}
+
+.prote-alert-cancel-button {
+  background-color: #e5e7eb !important;
+  color: #374151 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 12px 26px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: 0.2s ease;
 }

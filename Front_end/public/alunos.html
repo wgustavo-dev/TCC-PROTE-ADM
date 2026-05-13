@@ -27,7 +27,7 @@
       </div>
 
       <nav class="nav">
-        <a href="index.html" class="nav-item">
+        <a href="dashboard.html" class="nav-item">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
             <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
@@ -109,6 +109,49 @@
         <input type="text" id="inputBusca" class="input-busca" placeholder="Buscar por aluno..." />
       </div>
 
+      <div class="barra-filtro">
+        <button type="button" class="botao-filtro" id="botaoFiltroAluno"> 
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg> 
+          Filtro
+        </button>
+      </div>
+
+      <div class="painel-filtros hidden" id="painelFiltrosAluno">
+        <div class="campos-filtro">
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroVencimentoAluno">Data de vencimento</label>
+            <input type="date" id="filtroVencimentoAluno" class="input-filtro">
+          </div>
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroOrdemAluno">Ordem</label>
+            <select id="filtroOrdemAluno" class="input-filtro">
+              <option value="alfabetica">Ordem alfabética</option>
+              <option value="vencimento">Data de vencimento</option>
+            </select>
+          </div>
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroEscolaAluno">Escola</label>
+            <select id="filtroEscolaAluno" class="input-filtro">
+              <option value="">Todas as escolas</option>
+            </select>
+          </div>
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroTrajetoAluno">Tipo de trajeto</label>
+            <select id="filtroTrajetoAluno" class="input-filtro">
+              <option value="">Todos</option>
+              <option value="ida">Apenas ir para escola</option>
+              <option value="volta">Apenas voltar da escola</option>
+              <option value="ida_e_volta">Ir e voltar</option>
+            </select>
+          </div>
+          <div class="grupo-filtro grupo-botao-limpar">
+            <button type="button" id="btnLimparFiltrosAluno" class="botao-limpar-filtros">Limpar</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card table-card tabela-alunos-wrapper">
         <div class="table-wrapper">
           <table class="tabela-alunos">
@@ -116,6 +159,9 @@
               <tr>
                 <th>FOTO</th>
                 <th>ALUNO</th>
+                <th>ESCOLA</th>
+                <th>VENCIMENTO</th>
+                <th>TRAJETO</th>
                 <th>RESPONSÁVEIS</th>
                 <th>CONTATOS</th>
                 <th>ENDEREÇO EMBARQUE</th>
@@ -130,6 +176,11 @@
         <div class="empty-state" id="emptyState">
           Nenhum aluno cadastrado ainda.
         </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <h3 class="page-sub" style="margin:14px 16px 6px;">Rotas por período e horário</h3>
+        <div id="rotasContainer" class="rotas-container"></div>
       </div>
     </main>
   </div>
@@ -152,9 +203,10 @@
           <img id="previewFoto" alt="Pré-visualização da foto do aluno" />
         </div>
 
-                <div class="grupo-filtro">
+        <div class="grupo-filtro">
           <label class="label-filtro" for="fotoAluno">Foto do aluno</label>
-          <input type="file" id="fotoAluno" name="foto" class="input-arquivo" accept="image/*" />
+          <input type="file" id="fotoAluno" class="input-arquivo" accept="image/*" />
+          <input type="url" id="linkFotoAluno" class="input-filtro" placeholder="Ou cole o link da imagem" style="margin-top: 8px;" />
         </div>
 
         <div class="grupo-filtro">
@@ -191,38 +243,39 @@
           <label class="label-filtro" for="enderecoDesembarque">Endereço de desembarque</label>
           <input type="text" id="enderecoDesembarque" class="input-filtro" placeholder="Digite..." required />
         </div>
+
         <div class="grupo-filtro">
-  <label class="label-filtro" for="escolaAluno">Escola</label>
-  <input type="text" id="escolaAluno" class="input-filtro" placeholder="Digite a escola" />
-</div>
+          <label class="label-filtro" for="escolaAluno">Escola</label>
+          <input type="text" id="escolaAluno" class="input-filtro" placeholder="Digite a escola" required />
+        </div>
 
-<div class="grupo-filtro">
-  <label class="label-filtro" for="vencimentoAluno">Data de vencimento</label>
-  <input type="date" id="vencimentoAluno" class="input-filtro" />
-</div>
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="vencimentoAluno">Data de vencimento</label>
+          <input type="date" id="vencimentoAluno" class="input-filtro" required />
+        </div>
 
-<div class="grupo-filtro">
-  <label class="label-filtro" for="tipoTrajetoAluno">Tipo de trajeto</label>
-  <select id="tipoTrajetoAluno" class="input-filtro">
-    <option value="ida">Apenas ir para escola</option>
-    <option value="volta">Apenas voltar da escola</option>
-    <option value="ida_e_volta" selected>Ir e voltar</option>
-  </select>
-</div>
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="tipoTrajetoAluno">Tipo de trajeto</label>
+          <select id="tipoTrajetoAluno" class="input-filtro" required>
+            <option value="ida">Apenas ir para escola</option>
+            <option value="volta">Apenas voltar da escola</option>
+            <option value="ida_e_volta" selected>Ir e voltar</option>
+          </select>
+        </div>
 
-<div class="grupo-filtro">
-  <label class="label-filtro" for="periodoAluno">Período</label>
-  <select id="periodoAluno" class="input-filtro">
-    <option value="manha">Manhã</option>
-    <option value="tarde">Tarde</option>
-    <option value="noite">Noite</option>
-  </select>
-</div>
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="periodoAluno">Período</label>
+          <select id="periodoAluno" class="input-filtro" required>
+            <option value="manha">Manhã</option>
+            <option value="tarde">Tarde</option>
+            <option value="noite">Noite</option>
+          </select>
+        </div>
 
-<div class="grupo-filtro">
-  <label class="label-filtro" for="horarioTurmaAluno">Horário da turma</label>
-  <input type="time" id="horarioTurmaAluno" class="input-filtro" />
-</div>
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="horarioTurmaAluno">Horário da turma</label>
+          <input type="time" id="horarioTurmaAluno" class="input-filtro" required />
+        </div>
 
         <div class="info-box">
           Somente o condutor poderá ter acesso a esta área quando o controle de acesso for integrado ao back-end.
