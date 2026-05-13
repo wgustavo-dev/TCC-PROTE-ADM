@@ -115,8 +115,8 @@ function mapearAlunoApi(item) {
     foto: toUrlFoto(item.foto),
     escola: item.escola || "",
     vencimento: item.vencimento || "",
-    tipoTrajeto: item.tipo_trajeto || "ida_e_volta",
-    periodo: item.periodo || "manha",
+    tipoTrajeto: item.tipo_trajeto === "IDA" ? "ida" : item.tipo_trajeto === "VOLTA" ? "volta" : "ida_e_volta",
+    periodo: item.turno ? item.turno.toLowerCase() : "manha",
     horarioTurma: item.horario_turma || ""
   };
 }
@@ -243,8 +243,11 @@ async function salvarAluno(payload) {
   form.append("responsavel_telefone", payload.telefone1);
   form.append("escola", payload.escola);
   form.append("vencimento", payload.vencimento);
-  form.append("tipo_trajeto", payload.tipoTrajeto);
-  form.append("periodo", payload.periodo);
+  const tipoTrajetoApi = payload.tipoTrajeto === "ida" ? "IDA" : payload.tipoTrajeto === "volta" ? "VOLTA" : "AMBOS";
+  const turnoApi = payload.periodo ? payload.periodo.toUpperCase() : "MANHA";
+
+  form.append("tipo_trajeto", tipoTrajetoApi);
+  form.append("turno", turnoApi);
   form.append("horario_turma", payload.horarioTurma);
   
   if (el.fotoAluno.files[0]) form.append("foto", el.fotoAluno.files[0]);

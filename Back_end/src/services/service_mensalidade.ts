@@ -6,8 +6,6 @@ export class ServiceMensalidade {
 
     async listar() {
 
-        await this.atualizarMensalidadesAtrasadas();
-
         const repo = AppDataSource.getRepository(Mensalidade);
 
         const mensalidade = await repo.find({
@@ -22,8 +20,6 @@ export class ServiceMensalidade {
     }
 
     async buscarPorId(id: number) {
-
-        await this.atualizarMensalidadesAtrasadas();
 
         const repo = AppDataSource.getRepository(Mensalidade);
 
@@ -63,6 +59,10 @@ export class ServiceMensalidade {
             throw new Error("Mensalidade Não encontrada")
         }
 
+        if (dados.status && dados.status !== "PAGO") {
+            dados.data_pagamento = null;
+        }
+
         repo.merge(mensalidade, dados);
         await repo.save(mensalidade)
 
@@ -91,6 +91,10 @@ export class ServiceMensalidade {
 
         if (!mensalidade) {
             throw new Error("Mensalidade não encontrada")
+        }
+
+        if (mensalidade.status === "PAGO" || mensalidade.data_pagamento) {
+            throw new Error("Mensalidade já foi paga")
         }
 
         mensalidade.status = "PAGO"

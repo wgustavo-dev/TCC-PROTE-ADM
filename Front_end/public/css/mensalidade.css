@@ -715,3 +715,8 @@
   margin-right: 10px;
   transition: 0.2s ease;
 }
+
+/* Garante que alertas fiquem acima do modal da mensalidade */
+.swal2-container {
+  z-index: 11000 !important;
+}
