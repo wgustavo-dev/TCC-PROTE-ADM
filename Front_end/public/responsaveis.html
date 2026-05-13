@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROTE — Responsáveis</title>
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/responsaveis.css" />
+</head>
+<body>
+  <div class="fundo-escuro" id="fundoEscuro"></div>
+  <div class="layout">
+    <header class="barra-topo"><button class="botao-menu" id="botaoMenu"><span></span><span></span><span></span></button><span class="nome-sistema-topo">PROTE</span></header>
+    <aside class="sidebar" id="sidebar"><div class="logo"><div class="logo-title">PROTE</div><div class="logo-sub">Painel Administrativo</div></div>
+      <nav class="nav">
+        <a href="dashboard.html" class="nav-item">Dashboard</a>
+        <a href="despesas.html" class="nav-item">Despesas</a>
+        <a href="documentos.html" class="nav-item">Vistoria</a>
+        <a href="alunos.html" class="nav-item">Alunos</a>
+        <a href="orcamento.html" class="nav-item">Orçamento</a>
+        <a href="mensalidade.html" class="nav-item">Mensalidades</a>
+        <a href="presenca.html" class="nav-item">Presença</a>
+        <a href="responsaveis.html" class="nav-item active">Acessos</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="head"><div><h1>Responsáveis</h1><p>Tenha acesso as informações dos responsáveis</p></div><button class="btn-primary" id="btnNovo">+ Novo responsável</button></div>
+      <div class="linha-filtros"><input class="input-busca" placeholder=""/><select class="select"><option>Filtrar por..</option></select></div>
+      <div class="card table-card">
+        <table><thead><tr><th>NOME</th><th>QUANTIDADE DE ALUNOS</th><th>CONTATO</th><th>MENSALIDADES</th><th>AÇÕES</th></tr></thead>
+          <tbody>
+            <tr><td>Roberto Alves</td><td>2</td><td>(11)99999-9999<br>roberto@gmail.com</td><td>R$ 400,00</td><td><button class="acao editar">✎</button><button class="acao excluir">🗑</button></td></tr>
+            <tr><td>Suzane Andrade</td><td>1</td><td>(11)99999-9999<br>suzane@gmail.com</td><td>R$ 200,00</td><td><button class="acao editar">✎</button><button class="acao excluir">🗑</button></td></tr>
+          </tbody></table>
+      </div>
+      <section class="detalhes card">
+        <div class="det-head"><strong>ROBERTO ALVEZ</strong></div>
+        <div class="det-grid">
+          <div class="perfil"><div class="avatar">RA</div><div><div>(11) 99999-9999</div><div>roberto@gmail.com</div></div></div>
+          <div class="qtd"><span>Quantidade de alunos</span><strong>2</strong></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-overlay hidden" id="modal">
+    <div class="modal-card">
+      <h2 id="tituloModal">Novo responsável</h2>
+      <div class="avatar lg" id="avatarModal">SN</div>
+      <input placeholder="Nome" id="nome" />
+      <input placeholder="Quantidade de alunos" />
+      <input placeholder="Mensalidade" />
+      <input placeholder="Email" />
+      <input placeholder="Telefone" />
+      <div class="acoes-modal"><button id="cancelar">Cancelar</button><button class="btn-primary" id="salvar">Editar</button></div>
+    </div>
+  </div>
+
+  <script type="module" src="js/responsaveis.js"></script>
+</body>
+</html>
