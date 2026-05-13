@@ -1,6 +1,5 @@
 /* =========================================================
    ALERTAS PERSONALIZADOS - SWEETALERT2
-   Esses alerts substituem o alert() normal do navegador
    ========================================================= */
 
 function showSuccess(message) {
@@ -67,12 +66,16 @@ function showConfirm(message) {
 }
 
 /* =========================================================
-   VARIÁVEIS GLOBAIS DA TELA DE ALUNOS
+   VARIÁVEIS GLOBAIS
    ========================================================= */
 
 let alunos = [];
 let responsaveis = [];
 let el = null;
+
+/* =========================================================
+   FUNÇÕES AUXILIARES - API E MÁSCARAS
+   ========================================================= */
 
 function initMenu() {
   const botaoMenu = document.getElementById("botaoMenu");
@@ -110,6 +113,11 @@ function mapearAlunoApi(item) {
     embarque: item.endereco_embarque || "",
     desembarque: item.endereco_desembarque || "",
     foto: toUrlFoto(item.foto),
+    escola: item.escola || "",
+    vencimento: item.vencimento || "",
+    tipoTrajeto: item.tipo_trajeto || "ida_e_volta",
+    periodo: item.periodo || "manha",
+    horarioTurma: item.horario_turma || ""
   };
 }
 
@@ -119,7 +127,7 @@ async function carregarAlunos() {
     return Array.isArray(data) ? data.map(mapearAlunoApi) : [];
   } catch (error) {
     console.error(error);
-   showError("Não foi possível carregar os alunos.");
+    showError("Não foi possível carregar os alunos.");
     return [];
   }
 }
@@ -130,7 +138,7 @@ async function carregarResponsaveis() {
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error(error);
-   showError("Não foi possível carregar os responsáveis.");
+    showError("Não foi possível carregar os responsáveis.");
     return [];
   }
 }
@@ -139,21 +147,6 @@ function encontrarResponsavelPorNome(nome) {
   const nomeNormalizado = (nome || "").trim().toLowerCase();
   if (!nomeNormalizado) return null;
   return responsaveis.find((item) => (item.nome || "").trim().toLowerCase() === nomeNormalizado) || null;
-}
-
-function configurarModal() {
-  if (!el.btnAbrirModal) return;
-
-  el.btnAbrirModal.addEventListener("click", abrirModalNovo);
-  el.btnFecharModal.addEventListener("click", fecharModal);
-  el.btnCancelar.addEventListener("click", fecharModal);
-  el.modalOverlay.addEventListener("click", (event) => {
-    if (event.target === el.modalOverlay) fecharModal();
-  });
-}
-
-function configurarBusca() {
-  el.inputBusca.addEventListener("input", renderizar);
 }
 
 function aplicarMascaraNome(valor) {
@@ -205,6 +198,8 @@ function configurarAutocompletarResponsavel() {
 
 function configurarPreviewFoto() {
   if (!el.fotoAluno) return;
+  
+  // Para upload de arquivo
   el.fotoAluno.addEventListener("change", () => {
     const arquivo = el.fotoAluno.files[0];
     if (!arquivo) return esconderPreviewFoto();
@@ -212,6 +207,15 @@ function configurarPreviewFoto() {
     leitor.onload = (evento) => mostrarPreviewFoto(evento.target.result);
     leitor.readAsDataURL(arquivo);
   });
+  
+  // Para link da imagem
+  if (el.linkFotoAluno) {
+    el.linkFotoAluno.addEventListener("input", () => {
+      const link = el.linkFotoAluno.value.trim();
+      if (!link) return esconderPreviewFoto();
+      mostrarPreviewFoto(link);
+    });
+  }
 }
 
 function montarPayloadAluno() {
@@ -224,12 +228,10 @@ function montarPayloadAluno() {
     telefone2: el.telefoneResponsavel2 ? el.telefoneResponsavel2.value.trim() : "",
     embarque: el.enderecoEmbarque.value.trim(),
     desembarque: el.enderecoDesembarque.value.trim(),
-
-    // Campos visuais do formulário antigo
     escola: el.escolaAluno ? el.escolaAluno.value.trim() : "",
     vencimento: el.vencimentoAluno ? el.vencimentoAluno.value : "",
-    tipoTrajeto: el.tipoTrajetoAluno ? el.tipoTrajetoAluno.value : "",
-    periodo: el.periodoAluno ? el.periodoAluno.value : "",
+    tipoTrajeto: el.tipoTrajetoAluno ? el.tipoTrajetoAluno.value : "ida_e_volta",
+    periodo: el.periodoAluno ? el.periodoAluno.value : "manha",
     horarioTurma: el.horarioTurmaAluno ? el.horarioTurmaAluno.value : ""
   };
 }
@@ -241,6 +243,12 @@ async function salvarAluno(payload) {
   form.append("endereco_desembarque", payload.desembarque);
   form.append("responsavel_nome", payload.responsavel1);
   form.append("responsavel_telefone", payload.telefone1);
+  form.append("escola", payload.escola);
+  form.append("vencimento", payload.vencimento);
+  form.append("tipo_trajeto", payload.tipoTrajeto);
+  form.append("periodo", payload.periodo);
+  form.append("horario_turma", payload.horarioTurma);
+  
   if (el.fotoAluno.files[0]) form.append("foto", el.fotoAluno.files[0]);
 
   if (payload.id) {
@@ -251,123 +259,135 @@ async function salvarAluno(payload) {
   await window.API.post("/alunos", form);
 }
 
-function configurarFormulario() {
-  el.formAluno.addEventListener("submit", async (event) => {
-    event.preventDefault();
+/* =========================================================
+   FUNÇÕES DE MODAL E FORMULÁRIO
+   ========================================================= */
 
-    const payload = montarPayloadAluno();
-    const responsavelSelecionado = encontrarResponsavelPorNome(payload.responsavel1);
+function configurarModal() {
+  if (!el.btnAbrirModal) return;
 
-    if (!payload.nome || !payload.responsavel1 || !payload.embarque || !payload.desembarque) {
-      showWarning("Preencha os campos obrigatórios.");
-      return;
-    }
-
-    if (!responsavelSelecionado) {
-      showWarning("Responsável não cadastrado.");
-      return;
-    }
-
-    payload.responsavel1 = responsavelSelecionado.nome || payload.responsavel1;
-    payload.telefone1 = aplicarMascaraTelefone(responsavelSelecionado.telefone || "");
-    el.telefoneResponsavel1.value = payload.telefone1;
-
-   try {
-  const novoCadastro = !payload.id;
-
-  await salvarAluno(payload);
-
-  alunos = await carregarAlunos();
-
-  fecharModal();
-  renderizar();
-
-  await showSuccess(payload.id ? "Aluno atualizado com sucesso!" : "Aluno cadastrado com sucesso!");
-
-  if (novoCadastro) {
-    localStorage.setItem(
-      "novoAlunoMensalidade",
-      JSON.stringify({
-        aluno: payload.nome,
-        responsavel: payload.responsavel1,
-        contato: payload.telefone1,
-        escola: payload.escola || ""
-      })
-    );
-
-    window.location.href = "mensalidade.html?novoAluno=1";
-  }
-  } catch (error) {
-    console.error(error);
-    showError("Não foi possível salvar o aluno.");
-  }
+  el.btnAbrirModal.addEventListener("click", abrirModalNovo);
+  el.btnFecharModal.addEventListener("click", fecharModal);
+  el.btnCancelar.addEventListener("click", fecharModal);
+  el.modalOverlay.addEventListener("click", (event) => {
+    if (event.target === el.modalOverlay) fecharModal();
   });
 }
 
-function configurarTabela() {
-  el.tbodyAlunos.addEventListener("click", async (event) => {
-    const botao = event.target.closest("button[data-action]");
+/* =========================================================
+   FILTROS AVANÇADOS
+   ========================================================= */
 
-    if (!botao) return;
+function configurarBuscaEFiltros() {
+  if (el.botaoFiltroAluno) {
+    el.botaoFiltroAluno.addEventListener("click", () => {
+      el.painelFiltrosAluno.classList.toggle("hidden");
+      el.botaoFiltroAluno.classList.toggle("aberto");
+    });
+  }
 
-    const id = botao.dataset.id;
-    const aluno = alunos.find((item) => String(item.id) === String(id));
+  if (el.inputBusca) {
+    el.inputBusca.addEventListener("input", renderizar);
+  }
 
-    if (!aluno) return;
+  const filtros = [el.filtroOrdem, el.filtroEscola, el.filtroTrajeto, el.filtroVencimento];
+  filtros.forEach((campo) => campo && campo.addEventListener("change", renderizar));
 
-    if (botao.dataset.action === "editar") {
-      return abrirModalEditar(aluno);
-    }
-
-    if (botao.dataset.action !== "excluir") return;
-
-    const resposta = await showConfirm("Tem certeza que deseja excluir este aluno?");
-
-    if (!resposta.isConfirmed) return;
-
-    try {
-      await window.API.del(`/alunos/${id}`);
-
-      alunos = alunos.filter((item) => String(item.id) !== String(id));
-
+  if (el.btnLimparFiltros) {
+    el.btnLimparFiltros.addEventListener("click", () => {
+      if (el.filtroOrdem) el.filtroOrdem.value = "alfabetica";
+      if (el.filtroEscola) el.filtroEscola.value = "";
+      if (el.filtroTrajeto) el.filtroTrajeto.value = "";
+      if (el.filtroVencimento) el.filtroVencimento.value = "";
       renderizar();
+    });
+  }
+}
 
-      showSuccess("Aluno excluído com sucesso!");
-    } catch (error) {
-      console.error(error);
-      showError("Não foi possível excluir o aluno.");
-    }
-  });
+function atualizarOpcoesEscola() {
+  if (!el.filtroEscola) return;
+  
+  const escolas = [...new Set(alunos.map((aluno) => aluno.escola).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "pt-BR")
+  );
+
+  el.filtroEscola.innerHTML = `
+    <option value="">Todas as escolas</option>
+    ${escolas.map((escola) => `<option value="${escola}">${escola}</option>`).join("")}
+  `;
+}
+
+function obterDescricaoTrajeto(tipo) {
+  const trajetos = {
+    ida: "Apenas ir",
+    volta: "Apenas voltar",
+    ida_e_volta: "Ir e voltar"
+  };
+  return trajetos[tipo] || "-";
 }
 
 function obterAlunosFiltrados() {
-  const busca = el.inputBusca.value.trim().toLowerCase();
-  return alunos.filter((aluno) => {
-    const texto = [aluno.nome, aluno.responsavel1, aluno.telefone1, aluno.embarque, aluno.desembarque]
+  const busca = el.inputBusca ? el.inputBusca.value.trim().toLowerCase() : "";
+  const escola = el.filtroEscola ? el.filtroEscola.value : "";
+  const trajeto = el.filtroTrajeto ? el.filtroTrajeto.value : "";
+  const venc = el.filtroVencimento ? el.filtroVencimento.value : "";
+  const ordem = el.filtroOrdem ? el.filtroOrdem.value : "alfabetica";
+
+  let lista = alunos.filter((aluno) => {
+    const textoBusca = [aluno.nome, aluno.responsavel1, aluno.responsavel2, aluno.escola, aluno.embarque, aluno.desembarque]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
-    return !busca || texto.includes(busca);
+
+    return (
+      (!busca || textoBusca.includes(busca)) &&
+      (!escola || aluno.escola === escola) &&
+      (!trajeto || aluno.tipoTrajeto === trajeto) &&
+      (!venc || aluno.vencimento === venc)
+    );
   });
+
+  if (ordem === "vencimento") {
+    lista.sort((a, b) => (a.vencimento || "").localeCompare(b.vencimento || ""));
+  } else {
+    lista.sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"));
+  }
+
+  return lista;
 }
 
-function renderizar() {
-  const lista = obterAlunosFiltrados();
+/* =========================================================
+   RENDERIZAÇÃO DA TABELA
+   ========================================================= */
+
+function renderizarTabela(lista) {
+  if (!el.tbodyAlunos) return;
+  
   if (!lista.length) {
     el.tbodyAlunos.innerHTML = "";
-    el.emptyState.style.display = "block";
+    if (el.emptyState) el.emptyState.style.display = "block";
     return;
   }
 
-  el.emptyState.style.display = "none";
+  if (el.emptyState) el.emptyState.style.display = "none";
+  
   el.tbodyAlunos.innerHTML = lista
     .map(
       (aluno) => `
     <tr>
       <td><div class="celula-aluno">${aluno.foto ? `<img src="${aluno.foto}" alt="Foto de ${aluno.nome}" class="foto-aluno">` : `<div class="foto-placeholder">SEM FOTO</div>`}</div></td>
       <td><span class="nome-aluno">${aluno.nome || "-"}</span></td>
-      <td><span class="linha-texto">${aluno.responsavel1 || "-"}</span></td>
-      <td><span class="linha-texto">${aluno.telefone1 || "-"}</span></td>
+      <td>${aluno.escola || "-"}</td>
+      <td>${aluno.vencimento || "-"}</td>
+      <td>${obterDescricaoTrajeto(aluno.tipoTrajeto)}</td>
+      <td>
+        <span class="linha-texto">${aluno.responsavel1 || "-"}</span>
+        ${aluno.responsavel2 ? `<span class="linha-texto">${aluno.responsavel2}</span>` : ""}
+        </td>
+      <td>
+        <span class="linha-texto">${aluno.telefone1 || "-"}</span>
+        ${aluno.telefone2 ? `<span class="linha-texto">${aluno.telefone2}</span>` : ""}
+        </td>
       <td>${aluno.embarque || "-"}</td>
       <td>${aluno.desembarque || "-"}</td>
       <td>
@@ -388,11 +408,166 @@ function renderizar() {
             </svg>
           </button>
         </div>
-      </td>
-    </tr>`
+        </td>
+      </tr>
+    `
     )
     .join("");
 }
+
+/* =========================================================
+   RENDERIZAÇÃO DE ROTAS
+   ========================================================= */
+
+function renderizarRotas(lista) {
+  if (!el.rotasContainer) return;
+  
+  const grupos = {};
+
+  lista.forEach((a) => {
+    const chave = `${a.periodo || "manha"}|${a.horarioTurma || "00:00"}`;
+    grupos[chave] = grupos[chave] || [];
+    grupos[chave].push(a);
+  });
+
+  const tituloPeriodo = {
+    manha: "Turma da manhã",
+    tarde: "Turma da tarde",
+    noite: "Turma da noite"
+  };
+
+  const cards = Object.entries(grupos)
+    .sort((x, y) => x[0].localeCompare(y[0]))
+    .map(([chave, alunosGrupo]) => {
+      const [periodo, horario] = chave.split("|");
+      const itens = alunosGrupo
+        .map(
+          (a) => `
+          <li>
+            <strong>${a.nome}</strong> — ${a.escola}
+            <br>
+            <small>
+              ${a.tipoTrajeto === "volta" ? "Desembarque" : "Embarque"}: ${a.embarque}
+              ${a.tipoTrajeto === "ida" ? "" : ` | Desembarque: ${a.desembarque}`}
+            </small>
+          </li>
+        `
+        )
+        .join("");
+      return `
+        <div class="rota-card">
+          <h4>${tituloPeriodo[periodo] || "Turma"} — ${horario}</h4>
+          <ul>${itens}</ul>
+        </div>
+      `;
+    })
+    .join("");
+
+  el.rotasContainer.innerHTML = cards || '<div class="empty-state">Nenhuma rota montada.</div>';
+}
+
+/* =========================================================
+   RENDERIZAÇÃO PRINCIPAL
+   ========================================================= */
+
+function renderizar() {
+  const lista = obterAlunosFiltrados();
+  renderizarTabela(lista);
+  renderizarRotas(lista);
+}
+
+/* =========================================================
+   CRUD E CONFIGURAÇÕES DA TABELA
+   ========================================================= */
+
+function configurarFormulario() {
+  if (!el.formAluno) return;
+  
+  el.formAluno.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const payload = montarPayloadAluno();
+    const responsavelSelecionado = encontrarResponsavelPorNome(payload.responsavel1);
+
+    // Validação dos campos obrigatórios
+    if (!payload.nome || !payload.responsavel1 || !payload.embarque || !payload.desembarque || !payload.escola || !payload.vencimento) {
+      showWarning("Preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    if (!responsavelSelecionado) {
+      showWarning("Responsável não cadastrado. Verifique o nome do responsável.");
+      return;
+    }
+
+    payload.responsavel1 = responsavelSelecionado.nome || payload.responsavel1;
+    payload.telefone1 = aplicarMascaraTelefone(responsavelSelecionado.telefone || "");
+    if (el.telefoneResponsavel1) el.telefoneResponsavel1.value = payload.telefone1;
+
+    try {
+      const novoCadastro = !payload.id;
+      await salvarAluno(payload);
+      alunos = await carregarAlunos();
+      fecharModal();
+      atualizarOpcoesEscola();
+      renderizar();
+      await showSuccess(payload.id ? "Aluno atualizado com sucesso!" : "Aluno cadastrado com sucesso!");
+
+      if (novoCadastro) {
+        localStorage.setItem(
+          "novoAlunoMensalidade",
+          JSON.stringify({
+            aluno: payload.nome,
+            responsavel: payload.responsavel1,
+            contato: payload.telefone1,
+            escola: payload.escola || ""
+          })
+        );
+        window.location.href = "mensalidade.html?novoAluno=1";
+      }
+    } catch (error) {
+      console.error(error);
+      showError("Não foi possível salvar o aluno.");
+    }
+  });
+}
+
+function configurarTabela() {
+  if (!el.tbodyAlunos) return;
+  
+  el.tbodyAlunos.addEventListener("click", async (event) => {
+    const botao = event.target.closest("button[data-action]");
+    if (!botao) return;
+
+    const id = botao.dataset.id;
+    const aluno = alunos.find((item) => String(item.id) === String(id));
+    if (!aluno) return;
+
+    if (botao.dataset.action === "editar") {
+      return abrirModalEditar(aluno);
+    }
+
+    if (botao.dataset.action !== "excluir") return;
+
+    const resposta = await showConfirm("Tem certeza que deseja excluir este aluno?");
+    if (!resposta.isConfirmed) return;
+
+    try {
+      await window.API.del(`/alunos/${id}`);
+      alunos = alunos.filter((item) => String(item.id) !== String(id));
+      atualizarOpcoesEscola();
+      renderizar();
+      showSuccess("Aluno excluído com sucesso!");
+    } catch (error) {
+      console.error(error);
+      showError("Não foi possível excluir o aluno.");
+    }
+  });
+}
+
+/* =========================================================
+   ELEMENTOS DOM E MODAL
+   ========================================================= */
 
 function obterElementos() {
   return {
@@ -410,6 +585,7 @@ function obterElementos() {
     enderecoEmbarque: document.getElementById("enderecoEmbarque"),
     enderecoDesembarque: document.getElementById("enderecoDesembarque"),
     fotoAluno: document.getElementById("fotoAluno"),
+    linkFotoAluno: document.getElementById("linkFotoAluno"),
     previewFoto: document.getElementById("previewFoto"),
     avatarModalAluno: document.getElementById("avatarModalAluno"),
     escolaAluno: document.getElementById("escolaAluno"),
@@ -421,46 +597,75 @@ function obterElementos() {
     tbodyAlunos: document.getElementById("tbodyAlunos"),
     emptyState: document.getElementById("emptyState"),
     modalTitulo: document.getElementById("modalTitulo"),
+    filtroOrdem: document.getElementById("filtroOrdemAluno"),
+    filtroEscola: document.getElementById("filtroEscolaAluno"),
+    filtroTrajeto: document.getElementById("filtroTrajetoAluno"),
+    filtroVencimento: document.getElementById("filtroVencimentoAluno"),
+    btnLimparFiltros: document.getElementById("btnLimparFiltrosAluno"),
+    botaoFiltroAluno: document.getElementById("botaoFiltroAluno"),
+    painelFiltrosAluno: document.getElementById("painelFiltrosAluno"),
+    rotasContainer: document.getElementById("rotasContainer")
   };
 }
 
 function abrirModalNovo() {
+  if (!el.modalTitulo) return;
   el.modalTitulo.textContent = "Novo aluno";
-  el.formAluno.reset();
-  el.alunoId.value = "";
-  el.nomeResponsavel1.required = true;
-  el.telefoneResponsavel1.required = false;
+  if (el.formAluno) el.formAluno.reset();
+  if (el.alunoId) el.alunoId.value = "";
+  if (el.nomeResponsavel1) el.nomeResponsavel1.required = true;
+  if (el.telefoneResponsavel1) el.telefoneResponsavel1.required = false;
+  if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   esconderPreviewFoto();
-  el.modalOverlay.classList.remove("hidden");
+  if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
 }
 
 function abrirModalEditar(aluno) {
+  if (!el.modalTitulo) return;
   el.modalTitulo.textContent = "Editar aluno";
-  el.alunoId.value = aluno.id || "";
-  el.nomeResponsavel1.required = true;
-  el.telefoneResponsavel1.required = false;
-  el.nomeAluno.value = aplicarMascaraNome(aluno.nome || "");
-  el.nomeResponsavel1.value = aplicarMascaraNome(aluno.responsavel1 || "");
-  el.telefoneResponsavel1.value = aplicarMascaraTelefone(aluno.telefone1 || "");
-  el.enderecoEmbarque.value = aplicarMascaraEndereco(aluno.embarque || "");
-  el.enderecoDesembarque.value = aplicarMascaraEndereco(aluno.desembarque || "");
+  if (el.alunoId) el.alunoId.value = aluno.id || "";
+  if (el.nomeAluno) el.nomeAluno.value = aplicarMascaraNome(aluno.nome || "");
+  if (el.nomeResponsavel1) el.nomeResponsavel1.value = aplicarMascaraNome(aluno.responsavel1 || "");
+  if (el.telefoneResponsavel1) el.telefoneResponsavel1.value = aplicarMascaraTelefone(aluno.telefone1 || "");
+  if (el.enderecoEmbarque) el.enderecoEmbarque.value = aplicarMascaraEndereco(aluno.embarque || "");
+  if (el.enderecoDesembarque) el.enderecoDesembarque.value = aplicarMascaraEndereco(aluno.desembarque || "");
+  if (el.escolaAluno) el.escolaAluno.value = aluno.escola || "";
+  if (el.vencimentoAluno) el.vencimentoAluno.value = aluno.vencimento || "";
+  if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = aluno.tipoTrajeto || "ida_e_volta";
+  if (el.periodoAluno) el.periodoAluno.value = aluno.periodo || "manha";
+  if (el.horarioTurmaAluno) el.horarioTurmaAluno.value = aluno.horarioTurma || "";
+  if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   aluno.foto ? mostrarPreviewFoto(aluno.foto) : esconderPreviewFoto();
-  el.modalOverlay.classList.remove("hidden");
+  if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
 }
 
 function fecharModal() {
-  el.modalOverlay.classList.add("hidden");
+  if (el.modalOverlay) el.modalOverlay.classList.add("hidden");
 }
 
 function mostrarPreviewFoto(src) {
-  el.previewFoto.src = src;
-  el.avatarModalAluno.classList.add("com-foto");
+  if (el.previewFoto) {
+    el.previewFoto.src = src;
+    el.previewFoto.style.display = "block";
+  }
+  if (el.avatarModalAluno) el.avatarModalAluno.classList.add("com-foto");
+  const placeholderIcon = document.getElementById("avatarPlaceholderIcon");
+  if (placeholderIcon) placeholderIcon.style.display = "none";
 }
 
 function esconderPreviewFoto() {
-  el.previewFoto.src = "";
-  el.avatarModalAluno.classList.remove("com-foto");
+  if (el.previewFoto) {
+    el.previewFoto.src = "";
+    el.previewFoto.style.display = "none";
+  }
+  if (el.avatarModalAluno) el.avatarModalAluno.classList.remove("com-foto");
+  const placeholderIcon = document.getElementById("avatarPlaceholderIcon");
+  if (placeholderIcon) placeholderIcon.style.display = "block";
 }
+
+/* =========================================================
+   INICIALIZAÇÃO
+   ========================================================= */
 
 window.addEventListener("DOMContentLoaded", async () => {
   initMenu();
@@ -469,12 +674,15 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   alunos = await carregarAlunos();
   responsaveis = await carregarResponsaveis();
+  
   configurarModal();
-  configurarBusca();
+  configurarBuscaEFiltros();
   configurarMascaras();
   configurarAutocompletarResponsavel();
   configurarPreviewFoto();
   configurarFormulario();
   configurarTabela();
+  
+  atualizarOpcoesEscola();
   renderizar();
 });
