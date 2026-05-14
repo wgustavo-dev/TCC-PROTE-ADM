@@ -511,7 +511,30 @@ document.addEventListener('keydown', function(e) {
 /* 
    INICIALIZAÇÃO
 */
+
+function initMenuMobile() {
+  var botaoMenu = document.getElementById('botaoMenu');
+  var sidebar = document.getElementById('sidebar');
+  var fundoEscuro = document.getElementById('fundoEscuro');
+
+  if (!botaoMenu || !sidebar || !fundoEscuro) return;
+
+  botaoMenu.addEventListener('click', function() {
+    sidebar.classList.toggle('aberta');
+    fundoEscuro.classList.toggle('visivel');
+    botaoMenu.classList.toggle('aberto');
+  });
+
+  fundoEscuro.addEventListener('click', function() {
+    sidebar.classList.remove('aberta');
+    fundoEscuro.classList.remove('visivel');
+    botaoMenu.classList.remove('aberto');
+  });
+}
+
+
 window.addEventListener('load', function() {
+  initMenuMobile();
   carregarDespesas().then(function(lista) {
     despesas = lista;
     renderizar();

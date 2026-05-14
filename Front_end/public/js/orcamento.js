@@ -323,6 +323,27 @@ async function excluirOrcamento(id) {
   }
 }
 
+
+function initMenuMobile() {
+  const botaoMenu = document.getElementById('botaoMenu');
+  const sidebar = document.getElementById('sidebar');
+  const fundoEscuro = document.getElementById('fundoEscuro');
+
+  if (!botaoMenu || !sidebar || !fundoEscuro) return;
+
+  botaoMenu.addEventListener('click', () => {
+    sidebar.classList.toggle('aberta');
+    fundoEscuro.classList.toggle('visivel');
+    botaoMenu.classList.toggle('aberto');
+  });
+
+  fundoEscuro.addEventListener('click', () => {
+    sidebar.classList.remove('aberta');
+    fundoEscuro.classList.remove('visivel');
+    botaoMenu.classList.remove('aberto');
+  });
+}
+
 /* ================================
    EVENT LISTENERS
 ================================ */
@@ -349,5 +370,6 @@ abasStatus.forEach((aba) => {
    INICIALIZA
 ================================ */
 document.addEventListener('DOMContentLoaded', () => {
+  initMenuMobile();
   carregarOrcamentos().then(() => renderizarOrcamentos());
 });

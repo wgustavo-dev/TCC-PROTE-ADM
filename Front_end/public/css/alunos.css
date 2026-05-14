@@ -833,3 +833,31 @@
     grid-template-columns: 1fr;
   }
 }
+.cards-alunos-mobile { display:none; }
+
+.aluno-card-mobile {
+  border: 1px solid var(--borda);
+  border-left: 4px solid var(--cor-principal);
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+.aluno-card-mobile.trajeto-ir { border-left-color:#2563eb; }
+.aluno-card-mobile.trajeto-voltar { border-left-color:#9333ea; }
+.aluno-card-mobile.trajeto-ambos { border-left-color:#059669; }
+.aluno-card-mobile header { display:flex; justify-content:space-between; gap:8px; }
+.tag-trajeto, .badge-trajeto { font-size:11px; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#1e3a8a; }
+.badge-trajeto.voltar { background:#eef2ff; color:#1e3a8a;; }
+.badge-trajeto.ambos { background:#eef2ff; color:#1e3a8a; }
+
+@media (max-width: 760px) {
+  .table-wrapper { display:block; overflow-x:auto; -webkit-overflow-scrolling: touch; }
+  .tabela-alunos { min-width: 980px; }
+  .cards-alunos-mobile { display:none; }
+  .rotas-container { display:block; }
+}
+
+.periodo-rota { padding: 8px 16px 16px; border-top: 1px solid var(--borda); }
+.titulo-periodo-rota { margin: 6px 0 10px; font-size: 14px; color: var(--texto-primario); }
+.rotas-container-periodo { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
