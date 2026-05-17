@@ -1,3 +1,70 @@
+/* =========================================================
+   ALERTAS PERSONALIZADOS - SWEETALERT2
+   ========================================================= */
+
+function showSuccess(message) {
+  return Swal.fire({
+    icon: "success",
+    title: "Sucesso!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showError(message) {
+  return Swal.fire({
+    icon: "error",
+    title: "Erro!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showWarning(message) {
+  return Swal.fire({
+    icon: "warning",
+    title: "Atenção!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showConfirm(message) {
+  return Swal.fire({
+    icon: "warning",
+    title: "Confirmar ação",
+    text: message,
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button",
+      cancelButton: "prote-alert-cancel-button"
+    },
+    buttonsStyling: false
+  });
+}
+
 /* 
    DADOS
    Carrega da API /api/despesas
@@ -344,7 +411,7 @@ botaoCadastrar.addEventListener('click', function() {
     })
     .catch(function(err) {
       console.error(err);
-      alert('Erro ao salvar despesa');
+     showError("Não foi possível salvar despesa.");
     });
   } else {
     /* Criação — POST ao backend */
@@ -364,7 +431,7 @@ botaoCadastrar.addEventListener('click', function() {
     })
     .catch(function(err) {
       console.error(err);
-      alert('Erro ao salvar despesa');
+      showError("Não foi possível salvar despesa.");
     });
   }
 });
@@ -424,7 +491,7 @@ botaoConfirmarExclusao.addEventListener('click', function() {
     })
     .catch(function(err) {
       console.error(err);
-      alert('Erro ao excluir despesa');
+      showError("Não foi possível excluir despesa.");
     });
   }
 });
@@ -444,7 +511,30 @@ document.addEventListener('keydown', function(e) {
 /* 
    INICIALIZAÇÃO
 */
+
+function initMenuMobile() {
+  var botaoMenu = document.getElementById('botaoMenu');
+  var sidebar = document.getElementById('sidebar');
+  var fundoEscuro = document.getElementById('fundoEscuro');
+
+  if (!botaoMenu || !sidebar || !fundoEscuro) return;
+
+  botaoMenu.addEventListener('click', function() {
+    sidebar.classList.toggle('aberta');
+    fundoEscuro.classList.toggle('visivel');
+    botaoMenu.classList.toggle('aberto');
+  });
+
+  fundoEscuro.addEventListener('click', function() {
+    sidebar.classList.remove('aberta');
+    fundoEscuro.classList.remove('visivel');
+    botaoMenu.classList.remove('aberto');
+  });
+}
+
+
 window.addEventListener('load', function() {
+  initMenuMobile();
   carregarDespesas().then(function(lista) {
     despesas = lista;
     renderizar();

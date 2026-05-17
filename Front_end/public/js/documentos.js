@@ -1,3 +1,70 @@
+/* =========================================================
+   ALERTAS PERSONALIZADOS - SWEETALERT2
+   ========================================================= */
+
+function showSuccess(message) {
+  return Swal.fire({
+    icon: "success",
+    title: "Sucesso!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showError(message) {
+  return Swal.fire({
+    icon: "error",
+    title: "Erro!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showWarning(message) {
+  return Swal.fire({
+    icon: "warning",
+    title: "Atenção!",
+    text: message,
+    confirmButtonText: "OK",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button"
+    },
+    buttonsStyling: false
+  });
+}
+
+function showConfirm(message) {
+  return Swal.fire({
+    icon: "warning",
+    title: "Confirmar ação",
+    text: message,
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    customClass: {
+      popup: "prote-alert",
+      title: "prote-alert-title",
+      confirmButton: "prote-alert-button",
+      cancelButton: "prote-alert-cancel-button"
+    },
+    buttonsStyling: false
+  });
+}
+
 const PRAZOS = {
   CNH: { anos: 10 },
   'Tacógrafo Vistoria': { anos: 2 },
@@ -134,7 +201,7 @@ function configurarFormulario() {
     const payload = montarPayloadFormulario();
 
     if (!payload.tipo_documento || !payload.data_emissao) {
-      alert('Preencha os campos obrigatórios.');
+  showWarning("Preencha os campos obrigatórios.");
       return;
     }
 
@@ -156,7 +223,7 @@ function configurarFormulario() {
       fecharModal();
     } catch (error) {
       console.error(error);
-      alert('Não foi possível salvar o documento.');
+      showError("Não foi possível salvar o documento.");
     }
   });
 }
@@ -385,7 +452,7 @@ tbodyDocumentos.addEventListener('click', async (event) => {
       renderizarTudo();
     } catch (error) {
       console.error(error);
-      alert('Não foi possível excluir o documento.');
+      showError("Não foi possível excluir o documento.");
     }
   }
 });

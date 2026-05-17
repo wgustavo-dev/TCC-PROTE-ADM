@@ -48,9 +48,16 @@
             <polyline points="9 11 12 14 22 4"/>
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
           </svg>
-          Vistoria
+          Documentos 
         </a>
-
+        <a href="responsaveis.html" class="nav-item" data-page="responsaveis">
+<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <path d="M12 2L3 7v7c0 5 9 8 9 8s9-3 9-8V7l-9-5z"/>
+  <path d="M12 8v8"/>
+  <path d="M8 12h8"/>
+</svg>
+          Responsáveis
+        </a>
         <a href="alunos.html" class="nav-item active">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -109,13 +116,66 @@
         <input type="text" id="inputBusca" class="input-busca" placeholder="Buscar por aluno..." />
       </div>
 
+      <div class="barra-filtro">
+        <button type="button" class="botao-filtro" id="botaoFiltroAluno"> 
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg> 
+          Filtro
+        </button>
+      </div>
+
+      <div class="painel-filtros hidden" id="painelFiltrosAluno">
+        <div class="campos-filtro">
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroVencimentoAluno">Data de vencimento</label>
+            <input type="date" id="filtroVencimentoAluno" class="input-filtro">
+          </div>
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroOrdemAluno">Ordem</label>
+            <select id="filtroOrdemAluno" class="input-filtro">
+              <option value="alfabetica">Ordem alfabética</option>
+              <option value="vencimento">Data de vencimento</option>
+            </select>
+          </div>
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroEscolaAluno">Escola</label>
+            <select id="filtroEscolaAluno" class="input-filtro">
+              <option value="">Todas as escolas</option>
+            </select>
+          </div>
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroTrajetoAluno">Tipo de trajeto</label>
+            <select id="filtroTrajetoAluno" class="input-filtro">
+              <option value="">Todos</option>
+              <option value="ir">Apenas ir para escola</option>
+              <option value="voltar">Apenas voltar da escola</option>
+              <option value="ambos">Ambos</option>
+            </select>
+          </div>
+                    <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroTurmaAluno">Turma (período + horário)</label>
+            <select id="filtroTurmaAluno" class="input-filtro">
+              <option value="">Todas as turmas</option>
+            </select>
+          </div>
+          <div class="grupo-filtro grupo-botao-limpar">
+            <button type="button" id="btnLimparFiltrosAluno" class="botao-limpar-filtros">Limpar</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card table-card tabela-alunos-wrapper">
+        <div id="cardsAlunosMobile" class="cards-alunos-mobile"></div>
         <div class="table-wrapper">
           <table class="tabela-alunos">
             <thead>
               <tr>
                 <th>FOTO</th>
                 <th>ALUNO</th>
+                <th>ESCOLA</th>
+                <th>VENCIMENTO</th>
+                <th>TRAJETO</th>
                 <th>RESPONSÁVEIS</th>
                 <th>CONTATOS</th>
                 <th>ENDEREÇO EMBARQUE</th>
@@ -130,6 +190,11 @@
         <div class="empty-state" id="emptyState">
           Nenhum aluno cadastrado ainda.
         </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <h3 class="page-sub" style="margin:14px 16px 6px;">Alunos por período e horário</h3>
+        <div id="rotasContainer" class="rotas-container"></div>
       </div>
     </main>
   </div>
@@ -150,6 +215,11 @@
             <circle cx="12" cy="12" r="3.6"></circle>
           </svg>
           <img id="previewFoto" alt="Pré-visualização da foto do aluno" />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="fotoAluno">Foto do aluno</label>
+          <input type="file" id="fotoAluno" class="input-arquivo" accept="image/*" />
         </div>
 
         <div class="grupo-filtro">
@@ -188,8 +258,36 @@
         </div>
 
         <div class="grupo-filtro">
-          <label class="label-filtro" for="fotoAluno">Foto do aluno</label>
-          <input type="file" id="fotoAluno" name="foto" class="input-arquivo" accept="image/*" />
+          <label class="label-filtro" for="escolaAluno">Escola</label>
+          <input type="text" id="escolaAluno" class="input-filtro" placeholder="Digite a escola" required />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="vencimentoAluno">Data de vencimento</label>
+          <input type="date" id="vencimentoAluno" class="input-filtro" required />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="tipoTrajetoAluno">Tipo de trajeto</label>
+          <select id="tipoTrajetoAluno" class="input-filtro" required>
+            <option value="ir">Apenas ir para escola</option>
+            <option value="voltar">Apenas voltar da escola</option>
+            <option value="ambos" selected>Ambos</option>
+          </select>
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="periodoAluno">Período</label>
+          <select id="periodoAluno" class="input-filtro" required>
+            <option value="manha">Manhã</option>
+            <option value="tarde">Tarde</option>
+            <option value="noite">Noite</option>
+          </select>
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="horarioTurmaAluno">Horário da turma</label>
+          <input type="time" id="horarioTurmaAluno" class="input-filtro" required />
         </div>
 
         <div class="info-box">
@@ -205,6 +303,7 @@
   </div>
 
   <script src="core/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="js/alunos.js"></script>
 
 </body>

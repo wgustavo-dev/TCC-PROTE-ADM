@@ -371,3 +371,43 @@
     width: 100%;
   }
 }
+/* SWEETALERT2 PERSONALIZADO */
+.prote-alert {
+  border-radius: 20px;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+}
+
+.prote-alert-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.prote-alert-button {
+  background-color: #2446b8 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 12px 26px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.prote-alert-button:hover {
+  background-color: #1d3691 !important;
+  transform: translateY(-1px);
+}
+
+.prote-alert-cancel-button {
+  background-color: #e5e7eb !important;
+  color: #374151 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 12px 26px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: 0.2s ease;
+}

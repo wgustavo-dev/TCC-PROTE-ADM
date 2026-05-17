@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>PROTE — Responsáveis</title>
+
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/alunos.css" />
+  <link rel="stylesheet" href="css/responsaveis.css" />
+</head>
+
+<body>
+  <div class="fundo-escuro" id="fundoEscuro"></div>
+
+  <div class="layout">
+    <header class="barra-topo">
+      <button class="botao-menu" id="botaoMenu" aria-label="Abrir menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <span class="nome-sistema-topo">PROTE</span>
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-title">PROTE</div>
+        <div class="logo-sub">Painel Administrativo</div>
+      </div>
+
+      <nav class="nav">
+        <a href="index.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>
+          Dashboard
+        </a>
+
+        <a href="despesas.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23" />
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+          </svg>
+          Despesas
+        </a>
+
+        <a href="documentos.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          Documentos 
+        </a>
+
+        <a href="responsaveis.html" class="nav-item active">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L3 7v7c0 5 9 8 9 8s9-3 9-8V7l-9-5z" />
+            <path d="M12 8v8" />
+            <path d="M8 12h8" />
+          </svg>
+          Responsáveis
+        </a>
+
+        <a href="alunos.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Alunos
+        </a>
+
+        <a href="orcamento.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+          Orçamento
+        </a>
+
+        <a href="mensalidade.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+            <line x1="1" y1="10" x2="23" y2="10" />
+          </svg>
+          Mensalidades
+        </a>
+
+        <a href="presenca.html" class="nav-item">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          Presença
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="cabecalho-pagina alunos-cabecalho">
+        <div class="alunos-titulos">
+          <h1 class="page-title">Responsáveis</h1>
+          <p class="page-sub">
+            Tenha acesso às informações dos responsáveis
+          </p>
+        </div>
+
+        <button class="btn-primary btn-aluno-topo" id="btnNovo" type="button">
+          <span>+</span>
+          Novo responsável
+        </button>
+      </div>
+
+      <div class="campo-busca">
+        <svg class="icone-busca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+
+        <input
+          id="inputBusca"
+          class="input-busca"
+          type="text"
+          placeholder="Buscar por responsável..."
+        />
+      </div>
+
+      <div class="barra-filtro">
+        <button type="button" class="botao-filtro" id="botaoFiltro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+          Filtro
+        </button>
+      </div>
+
+      <div class="painel-filtros hidden" id="painelFiltros">
+        <div class="campos-filtro">
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroOrdem">Ordem</label>
+
+            <select id="filtroOrdem" class="input-filtro">
+              <option value="alfabetica">Ordem alfabética</option>
+              <option value="alunos_desc">Mais alunos</option>
+              <option value="alunos_asc">Menos alunos</option>
+            </select>
+          </div>
+
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroStatus">Status</label>
+
+            <select id="filtroStatus" class="input-filtro">
+              <option value="todos">Todos</option>
+              <option value="em_dia">Em dia</option>
+              <option value="atrasado">Atrasado</option>
+              <option value="maior_3">3+ alunos</option>
+            </select>
+          </div>
+
+          <div class="grupo-filtro grupo-botao-limpar">
+            <button
+              type="button"
+              id="btnLimparFiltros"
+              class="botao-limpar-filtros"
+            >
+              Limpar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card table-card tabela-alunos-wrapper">
+        <div class="table-wrapper">
+          <table class="tabela tabela-alunos">
+            <thead>
+              <tr>
+                <th>NOME</th>
+                <th>QUANTIDADE DE ALUNOS</th>
+                <th>CONTATO</th>
+                <th>MENSALIDADE</th>
+                <th>AÇÕES</th>
+              </tr>
+            </thead>
+
+            <tbody id="tbodyResponsaveis"></tbody>
+          </table>
+        </div>
+
+        <div class="empty-state hidden" id="emptyState">
+          Nenhum responsável encontrado.
+        </div>
+      </div>
+
+      <div class="card detalhes hidden" id="painelDetalhes" style="margin-top:14px;">
+        <div class="detalhes-head">
+          <span id="detNomeTopo">RESPONSÁVEL</span>
+
+          <button id="btnFecharDetalhes" type="button">
+            Fechar
+          </button>
+        </div>
+
+        <div class="linha-detalhes">
+          <div class="box perfil">
+            <div class="avatar" id="detAvatar">RA</div>
+
+            <div>
+              <p id="detTelefone">(00) 00000-0000</p>
+              <p id="detEmail">email@email.com</p>
+            </div>
+          </div>
+
+          <div class="box resumo">
+            <span>Quantidade de alunos</span>
+            <strong id="detQtdAlunos">0</strong>
+          </div>
+        </div>
+
+        <div class="subsecao">
+          <h3>Alunos vinculados</h3>
+
+          <div class="cards-alunos" id="detAlunos"></div>
+        </div>
+
+        <div class="subsecao">
+          <h3>Resumo financeiro</h3>
+
+          <div class="cards-financeiro">
+            <div class="mini-card">
+              <span>Mensalidade total</span>
+              <strong id="detTotal">R$ 0,00</strong>
+            </div>
+
+            <div class="mini-card">
+              <span>Próximo vencimento</span>
+              <strong id="detVencimento">-</strong>
+            </div>
+
+            <div class="mini-card">
+              <span>Situação</span>
+              <strong id="detSituacao">-</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal-card modal-card-aluno">
+      <div class="modal-header">
+        <h2 id="modalTitulo">Novo responsável</h2>
+
+        <button
+          class="btn-close"
+          id="btnCancelarModal"
+          type="button"
+          aria-label="Fechar"
+        >
+          ×
+        </button>
+      </div>
+
+      <form id="formResponsavel">
+        <input type="hidden" id="responsavelId" />
+
+        <div class="avatar-modal-aluno" id="avatarModal" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 2L3 7v7c0 5 9 8 9 8s9-3 9-8V7l-9-5z" />
+            <path d="M12 8v8" />
+            <path d="M8 12h8" />
+          </svg>
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="nome">Nome</label>
+
+          <input
+            type="text"
+            id="nome"
+            class="input-filtro"
+            placeholder="Digite..."
+            required
+          />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="quantidade">
+            Quantidade de alunos
+          </label>
+
+          <input
+            type="number"
+            id="quantidade"
+            class="input-filtro"
+            min="0"
+            required
+          />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="mensalidade">
+            Mensalidade
+          </label>
+
+          <input
+            type="text"
+            id="mensalidade"
+            class="input-filtro"
+            placeholder="400,00"
+            required
+          />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="email">Email</label>
+
+          <input
+            type="email"
+            id="email"
+            class="input-filtro"
+            placeholder="Digite..."
+            required
+          />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="telefone">Telefone</label>
+
+          <input
+            type="text"
+            id="telefone"
+            class="input-filtro"
+            placeholder="(11) 99999-9999"
+            required
+          />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="status">Status</label>
+
+          <select id="status" class="input-filtro">
+            <option value="em_dia">Em dia</option>
+            <option value="atrasado">Atrasado</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancelar">
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="btn-primary solid"
+            id="btnSalvar"
+          >
+            Cadastrar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="core/api.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script type="module" src="js/responsaveis.js"></script>
+</body>
+</html>
