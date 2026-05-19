@@ -61,20 +61,23 @@ export class ServiceResponsavel {
         order: { data_vencimento: "ASC" },
       });
 
-      const mensalidadeAluno = mensalidades.reduce(
+      const mensalidadesAbertas = mensalidades.filter(
+        (mensalidade) => mensalidade.status !== "PAGO"
+      );
+
+      const mensalidadeAluno = mensalidadesAbertas.reduce(
         (total, mensalidade) => total + Number(mensalidade.valor || 0),
         0
       );
 
       mensalidadeTotal += mensalidadeAluno;
 
-      for (const mensalidade of mensalidades) {
+      for (const mensalidade of mensalidadesAbertas) {
         if (mensalidade.status === "ATRASADO") possuiAtraso = true;
 
         if (
-          mensalidade.status !== "PAGO" &&
-          (!proximoVencimento ||
-            new Date(mensalidade.data_vencimento) < new Date(proximoVencimento))
+          !proximoVencimento ||
+          new Date(mensalidade.data_vencimento) < new Date(proximoVencimento)
         ) {
           proximoVencimento = mensalidade.data_vencimento;
         }
@@ -124,11 +127,13 @@ export class ServiceResponsavel {
   async criar(dados: Partial<Responsavel>) {
     if (!dados.nome?.trim()) throw new Error("Nome do responsavel e obrigatorio");
     if (!dados.telefone?.trim()) throw new Error("Telefone do responsavel e obrigatorio");
+    if (!dados.email?.trim()) throw new Error("Email do responsavel e obrigatorio");
     if (!dados.endereco?.trim()) throw new Error("Endereco do responsavel e obrigatorio");
 
     const responsavel = this.responsavelRepository.create({
       nome: dados.nome.trim(),
       telefone: dados.telefone.trim(),
+      email: dados.email.trim(),
       endereco: dados.endereco.trim(),
       quantidade_alunos: 0,
     });
@@ -146,11 +151,13 @@ export class ServiceResponsavel {
     if (!responsavel) throw new Error("Responsavel nao encontrado");
     if (dados.nome !== undefined && !dados.nome.trim()) throw new Error("Nome do responsavel e obrigatorio");
     if (dados.telefone !== undefined && !dados.telefone.trim()) throw new Error("Telefone do responsavel e obrigatorio");
+    if (dados.email !== undefined && !dados.email.trim()) throw new Error("Email do responsavel e obrigatorio");
     if (dados.endereco !== undefined && !dados.endereco.trim()) throw new Error("Endereco do responsavel e obrigatorio");
 
     this.responsavelRepository.merge(responsavel, {
       nome: dados.nome?.trim() ?? responsavel.nome,
       telefone: dados.telefone?.trim() ?? responsavel.telefone,
+      email: dados.email?.trim() ?? responsavel.email,
       endereco: dados.endereco?.trim() ?? responsavel.endereco,
     });
 
