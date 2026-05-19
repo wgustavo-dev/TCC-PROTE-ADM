@@ -6,9 +6,11 @@ import routeOrcamento from './route_orcamento';
 import routePresenca from './route_presenca';
 import routeMensalidade from "./route_mensalidade";
 import routeDashboard from "./route_dashboard";
+import routeResponsavel from "./route_responsavel";
 
 const routes = Router();
 
+routes.use('/api', routeResponsavel);
 routes.use('/api', routeAluno);
 routes.use('/api', routeDocumento);
 routes.use('/api', routeDespesa);

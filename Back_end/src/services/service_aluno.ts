@@ -5,6 +5,21 @@ import { Mensalidade } from "../models/model_mensalidade";
 import { Presenca } from "../models/model_presenca";
 
 export class ServiceAluno{
+    private async atualizarQuantidadeAlunosResponsavel(id_responsavel?: number | null) {
+        if (!id_responsavel) return;
+
+        const alunoRepository = AppDataSource.getRepository(Aluno);
+        const responsavelRepository = AppDataSource.getRepository(Responsavel);
+
+        const quantidade = await alunoRepository.count({
+            where: { id_responsavel },
+        });
+
+        await responsavelRepository.update(id_responsavel, {
+            quantidade_alunos: quantidade,
+        });
+    }
+
     async listarResponsaveis() {
         const responsavelRepository = AppDataSource.getRepository(Responsavel);
         return responsavelRepository.find({
@@ -76,6 +91,7 @@ export class ServiceAluno{
 
         const aluno = alunoRepository.create(dados);
         await alunoRepository.save(aluno);
+        await this.atualizarQuantidadeAlunosResponsavel(aluno.id_responsavel);
 
         return aluno;
     }
@@ -110,9 +126,13 @@ export class ServiceAluno{
         delete (dados as any).responsavel_nome;
         delete (dados as any).responsavel_telefone;
 
+        const responsavelAnterior = aluno.id_responsavel;
+
         // mescla os dados existentes com os novos dados
         alunoRepository.merge(aluno,dados);
         await alunoRepository.save(aluno);
+        await this.atualizarQuantidadeAlunosResponsavel(responsavelAnterior);
+        await this.atualizarQuantidadeAlunosResponsavel(aluno.id_responsavel);
 
         return aluno;
 
@@ -137,8 +157,18 @@ async deletar(id_aluno: number) {
     await mensalidadeRepository.delete({ id_aluno: id_aluno });
 
     // Depois apaga o aluno
+<<<<<<< HEAD
     await alunoRepository.remove(aluno);
 
     return { message: "Aluno excluído com sucesso" };
 }
 }
+=======
+    const responsavelAnterior = aluno.id_responsavel;
+    await alunoRepository.remove(aluno);
+    await this.atualizarQuantidadeAlunosResponsavel(responsavelAnterior);
+
+    return { message: "Aluno excluído com sucesso" };
+}
+}
+>>>>>>> 73fa7b1 (back de responsaveis prototipo)
