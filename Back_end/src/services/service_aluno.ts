@@ -138,37 +138,19 @@ export class ServiceAluno{
 
     }
 
-async deletar(id_aluno: number) {
-    const alunoRepository = AppDataSource.getRepository(Aluno);
-    const mensalidadeRepository = AppDataSource.getRepository(Mensalidade);
-    const presencaRepository = AppDataSource.getRepository(Presenca);
+    async deletar(id_aluno:number){
+        const alunoRepository = AppDataSource.getRepository(Aluno); 
+        const aluno = await alunoRepository.findOne({
+            where: { id_aluno: id_aluno},
+        })
 
-    const aluno = await alunoRepository.findOne({
-        where: { id_aluno: id_aluno },
-    });
 
-    // valida existência do aluno
-    if (!aluno) {
-        throw new Error("Aluno não encontrado");
+        //valida existencia do aluno
+        if (!aluno){
+            throw new Error("Aluno não encontrado")
+        }               
+
+        await alunoRepository.remove(aluno);
+        return {message: "Aluno excluído com sucesso"};
     }
-
-    // Apaga primeiro os registros ligados ao aluno
-    await presencaRepository.delete({ id_aluno: id_aluno });
-    await mensalidadeRepository.delete({ id_aluno: id_aluno });
-
-    // Depois apaga o aluno
-<<<<<<< HEAD
-    await alunoRepository.remove(aluno);
-
-    return { message: "Aluno excluído com sucesso" };
 }
-}
-=======
-    const responsavelAnterior = aluno.id_responsavel;
-    await alunoRepository.remove(aluno);
-    await this.atualizarQuantidadeAlunosResponsavel(responsavelAnterior);
-
-    return { message: "Aluno excluído com sucesso" };
-}
-}
->>>>>>> 73fa7b1 (back de responsaveis prototipo)
