@@ -1,8 +1,25 @@
-import {AppDataSource} from '../config/database';
-import {Aluno} from '../models/model_aluno';
+import { AppDataSource } from '../config/database';
+import { Aluno } from '../models/model_aluno';
 import { Responsavel } from '../models/model_responsavel';
+import { Mensalidade } from "../models/model_mensalidade";
+import { Presenca } from "../models/model_presenca";
 
 export class ServiceAluno{
+    private async atualizarQuantidadeAlunosResponsavel(id_responsavel?: number | null) {
+        if (!id_responsavel) return;
+
+        const alunoRepository = AppDataSource.getRepository(Aluno);
+        const responsavelRepository = AppDataSource.getRepository(Responsavel);
+
+        const quantidade = await alunoRepository.count({
+            where: { id_responsavel },
+        });
+
+        await responsavelRepository.update(id_responsavel, {
+            quantidade_alunos: quantidade,
+        });
+    }
+
     async listarResponsaveis() {
         const responsavelRepository = AppDataSource.getRepository(Responsavel);
         return responsavelRepository.find({
@@ -74,6 +91,7 @@ export class ServiceAluno{
 
         const aluno = alunoRepository.create(dados);
         await alunoRepository.save(aluno);
+        await this.atualizarQuantidadeAlunosResponsavel(aluno.id_responsavel);
 
         return aluno;
     }
@@ -108,27 +126,41 @@ export class ServiceAluno{
         delete (dados as any).responsavel_nome;
         delete (dados as any).responsavel_telefone;
 
+        const responsavelAnterior = aluno.id_responsavel;
+
         // mescla os dados existentes com os novos dados
         alunoRepository.merge(aluno,dados);
         await alunoRepository.save(aluno);
+        await this.atualizarQuantidadeAlunosResponsavel(responsavelAnterior);
+        await this.atualizarQuantidadeAlunosResponsavel(aluno.id_responsavel);
 
         return aluno;
 
     }
 
-    async deletar(id_aluno:number){
-        const alunoRepository = AppDataSource.getRepository(Aluno); 
-        const aluno = await alunoRepository.findOne({
-            where: { id_aluno: id_aluno},
-        })
+async deletar(id_aluno: number) {
+    const alunoRepository = AppDataSource.getRepository(Aluno);
+    const mensalidadeRepository = AppDataSource.getRepository(Mensalidade);
+    const presencaRepository = AppDataSource.getRepository(Presenca);
 
+    const aluno = await alunoRepository.findOne({
+        where: { id_aluno: id_aluno },
+    });
 
-        //valida existencia do aluno
-        if (!aluno){
-            throw new Error("Aluno não encontrado")
-        }               
-
-        await alunoRepository.remove(aluno);
-        return {message: "Aluno excluído com sucesso"};
+    // valida existência do aluno
+    if (!aluno) {
+        throw new Error("Aluno não encontrado");
     }
+
+    // Apaga primeiro os registros ligados ao aluno
+    await presencaRepository.delete({ id_aluno: id_aluno });
+    await mensalidadeRepository.delete({ id_aluno: id_aluno });
+
+    // Depois apaga o aluno
+    const responsavelAnterior = aluno.id_responsavel;
+    await alunoRepository.remove(aluno);
+    await this.atualizarQuantidadeAlunosResponsavel(responsavelAnterior);
+
+    return { message: "Aluno excluído com sucesso" };
+}
 }
