@@ -2,7 +2,18 @@
   const API_BASE_URL = window.API_BASE_URL || "http://localhost:3000/api";
 
   async function request(path, options) {
-    const response = await fetch(`${API_BASE_URL}${path}`, options);
+    const token = window.localStorage.getItem("prote_token");
+    const headers = Object.assign({}, options.headers || {});
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+    });
+
     const isJson = (response.headers.get("content-type") || "").includes("application/json");
     const payload = isJson ? await response.json() : null;
 
