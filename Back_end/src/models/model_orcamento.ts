@@ -14,7 +14,7 @@ export class Orcamento {
   id_orcamento!: number;
 
   @Column({ type: "varchar", length: 100 })
-  nome_cliente!: string;
+  nome_responsavel!: string;
 
   @Column({ type: "varchar", length: 20 })
   telefone!: string;
@@ -32,7 +32,7 @@ export class Orcamento {
   })
   turno!: "MANHA" | "TARDE" | "NOITE";
 
-  @Column({ type: "int", nullable: true })
+  @Column({ type: "int", default: 1 })
   quantidade_alunos!: number;
 
   @Column({
@@ -53,10 +53,10 @@ export class Orcamento {
 
   @Column({
     type: "enum",
-    enum: ["PENDENTE", "APROVADO", "RECUSADO"],
+    enum: ["PENDENTE", "EM_CADASTRO", "CONVERTIDO", "RECUSADO"],
     default: "PENDENTE",
   })
-  status!: "PENDENTE" | "APROVADO" | "RECUSADO";
+  status!: "PENDENTE" | "CONVERTIDO" | "RECUSADO" |"EM_CADASTRO";
 
   @Column({ type: "boolean", default: false })
   convertido!: boolean;

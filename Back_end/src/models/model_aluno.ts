@@ -1,3 +1,5 @@
+// Back_end/src/models/model_aluno.ts
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -43,7 +45,12 @@ export class Aluno {
   })
   tipo_trajeto!: "IDA" | "VOLTA" | "AMBOS";
 
-  @Column({ type: "int", nullable: true })
+  /*
+    ALTERADO:
+    Antes id_responsavel era nullable: true.
+    Agora é obrigatório, porque aluno não pode existir sem responsável.
+  */
+  @Column({ type: "int" })
   id_responsavel!: number;
 
   @Column({ type: "int", nullable: true })
@@ -52,7 +59,7 @@ export class Aluno {
   @Column({ type: "varchar", length: 255, nullable: true })
   foto!: string;
 
-  @ManyToOne(() => Responsavel, { nullable: true })
+  @ManyToOne(() => Responsavel, { nullable: false })
   @JoinColumn({ name: "id_responsavel" })
   responsavel!: Responsavel;
 

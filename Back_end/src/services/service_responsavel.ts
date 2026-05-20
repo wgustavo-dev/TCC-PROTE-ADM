@@ -1,3 +1,5 @@
+// Back_end/src/services/service_responsavel.ts
+
 import { AppDataSource } from "../config/database";
 import { Aluno } from "../models/model_aluno";
 import { Mensalidade } from "../models/model_mensalidade";
@@ -32,16 +34,14 @@ export class ServiceResponsavel {
     return AppDataSource.getRepository(Presenca);
   }
 
-  private async atualizarQuantidadeAlunos(id_responsavel: number) {
-    const quantidade = await this.alunoRepository.count({
-      where: { id_responsavel },
-    });
+  private normalizarQuantidadeAlunos(quantidade: any) {
+    const quantidadeNumerica = Number(quantidade);
 
-    await this.responsavelRepository.update(id_responsavel, {
-      quantidade_alunos: quantidade,
-    });
+    if (!Number.isInteger(quantidadeNumerica) || quantidadeNumerica < 1) {
+      throw new Error("Quantidade de alunos deve ser pelo menos 1");
+    }
 
-    return quantidade;
+    return quantidadeNumerica;
   }
 
   private async montarResumo(responsavel: Responsavel): Promise<ResponsavelResumo> {
@@ -73,7 +73,9 @@ export class ServiceResponsavel {
       mensalidadeTotal += mensalidadeAluno;
 
       for (const mensalidade of mensalidadesAbertas) {
-        if (mensalidade.status === "ATRASADO") possuiAtraso = true;
+        if (mensalidade.status === "ATRASADO") {
+          possuiAtraso = true;
+        }
 
         if (
           !proximoVencimento ||
@@ -90,13 +92,8 @@ export class ServiceResponsavel {
       });
     }
 
-    const quantidade = await this.atualizarQuantidadeAlunos(
-      responsavel.id_responsavel
-    );
-
     return {
       ...responsavel,
-      quantidade_alunos: quantidade,
       alunos: alunosResumo,
       mensalidade_total: mensalidadeTotal,
       proximo_vencimento: proximoVencimento,
@@ -119,23 +116,49 @@ export class ServiceResponsavel {
       id_responsavel: id,
     });
 
-    if (!responsavel) throw new Error("Responsavel nao encontrado");
+    if (!responsavel) {
+      throw new Error("Responsável não encontrado");
+    }
 
     return this.montarResumo(responsavel);
   }
 
   async criar(dados: Partial<Responsavel>) {
-    if (!dados.nome?.trim()) throw new Error("Nome do responsavel e obrigatorio");
-    if (!dados.telefone?.trim()) throw new Error("Telefone do responsavel e obrigatorio");
-    if (!dados.email?.trim()) throw new Error("Email do responsavel e obrigatorio");
-    if (!dados.endereco?.trim()) throw new Error("Endereco do responsavel e obrigatorio");
+    if (!dados.nome?.trim()) {
+      throw new Error("Nome do responsável é obrigatório");
+    }
+
+    if (!dados.telefone?.trim()) {
+      throw new Error("Telefone do responsável é obrigatório");
+    }
+
+    /*
+      ALTERADO:
+      Email deixou de ser obrigatório.
+      Se vier vazio, será salvo como null.
+    */
+    const email =
+      dados.email && dados.email.trim() !== "" ? dados.email.trim() : null;
+
+    if (!dados.endereco?.trim()) {
+      throw new Error("Endereço do responsável é obrigatório");
+    }
+
+    /*
+      ALTERADO:
+      quantidade_alunos agora é obrigatória e representa
+      a quantidade planejada para o fluxo responsável -> aluno -> mensalidade.
+    */
+    const quantidadeAlunos = this.normalizarQuantidadeAlunos(
+      dados.quantidade_alunos
+    );
 
     const responsavel = this.responsavelRepository.create({
       nome: dados.nome.trim(),
       telefone: dados.telefone.trim(),
-      email: dados.email.trim(),
+      email,
       endereco: dados.endereco.trim(),
-      quantidade_alunos: 0,
+      quantidade_alunos: quantidadeAlunos,
     });
 
     await this.responsavelRepository.save(responsavel);
@@ -148,17 +171,48 @@ export class ServiceResponsavel {
       id_responsavel: id,
     });
 
-    if (!responsavel) throw new Error("Responsavel nao encontrado");
-    if (dados.nome !== undefined && !dados.nome.trim()) throw new Error("Nome do responsavel e obrigatorio");
-    if (dados.telefone !== undefined && !dados.telefone.trim()) throw new Error("Telefone do responsavel e obrigatorio");
-    if (dados.email !== undefined && !dados.email.trim()) throw new Error("Email do responsavel e obrigatorio");
-    if (dados.endereco !== undefined && !dados.endereco.trim()) throw new Error("Endereco do responsavel e obrigatorio");
+    if (!responsavel) {
+      throw new Error("Responsável não encontrado");
+    }
+
+    if (dados.nome !== undefined && !dados.nome.trim()) {
+      throw new Error("Nome do responsável é obrigatório");
+    }
+
+    if (dados.telefone !== undefined && !dados.telefone.trim()) {
+      throw new Error("Telefone do responsável é obrigatório");
+    }
+
+    /*
+      ALTERADO:
+      Email pode ser vazio.
+      Se vier string vazia, salva como null.
+    */
+    let emailAtualizado = responsavel.email;
+
+    if (dados.email !== undefined) {
+      emailAtualizado =
+        dados.email && dados.email.trim() !== "" ? dados.email.trim() : null;
+    }
+
+    if (dados.endereco !== undefined && !dados.endereco.trim()) {
+      throw new Error("Endereço do responsável é obrigatório");
+    }
+
+    let quantidadeAtualizada = responsavel.quantidade_alunos;
+
+    if (dados.quantidade_alunos !== undefined) {
+      quantidadeAtualizada = this.normalizarQuantidadeAlunos(
+        dados.quantidade_alunos
+      );
+    }
 
     this.responsavelRepository.merge(responsavel, {
       nome: dados.nome?.trim() ?? responsavel.nome,
       telefone: dados.telefone?.trim() ?? responsavel.telefone,
-      email: dados.email?.trim() ?? responsavel.email,
+      email: emailAtualizado,
       endereco: dados.endereco?.trim() ?? responsavel.endereco,
+      quantidade_alunos: quantidadeAtualizada,
     });
 
     await this.responsavelRepository.save(responsavel);
@@ -171,7 +225,9 @@ export class ServiceResponsavel {
       id_responsavel,
     });
 
-    if (!responsavel) throw new Error("Responsavel nao encontrado");
+    if (!responsavel) {
+      throw new Error("Responsável não encontrado");
+    }
 
     const alunos = await this.alunoRepository.find({
       where: { id_responsavel },
@@ -185,6 +241,8 @@ export class ServiceResponsavel {
     await this.alunoRepository.delete({ id_responsavel });
     await this.responsavelRepository.remove(responsavel);
 
-    return { message: "Responsavel excluido com sucesso" };
+    return {
+      message: "Responsável excluído com sucesso",
+    };
   }
 }
