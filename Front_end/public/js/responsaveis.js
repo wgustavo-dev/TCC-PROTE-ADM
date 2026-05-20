@@ -10,6 +10,10 @@ let idEmEdicao = null;
 let detalheAbertoId = null;
 let linhaDetalhesAtual = null;
 
+let fluxoCadastro = 'manual';
+let idOrcamentoFluxo = null;
+let orcamentoFluxo = null;
+
 const tbody = document.getElementById('tbodyResponsaveis');
 const emptyState = document.getElementById('emptyState');
 const painelDetalhes = document.getElementById('painelDetalhes');
@@ -25,11 +29,9 @@ const form = document.getElementById('formResponsavel');
 const camposForm = {
   nome: document.getElementById('nome'),
   quantidade: document.getElementById('quantidade'),
-  mensalidade: document.getElementById('mensalidade'),
   email: document.getElementById('email'),
   telefone: document.getElementById('telefone'),
-  endereco: document.getElementById('endereco'),
-  status: document.getElementById('status')
+  endereco: document.getElementById('endereco')
 };
 
 function showError(message) {
@@ -70,6 +72,10 @@ function aplicarMascaraTelefone(valor) {
   return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
 }
 
+function limparMascaraTelefone(valor) {
+  return String(valor || '').replace(/\D/g, '');
+}
+
 function formatarMoeda(valor) {
   const numero = Number(valor || 0);
 
@@ -94,6 +100,18 @@ function iniciais(nome = '') {
   return (partes[0]?.[0] || 'S') + (partes[1]?.[0] || 'N');
 }
 
+function obterParametrosFluxo() {
+  const params = new URLSearchParams(window.location.search);
+
+  fluxoCadastro = params.get('fluxo') || 'manual';
+  idOrcamentoFluxo = params.get('id_orcamento');
+
+  if (fluxoCadastro !== 'orcamento') {
+    fluxoCadastro = 'manual';
+    idOrcamentoFluxo = null;
+  }
+}
+
 function normalizarResponsavel(item) {
   return {
     id: item.id_responsavel,
@@ -107,9 +125,9 @@ function normalizarResponsavel(item) {
     vencimento: formatarData(item.proximo_vencimento),
     alunos: Array.isArray(item.alunos)
       ? item.alunos.map((aluno) => ({
-        nome: aluno.nome || 'Aluno',
-        valor: `R$ ${formatarMoeda(aluno.mensalidade || 0)}`
-      }))
+          nome: aluno.nome || 'Aluno',
+          valor: `R$ ${formatarMoeda(aluno.mensalidade || 0)}`
+        }))
       : []
   };
 }
@@ -118,6 +136,34 @@ async function carregarResponsaveis() {
   const dados = await window.API.get('/responsaveis');
   responsaveis = Array.isArray(dados) ? dados.map(normalizarResponsavel) : [];
   renderTabela();
+}
+
+async function carregarOrcamentoDoFluxo() {
+  if (fluxoCadastro !== 'orcamento' || !idOrcamentoFluxo) return;
+
+  try {
+    const orcamento = await window.API.get(`/orcamentos/${idOrcamentoFluxo}`);
+    orcamentoFluxo = orcamento;
+
+    abrirModal(false, null, true);
+
+    camposForm.nome.value = orcamento.nome_responsavel || '';
+    camposForm.telefone.value = aplicarMascaraTelefone(orcamento.telefone || '');
+    camposForm.email.value = '';
+    camposForm.quantidade.value = Number(orcamento.quantidade_alunos || 1);
+
+    /*
+      O orçamento não possui campo específico de endereço do responsável.
+      Por enquanto, usamos o endereço de embarque como sugestão.
+      O usuário pode revisar e alterar antes de salvar.
+    */
+    camposForm.endereco.value = orcamento.endereco_embarque || '';
+
+    document.getElementById('avatarModal').textContent =
+      iniciais(camposForm.nome.value);
+  } catch (error) {
+    showError(error.message || 'Não foi possível carregar o orçamento para revisão.');
+  }
 }
 
 function listaFiltrada() {
@@ -175,30 +221,30 @@ function renderTabela() {
       <td>${r.quantidade}</td>
       <td>${r.telefone}<br>${r.email || '-'}</td>
       <td>R$ ${r.mensalidade}</td>
-     <td>
-  <div class="acoes">
-    <button class="acao-btn ver" data-ac="ver" data-id="${r.id}" title="Ver detalhes" aria-label="Ver detalhes">
-      ▾
-    </button>
+      <td>
+        <div class="acoes">
+          <button class="acao-btn ver" data-ac="ver" data-id="${r.id}" title="Ver detalhes" aria-label="Ver detalhes">
+            ▾
+          </button>
 
-    <button class="acao-btn" data-ac="editar" data-id="${r.id}" title="Editar" aria-label="Editar responsável">
-      <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 20h9"></path>
-        <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
-      </svg>
-    </button>
+          <button class="acao-btn" data-ac="editar" data-id="${r.id}" title="Editar" aria-label="Editar responsável">
+            <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+            </svg>
+          </button>
 
-    <button class="acao-btn excluir" data-ac="excluir" data-id="${r.id}" title="Excluir" aria-label="Excluir responsável">
-      <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="3 6 5 6 21 6"></polyline>
-        <path d="M19 6l-1 14H6L5 6"></path>
-        <path d="M10 11v6"></path>
-        <path d="M14 11v6"></path>
-        <path d="M9 6V4h6v2"></path>
-      </svg>
-    </button>
-  </div>
-</td>
+          <button class="acao-btn excluir" data-ac="excluir" data-id="${r.id}" title="Excluir" aria-label="Excluir responsável">
+            <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14H6L5 6"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+              <path d="M9 6V4h6v2"></path>
+            </svg>
+          </button>
+        </div>
+      </td>
     </tr>
   `).join('');
 
@@ -251,7 +297,7 @@ function abrirDetalhes(id, linhaClicada) {
   painelDetalhes.classList.remove('hidden');
 }
 
-function abrirModal(edicao = false, item = null) {
+function abrirModal(edicao = false, item = null, vindoDeOrcamento = false) {
   idEmEdicao = item?.id || null;
 
   document.getElementById('modalTitulo').textContent =
@@ -264,30 +310,59 @@ function abrirModal(edicao = false, item = null) {
 
   if (item) {
     camposForm.nome.value = item.nome;
-    camposForm.quantidade.value = item.quantidade;
-    camposForm.mensalidade.value = item.mensalidade;
+    camposForm.quantidade.value = item.quantidade || 1;
     camposForm.email.value = item.email;
     camposForm.telefone.value = item.telefone;
     camposForm.endereco.value = item.endereco || '';
-    camposForm.status.value = item.status;
     document.getElementById('avatarModal').textContent = iniciais(item.nome);
   } else {
-    camposForm.quantidade.value = 0;
-    camposForm.mensalidade.value = '0,00';
-    camposForm.status.value = 'em_dia';
+    camposForm.quantidade.value = vindoDeOrcamento ? '' : 1;
     document.getElementById('avatarModal').textContent = 'SN';
   }
 
   modalOverlay.classList.remove('hidden');
 }
 
+function obterQuantidadeAlunos() {
+  const quantidade = Number(camposForm.quantidade.value);
+
+  if (!Number.isInteger(quantidade) || quantidade < 1) {
+    return null;
+  }
+
+  return quantidade;
+}
+
 function montarPayload() {
   return {
     nome: camposForm.nome.value.trim(),
-    email: camposForm.email.value.trim(),
-    telefone: camposForm.telefone.value.trim(),
-    endereco: camposForm.endereco.value.trim()
+    email: camposForm.email.value.trim() || null,
+    telefone: limparMascaraTelefone(camposForm.telefone.value),
+    endereco: camposForm.endereco.value.trim(),
+    quantidade_alunos: obterQuantidadeAlunos()
   };
+}
+
+function redirecionarParaAluno(responsavelSalvo, totalAlunos) {
+  const idResponsavel = responsavelSalvo.id_responsavel;
+
+  if (!idResponsavel) {
+    showError('Responsável salvo, mas o ID não foi retornado pelo backend.');
+    return;
+  }
+
+  const params = new URLSearchParams();
+
+  params.set('fluxo', fluxoCadastro);
+  params.set('id_responsavel', String(idResponsavel));
+  params.set('alunoAtual', '1');
+  params.set('totalAlunos', String(totalAlunos));
+
+  if (fluxoCadastro === 'orcamento' && idOrcamentoFluxo) {
+    params.set('id_orcamento', String(idOrcamentoFluxo));
+  }
+
+  window.location.href = `alunos.html?${params.toString()}`;
 }
 
 async function salvarFormulario(e) {
@@ -297,6 +372,11 @@ async function salvarFormulario(e) {
 
   if (!payload.nome || !payload.telefone || !payload.endereco) {
     showError('Preencha nome, telefone e endereço.');
+    return;
+  }
+
+  if (!payload.quantidade_alunos) {
+    showError('Informe a quantidade de alunos.');
     return;
   }
 
@@ -315,13 +395,7 @@ async function salvarFormulario(e) {
 
     modalOverlay.classList.add('hidden');
 
-    localStorage.setItem('responsavelParaAluno', JSON.stringify({
-      nome: responsavelSalvo.nome,
-      telefone: responsavelSalvo.telefone,
-      email: responsavelSalvo.email || ''
-    }));
-
-    window.location.href = 'alunos.html?novoResponsavel=1';
+    redirecionarParaAluno(responsavelSalvo, payload.quantidade_alunos);
   } catch (error) {
     showError(error.message || 'Não foi possível salvar o responsável.');
   }
@@ -365,32 +439,6 @@ async function excluirResponsavel(id) {
   }
 }
 
-function processarCadastroPendente() {
-  const params = new URLSearchParams(window.location.search);
-
-  if (!params.has('cadastrarResponsavel')) return;
-
-  const raw = localStorage.getItem('responsavelPendente');
-
-  if (!raw) return;
-
-  try {
-    const dados = JSON.parse(raw);
-
-    abrirModal(false);
-
-    camposForm.nome.value = dados.nome || '';
-    camposForm.telefone.value = aplicarMascaraTelefone(dados.telefone || '');
-    camposForm.email.value = dados.email || '';
-    camposForm.endereco.value = dados.alunoData?.embarque || '';
-
-    document.getElementById('avatarModal').textContent =
-      iniciais(camposForm.nome.value);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
 inputBusca.addEventListener('input', (e) => {
   filtroBusca = e.target.value.toLowerCase();
   renderTabela();
@@ -430,6 +478,9 @@ if (btnLimparFiltros) {
 }
 
 document.getElementById('btnNovo').addEventListener('click', () => {
+  fluxoCadastro = 'manual';
+  idOrcamentoFluxo = null;
+  orcamentoFluxo = null;
   abrirModal(false);
 });
 
@@ -483,10 +534,10 @@ tbody.addEventListener('click', (e) => {
   }
 });
 
+obterParametrosFluxo();
+
 carregarResponsaveis()
-  .then(() => {
-    processarCadastroPendente();
-  })
+  .then(() => carregarOrcamentoDoFluxo())
   .catch((error) => {
     showError(error.message || 'Não foi possível carregar os responsáveis.');
     responsaveis = [];

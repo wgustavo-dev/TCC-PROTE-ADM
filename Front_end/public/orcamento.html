@@ -122,7 +122,7 @@
 
       <div class="card barra-status">
         <button class="aba-status active" data-status="pendente">PENDENTES</button>
-        <button class="aba-status" data-status="aprovado">APROVADOS</button>
+        <button class="aba-status" data-status="convertido">APROVADOS</button>
         <button class="aba-status" data-status="reprovado">REPROVADOS</button>
       </div>
 
@@ -167,47 +167,66 @@
   </div>
 
   <!-- Modal -->
-  <div class="fundo-modal" id="fundoModal">
-    <div class="caixa-modal" role="dialog" aria-modal="true" aria-labelledby="tituloModal">
-      <h2 class="titulo-modal" id="tituloModal">Novo orçamento</h2>
+  <!-- Modal -->
+<div class="fundo-modal" id="fundoModal">
+  <div class="caixa-modal" role="dialog" aria-modal="true" aria-labelledby="tituloModal">
+    <h2 class="titulo-modal" id="tituloModal">Novo orçamento</h2>
 
-      <input type="hidden" id="campoId" />
+    <input type="hidden" id="campoId" />
 
-      <div class="grupo-campo">
-        <label class="label-campo" for="campoResponsavel">Nome do Responsável</label>
-        <input type="text" class="input-campo" id="campoResponsavel" placeholder="Digite..." />
-        <span class="mensagem-erro" id="erroResponsavel"></span>
-      </div>
+    <div class="grupo-campo">
+      <label class="label-campo" for="campoResponsavel">Nome do Responsável</label>
+      <input type="text" class="input-campo" id="campoResponsavel" placeholder="Digite..." />
+      <span class="mensagem-erro" id="erroResponsavel"></span>
+    </div>
 
-      <div class="grupo-campo">
-        <label class="label-campo" for="campoTrajeto">Trajeto</label>
-        <select class="select-campo" id="campoTrajeto">
-          <option value="">Selecione...</option>
-          <option value="Ida">Ida</option>
-          <option value="Volta">Volta</option>
-          <option value="Ambos">Ambos</option>
-        </select>
-        <span class="mensagem-erro" id="erroTrajeto"></span>
-      </div>
+    <!-- ADICIONADO:
+         Telefone é obrigatório no banco e no backend.
+         Sem esse campo, o orçamento não salva corretamente. -->
+    <div class="grupo-campo">
+      <label class="label-campo" for="campoTelefone">Telefone</label>
+      <input type="text" class="input-campo" id="campoTelefone" placeholder="Digite o telefone..." />
+      <span class="mensagem-erro" id="erroTelefone"></span>
+    </div>
 
-      <div class="grupo-campo">
-        <label class="label-campo" for="campoEmbarque">Endereço embarque</label>
-        <input type="text" class="input-campo" id="campoEmbarque" placeholder="Digite o endereço..." />
-        <span class="mensagem-erro" id="erroEmbarque"></span>
-      </div>
+    <!-- ADICIONADO:
+         Quantidade de alunos é necessária para o fluxo:
+         aluno 1 -> mensalidade 1 -> aluno 2 -> mensalidade 2. -->
+    <div class="grupo-campo">
+      <label class="label-campo" for="campoQuantidadeAlunos">Quantidade de alunos</label>
+      <input type="number" class="input-campo" id="campoQuantidadeAlunos" min="1" step="1" placeholder="Digite a quantidade..." />
+      <span class="mensagem-erro" id="erroQuantidadeAlunos"></span>
+    </div>
 
-      <div class="grupo-campo">
-        <label class="label-campo" for="campoDesembarque">Endereço desembarque</label>
-        <input type="text" class="input-campo" id="campoDesembarque" placeholder="Digite o endereço..." />
-        <span class="mensagem-erro" id="erroDesembarque"></span>
-      </div>
+    <div class="grupo-campo">
+      <label class="label-campo" for="campoTrajeto">Trajeto</label>
+      <select class="select-campo" id="campoTrajeto">
+        <option value="">Selecione...</option>
+        <option value="IDA">Ida</option>
+        <option value="VOLTA">Volta</option>
+        <option value="AMBOS">Ambos</option>
+      </select>
+      <span class="mensagem-erro" id="erroTrajeto"></span>
+    </div>
 
-      <div class="acoes-modal">
-        <button class="botao-cancelar" id="botaoCancelar">Cancelar</button>
-        <button class="botao-cadastrar" id="botaoSalvar">Cadastrar</button>
-      </div>
+    <div class="grupo-campo">
+      <label class="label-campo" for="campoEmbarque">Endereço embarque</label>
+      <input type="text" class="input-campo" id="campoEmbarque" placeholder="Digite o endereço..." />
+      <span class="mensagem-erro" id="erroEmbarque"></span>
+    </div>
+
+    <div class="grupo-campo">
+      <label class="label-campo" for="campoDesembarque">Endereço desembarque</label>
+      <input type="text" class="input-campo" id="campoDesembarque" placeholder="Digite o endereço..." />
+      <span class="mensagem-erro" id="erroDesembarque"></span>
+    </div>
+
+    <div class="acoes-modal">
+      <button class="botao-cancelar" id="botaoCancelar">Cancelar</button>
+      <button class="botao-cadastrar" id="botaoSalvar">Cadastrar</button>
     </div>
   </div>
+</div>
 
 <script src="js/orcamento.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
