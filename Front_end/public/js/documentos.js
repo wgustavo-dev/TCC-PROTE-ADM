@@ -207,23 +207,20 @@ function configurarFormulario() {
 
     try {
       const id = documentoId.value;
-      const method = id ? 'PUT' : 'POST';
-      const url = id ? `/api/documentos/${id}` : '/api/documentos';
 
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error('Erro ao salvar');
+      if (id) {
+        await window.API.put(`/documentos/${id}`, payload);
+      } else {
+        await window.API.post('/documentos', payload);
+      }
 
       await carregarDocumentosDoBackend();
       renderizarTudo();
       fecharModal();
+      await showSuccess(id ? 'Documento atualizado com sucesso!' : 'Documento cadastrado com sucesso!');
     } catch (error) {
       console.error(error);
-      showError("Não foi possível salvar o documento.");
+      showError(error.message || 'Não foi possível salvar o documento.');
     }
   });
 }
@@ -261,11 +258,9 @@ function atualizarPreviewDocumento() {
 
 async function carregarDocumentosDoBackend() {
   try {
-    const response = await fetch('/api/documentos');
-    if (!response.ok) throw new Error('Erro ao buscar documentos');
-    const dados = await response.json();
+    const dados = await window.API.get('/documentos');
 
-    documentos = dados.map((doc) => ({
+    documentos = (dados || []).map((doc) => ({
       id: doc.id_documento,
       tipo: doc.tipo_documento,
       dataRealizacao: doc.data_emissao ? doc.data_emissao.split('T')[0] : '',
@@ -275,6 +270,7 @@ async function carregarDocumentosDoBackend() {
   } catch (error) {
     console.error('Erro ao carregar documentos:', error);
     documentos = [];
+    showError('Não foi possível carregar os documentos. Verifique se você está logado como condutor.');
   }
 }
 
@@ -446,13 +442,13 @@ tbodyDocumentos.addEventListener('click', async (event) => {
     if (!confirmar) return;
 
     try {
-      const response = await fetch(`/api/documentos/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Erro ao excluir');
+      await window.API.del(`/documentos/${id}`);
       await carregarDocumentosDoBackend();
       renderizarTudo();
+      await showSuccess('Documento excluído com sucesso!');
     } catch (error) {
       console.error(error);
-      showError("Não foi possível excluir o documento.");
+      showError(error.message || 'Não foi possível excluir o documento.');
     }
   }
 });

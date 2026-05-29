@@ -1,82 +1,97 @@
-import { Request, Response } from 'express';
-import { ServiceAluno } from '../services/service_aluno';
+// Back_end/src/controllers/control_aluno.ts
 
-const service = new ServiceAluno();
+import { Request, Response } from "express";
+import { ServiceAluno } from "../services/service_aluno";
+
+const serviceAluno = new ServiceAluno();
 
 export class ControlAluno {
-    async listarResponsaveis(req: Request, res: Response) {
-        try {
-            const responsaveis = await service.listarResponsaveis();
-            return res.json(responsaveis);
-        } catch (error: any) {
-            return res.status(500).json({ error: error.message });
-        }
+  async listarResponsaveis(req: Request, res: Response) {
+    try {
+      const responsaveis = await serviceAluno.listarResponsaveis();
+
+      return res.status(200).json(responsaveis);
+    } catch (error: any) {
+      return res.status(500).json({
+        error: error.message || "Erro ao listar responsáveis",
+      });
     }
+  }
 
-    async listar(req: Request, res: Response) {
-        try {
-            const alunos = await service.listar();
-            return res.json(alunos);
+  async listar(req: Request, res: Response) {
+    try {
+      const alunos = await serviceAluno.listar();
 
-        } catch (error: any) {
-            return res.status(500).json({ error: error.message });
-        }
+      return res.status(200).json(alunos);
+    } catch (error: any) {
+      return res.status(500).json({
+        error: error.message || "Erro ao listar alunos",
+      });
     }
+  }
 
-    async buscarPorID(req: Request, res: Response) {
-        try {
-            const { id } = req.params;
+  async buscarPorID(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
 
-            const aluno = await service.buscarPorID(Number(id));
-            return res.json(aluno);
+      const aluno = await serviceAluno.buscarPorID(Number(id));
 
-        } catch (error: any) {
-            return res.status(404).json({ error: error.message });
-        }
+      return res.status(200).json(aluno);
+    } catch (error: any) {
+      return res.status(404).json({
+        error: error.message || "Erro ao buscar aluno",
+      });
     }
+  }
 
-    async criar(req: Request, res: Response) {
-        try {
-            const dados = req.body;
+  async criar(req: Request, res: Response) {
+    try {
+      const dados = req.body;
 
-            if (req.file) {
-                dados.foto = `/uploads/alunos/${req.file.filename}`;
-            }
+      if (req.file) {
+        dados.foto = `/uploads/alunos/${req.file.filename}`;
+      }
 
-            const aluno = await service.criar(dados);
-            return res.status(201).json(aluno);
+      const aluno = await serviceAluno.criar(dados);
 
-        } catch (error: any) {
-            
-            return res.status(400).json({ erro: error.message });
-        }
+      return res.status(201).json(aluno);
+    } catch (error: any) {
+      return res.status(400).json({
+        error: error.message || "Erro ao criar aluno",
+      });
     }
+  }
 
-    async atualizar(req: Request, res: Response) {
-        try {
-            const { id } = req.params;
-            const dados = req.body;
+  async atualizar(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const dados = req.body;
 
-            if (req.file) {
-                dados.foto = `/uploads/alunos/${req.file.filename}`;
-            }
+      if (req.file) {
+        dados.foto = `/uploads/alunos/${req.file.filename}`;
+      }
 
-            const aluno = await service.atualizar(Number(id), dados);
+      const aluno = await serviceAluno.atualizar(Number(id), dados);
 
-            return res.json(aluno);
-        } catch (error: any) {
-            return res.status(400).json({ error: error.message })
-        }
+      return res.status(200).json(aluno);
+    } catch (error: any) {
+      return res.status(400).json({
+        error: error.message || "Erro ao atualizar aluno",
+      });
     }
+  }
 
-    async deletar(req: Request, res: Response) {
-        try {
-            const { id } = req.params;
+  async deletar(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
 
-            const resultado = await service.deletar(Number(id))
-            return res.json(resultado);
-        } catch (error: any) {
-            return res.status(404).json({ error: error.message })
-        }
+      const resultado = await serviceAluno.deletar(Number(id));
+
+      return res.status(200).json(resultado);
+    } catch (error: any) {
+      return res.status(404).json({
+        error: error.message || "Erro ao excluir aluno",
+      });
     }
+  }
 }

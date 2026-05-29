@@ -634,3 +634,96 @@ body {
 
   .main { padding: 1.25rem 1rem; }
 }
+
+/* =========================================================
+   PADRÃO GLOBAL DE BOTÕES E ALERTAS
+   ========================================================= */
+button {
+  font-family: inherit;
+}
+
+button:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.botao-filtro:focus-visible,
+.botao-limpar-filtros:focus-visible {
+  outline: 2px solid #2446b8;
+  outline-offset: 2px;
+}
+
+.btn-primary,
+.btn-secondary,
+.botao-filtro,
+.botao-limpar-filtros,
+.botao-cadastrar,
+.botao-cancelar,
+.botao-excluir,
+.botao-primario-orcamento,
+.botao-primario-mensalidade,
+.botao-nova-despesa,
+.botao-salvar,
+.botao-verde,
+.botao-vermelho,
+.aba-status,
+.detalhes-head button {
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.botao-filtro:hover,
+.botao-limpar-filtros:hover,
+.botao-cadastrar:hover,
+.botao-cancelar:hover,
+.botao-excluir:hover,
+.botao-primario-orcamento:hover,
+.botao-primario-mensalidade:hover,
+.botao-nova-despesa:hover,
+.botao-salvar:hover,
+.botao-verde:hover,
+.botao-vermelho:hover,
+.aba-status:hover,
+.detalhes-head button:hover {
+  transform: translateY(-1px);
+}
+
+/* SweetAlert2 padrão visual do sistema */
+.prote-alert-button,
+.prote-alert-cancel-button {
+  min-height: 42px !important;
+}
+
+
+/* Ajuste geral dos ícones do sistema */
+.nav-icon,
+.icone-busca,
+.icone-botao-topo,
+.icone-secao,
+.icone-acao,
+.icon-btn svg,
+#avatarPlaceholderIcon {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nav-item {
+  min-height: 38px;
+}
+
+.nav-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.nav-item.active .nav-icon {
+  color: #ffffff;
+}
+
+.icon-btn,
+.botao-acao,
+.btn-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

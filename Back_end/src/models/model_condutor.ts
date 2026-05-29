@@ -19,6 +19,9 @@ export class Condutor {
   @Column({ type: "varchar", length: 100, nullable: true })
   email!: string;
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  senha!: string;
+
   @Column({ type: "varchar", length: 20, nullable: true })
   telefone!: string;
 
@@ -30,6 +33,12 @@ export class Condutor {
 
   @Column({ type: "varchar", length: 255, nullable: true })
   foto!: string;
+
+  @Column({ type: "varchar", length: 255, nullable: true })
+  token_recuperacao!: string;
+
+  @Column({ type: "datetime", nullable: true })
+  expiracao_recuperacao!: Date;
 
   @Column({ type: "int", nullable: true })
   id_monitor!: number;

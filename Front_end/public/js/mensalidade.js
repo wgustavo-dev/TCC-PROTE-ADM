@@ -335,7 +335,7 @@ function renderizarTabela() {
           </button>
         </div>
       </td>
-    </table>
+    </tr>
     `
     )
     .join("");
@@ -380,6 +380,7 @@ function preencherDadosModal(item) {
   setValue("campoContatoMensalidade", (item?.contato || []).join(", "));
   setValue("campoResponsavelMensalidade", item?.responsavel);
   setValue("campoEscolaMensalidade", item?.escola);
+  setValue("campoStatusMensalidade", (item?.status || "pendente").toUpperCase());
 
   const nomeAlunoSpan = document.getElementById("nomeAlunoModalInfo");
   const responsavelSpan = document.getElementById("responsavelModalInfo");
@@ -445,6 +446,7 @@ async function salvarMensalidade() {
   const valor = Number(document.getElementById("campoValorMensalidade")?.value || 0);
   const pagamento = document.getElementById("campoPagamentoMensalidade")?.value || "";
   const vencimento = document.getElementById("campoVencimentoMensalidade")?.value || "";
+  const statusSelecionado = document.getElementById("campoStatusMensalidade")?.value || "PENDENTE";
   const mensalidadeEditando = mensalidades.find((item) => item.id === idEditando);
   const idAlunoFinal = idAlunoPorNome(nomeAluno) || mensalidadeEditando?.idAluno || null;
 
@@ -453,12 +455,23 @@ async function salvarMensalidade() {
     return;
   }
 
+  const statusFinal = statusSelecionado;
+
+  if (statusFinal === "PAGO" && !pagamento) {
+    showWarning("Para status pago, preencha a data de pagamento.");
+    return;
+  }
+
+  if (statusFinal !== "PAGO" && pagamento) {
+    showWarning("Data de pagamento será removida porque o status não é PAGO.");
+  }
+
   const payload = {
     id_aluno: idAlunoFinal,
     valor,
     data_vencimento: vencimento,
-    data_pagamento: pagamento || null,
-    status: pagamento ? "PAGO" : "PENDENTE",
+    data_pagamento: statusFinal === "PAGO" ? pagamento : null,
+    status: statusFinal,
   };
 
   try {

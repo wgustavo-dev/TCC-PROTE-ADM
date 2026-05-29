@@ -1,83 +1,103 @@
+// Back_end/src/controllers/control_mensalidade.ts
+
 import { Request, Response } from "express";
 import { ServiceMensalidade } from "../services/service_mensalidade";
 
-const service = new ServiceMensalidade()
+const serviceMensalidade = new ServiceMensalidade();
 
-export class ControlMensalidade{
+export class ControlMensalidade {
+  async listar(req: Request, res: Response) {
+    try {
+      const mensalidades = await serviceMensalidade.listar();
 
-    async listar (req:Request, res:Response){
-        try{
-            const mensalidade = await service.listar()
-            return res.json(mensalidade);
-
-        }catch (error:any){
-            return res.status(500).json({error:error.message})
-        }
+      return res.status(200).json(mensalidades);
+    } catch (error: any) {
+      return res.status(500).json({
+        error: error.message || "Erro ao listar mensalidades",
+      });
     }
+  }
 
-    async buscarPorId(req:Request, res:Response){
-        try{
-            const {id} = req.params;
+  async buscarPorId(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
 
-            const mensalidade = await service.buscarPorId(Number(id));
-            return res.json(mensalidade)
+      const mensalidade = await serviceMensalidade.buscarPorId(Number(id));
 
-        }catch( error:any){
-            return res.status(404).json({error:error.message})
-        }
+      return res.status(200).json(mensalidade);
+    } catch (error: any) {
+      return res.status(404).json({
+        error: error.message || "Erro ao buscar mensalidade",
+      });
     }
+  }
 
-    async criar(req: Request, res: Response){
-        try{
-            
-            const dados = req.body
-            const mensalidade = await service.criar(dados)
-;
-            return res.status(201).json(mensalidade)
+  async criar(req: Request, res: Response) {
+    try {
+      const dados = req.body;
 
-        }catch(error:any){
-            return res.status(400).json({erro:error.message})
-        }
+      const mensalidade = await serviceMensalidade.criar(dados);
+
+      return res.status(201).json(mensalidade);
+    } catch (error: any) {
+      return res.status(400).json({
+        error: error.message || "Erro ao criar mensalidade",
+      });
     }
+  }
 
-    async atualizar(req: Request, res:Response){
-        try{
-            const {id} = req.params;
-            const dados = req.body;
+  async atualizar(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const dados = req.body;
 
-            const mensalidade = await service.atualizar (Number(id), dados);
+      const mensalidade = await serviceMensalidade.atualizar(Number(id), dados);
 
-            return res.json(mensalidade)
-
-        }catch(error:any){
-            return res.status(400).json({error: error.message})
-        }
+      return res.status(200).json(mensalidade);
+    } catch (error: any) {
+      return res.status(400).json({
+        error: error.message || "Erro ao atualizar mensalidade",
+      });
     }
+  }
 
-    async deletar(req:Request, res: Response){
-        try{
-            const {id} = req.params;
+  async deletar(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
 
-            const resultado = await service.deletar(Number(id))
-            return res.json(resultado);
-        }catch (error:any){
-            return res.status(404).json({
-                error:error.message
-            })
-        }
+      const resultado = await serviceMensalidade.deletar(Number(id));
 
+      return res.status(200).json(resultado);
+    } catch (error: any) {
+      return res.status(404).json({
+        error: error.message || "Erro ao excluir mensalidade",
+      });
     }
+  }
 
-    async marcarComoPago (req:Request, res:Response){
-        try{
-            const {id} = req.params
+  async marcarComoPago(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
 
-            const mensalidade = await service.marcarComoPago(Number(id))
+      const mensalidade = await serviceMensalidade.marcarComoPago(Number(id));
 
-            return res.json(mensalidade)
-
-        }catch(error:any){
-            return res.status(400).json({ error: error.message });
-        }
+      return res.status(200).json(mensalidade);
+    } catch (error: any) {
+      return res.status(400).json({
+        error: error.message || "Erro ao marcar mensalidade como paga",
+      });
     }
+  }
+
+  async atualizarAtrasadas(req: Request, res: Response) {
+    try {
+      const resultado = await serviceMensalidade.atualizarMensalidadesAtrasadas();
+
+      return res.status(200).json(resultado);
+    } catch (error: any) {
+      return res.status(500).json({
+        error: error.message || "Erro ao atualizar mensalidades atrasadas",
+      });
+    }
+  }
 }
