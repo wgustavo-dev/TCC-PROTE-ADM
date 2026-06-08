@@ -73,11 +73,9 @@ var API_BASE = '/api';
 
 async function carregarDespesas() {
   try {
-    var response = await fetch(API_BASE + '/despesas');
-    if (!response.ok) throw new Error('Erro ao buscar despesas');
-    var dados = await response.json();
-    /* Mapear do banco para frontend - ajustar campos conforme modelo */
-    return dados.map(function(d) {
+    const dados = await window.API.get('/despesas');
+
+    return (dados || []).map(function(d) {
       return {
         id: d.id_despesa,
         tipo: d.tipo,
@@ -88,7 +86,9 @@ async function carregarDespesas() {
     });
   } catch (e) {
     console.error('Erro ao carregar despesas:', e);
+    showError('Não foi possível carregar as despesas. Verifique se você está logado como condutor.');
   }
+
   return [];
 }
 
@@ -395,44 +395,36 @@ botaoCadastrar.addEventListener('click', function() {
 
   if (idEmEdicao) {
     /* Edição — PUT ao backend */
-    fetch(API_BASE + '/despesas/' + idEmEdicao, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    .then(function(response) {
-      if (!response.ok) throw new Error('Erro ao atualizar');
-      return carregarDespesas();
-    })
-    .then(function(lista) {
-      despesas = lista;
-      fecharModal();
-      renderizar();
-    })
-    .catch(function(err) {
-      console.error(err);
-     showError("Não foi possível salvar despesa.");
-    });
+    window.API.put('/despesas/' + idEmEdicao, payload)
+      .then(function() {
+        return carregarDespesas();
+      })
+      .then(function(lista) {
+        despesas = lista;
+        fecharModal();
+        renderizar();
+        showSuccess('Despesa atualizada com sucesso!');
+      })
+      .catch(function(err) {
+        console.error(err);
+        showError(err.message || 'Não foi possível salvar despesa.');
+      });
   } else {
     /* Criação — POST ao backend */
-    fetch(API_BASE + '/despesas', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    .then(function(response) {
-      if (!response.ok) throw new Error('Erro ao criar');
-      return carregarDespesas();
-    })
-    .then(function(lista) {
-      despesas = lista;
-      fecharModal();
-      renderizar();
-    })
-    .catch(function(err) {
-      console.error(err);
-      showError("Não foi possível salvar despesa.");
-    });
+    window.API.post('/despesas', payload)
+      .then(function() {
+        return carregarDespesas();
+      })
+      .then(function(lista) {
+        despesas = lista;
+        fecharModal();
+        renderizar();
+        showSuccess('Despesa cadastrada com sucesso!');
+      })
+      .catch(function(err) {
+        console.error(err);
+        showError(err.message || 'Não foi possível salvar despesa.');
+      });
   }
 });
 
@@ -476,11 +468,8 @@ fundoModalExcluir.addEventListener('click', function(e) {
 
 botaoConfirmarExclusao.addEventListener('click', function() {
   if (idEmExclusao !== null) {
-    fetch(API_BASE + '/despesas/' + idEmExclusao, {
-      method: 'DELETE'
-    })
-    .then(function(response) {
-      if (!response.ok) throw new Error('Erro ao deletar');
+    window.API.del('/despesas/' + idEmExclusao)
+    .then(function() {
       return carregarDespesas();
     })
     .then(function(lista) {
@@ -491,7 +480,7 @@ botaoConfirmarExclusao.addEventListener('click', function() {
     })
     .catch(function(err) {
       console.error(err);
-      showError("Não foi possível excluir despesa.");
+      showError(err.message || 'Não foi possível excluir despesa.');
     });
   }
 });
