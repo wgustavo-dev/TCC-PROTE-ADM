@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import routeAuth from './route_auth';
 import routeAluno from './route_aluno';
 import routeDocumento from './route_documento';
 import routeDespesa from './route_despesa';
@@ -10,6 +11,7 @@ import routeResponsavel from "./route_responsavel";
 
 const routes = Router();
 
+routes.use('/api/auth', routeAuth);
 routes.use('/api', routeResponsavel);
 routes.use('/api', routeAluno);
 routes.use('/api', routeDocumento);

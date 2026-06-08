@@ -73,22 +73,14 @@ let alunos = [];
 let responsaveis = [];
 let el = null;
 
-let fluxoCadastro = "normal";
-let idOrcamentoFluxo = null;
-let idResponsavelFluxo = null;
-let alunoAtualFluxo = 1;
-let totalAlunosFluxo = 1;
-let responsavelFluxo = null;
-
 /* =========================================================
-   MENU
+   FUNÇÕES AUXILIARES - API E MÁSCARAS
    ========================================================= */
 
 function initMenu() {
   const botaoMenu = document.getElementById("botaoMenu");
   const sidebar = document.getElementById("sidebar");
   const fundoEscuro = document.getElementById("fundoEscuro");
-
   if (!botaoMenu || !sidebar || !fundoEscuro) return;
 
   botaoMenu.addEventListener("click", () => {
@@ -103,119 +95,6 @@ function initMenu() {
     botaoMenu.classList.remove("aberto");
   });
 }
-
-/* =========================================================
-   FLUXO DE CADASTRO
-   ========================================================= */
-
-function lerParametrosFluxo() {
-  const params = new URLSearchParams(window.location.search);
-
-  fluxoCadastro = params.get("fluxo") || "normal";
-  idOrcamentoFluxo = params.get("id_orcamento");
-  idResponsavelFluxo = params.get("id_responsavel");
-  alunoAtualFluxo = Number(params.get("alunoAtual") || 1);
-  totalAlunosFluxo = Number(params.get("totalAlunos") || 1);
-
-  /*
-    Correção:
-    Se existe id_responsavel na URL, o sistema deve considerar
-    que está em fluxo guiado, mesmo se o fluxo vier ausente.
-  */
-  if (idResponsavelFluxo && !["orcamento", "manual"].includes(fluxoCadastro)) {
-    fluxoCadastro = "manual";
-  }
-
-  if (!["orcamento", "manual"].includes(fluxoCadastro)) {
-    fluxoCadastro = "normal";
-  }
-
-  if (!Number.isInteger(alunoAtualFluxo) || alunoAtualFluxo < 1) {
-    alunoAtualFluxo = 1;
-  }
-
-  if (!Number.isInteger(totalAlunosFluxo) || totalAlunosFluxo < 1) {
-    totalAlunosFluxo = 1;
-  }
-}
-
-function estaEmFluxoGuiado() {
-  const id = Number(idResponsavelFluxo);
-  return Number.isInteger(id) && id > 0;
-}
-
-async function carregarResponsavelDoFluxo() {
-  if (!estaEmFluxoGuiado()) return;
-
-  try {
-    responsavelFluxo = await window.API.get(`/responsaveis/${idResponsavelFluxo}`);
-  } catch (error) {
-    console.error("Erro ao carregar responsável do fluxo:", error);
-    responsavelFluxo = null;
-  }
-}
-
-function aplicarResponsavelDoFluxoNoFormulario() {
-  if (!estaEmFluxoGuiado() || !responsavelFluxo) return;
-
-  if (el.nomeResponsavel1) {
-    el.nomeResponsavel1.value = aplicarMascaraNome(responsavelFluxo.nome || "");
-    el.nomeResponsavel1.readOnly = true;
-  }
-
-  if (el.telefoneResponsavel1) {
-    el.telefoneResponsavel1.value = aplicarMascaraTelefone(responsavelFluxo.telefone || "");
-    el.telefoneResponsavel1.readOnly = true;
-  }
-
-  if (el.modalTitulo) {
-    el.modalTitulo.textContent = `Novo aluno ${alunoAtualFluxo} de ${totalAlunosFluxo}`;
-  }
-}
-
-function abrirFluxoGuiadoSeNecessario() {
-  if (!estaEmFluxoGuiado()) return;
-
-  abrirModalNovo();
-
-  if (responsavelFluxo) {
-    aplicarResponsavelDoFluxoNoFormulario();
-  }
-
-  if (el.modalTitulo) {
-    el.modalTitulo.textContent = `Novo aluno ${alunoAtualFluxo} de ${totalAlunosFluxo}`;
-  }
-
-  if (el.modalOverlay) {
-    el.modalOverlay.classList.remove("hidden");
-  }
-
-  if (el.nomeAluno) {
-    setTimeout(() => {
-      el.nomeAluno.focus();
-    }, 100);
-  }
-}
-
-function montarUrlMensalidade(idAluno) {
-  const params = new URLSearchParams();
-
-  params.set("fluxo", fluxoCadastro === "orcamento" ? "orcamento" : "manual");
-  params.set("id_responsavel", String(idResponsavelFluxo));
-  params.set("id_aluno", String(idAluno));
-  params.set("alunoAtual", String(alunoAtualFluxo));
-  params.set("totalAlunos", String(totalAlunosFluxo));
-
-  if (fluxoCadastro === "orcamento" && idOrcamentoFluxo) {
-    params.set("id_orcamento", String(idOrcamentoFluxo));
-  }
-
-  return `mensalidade.html?${params.toString()}`;
-}
-
-/* =========================================================
-   FUNÇÕES AUXILIARES - API E MÁSCARAS
-   ========================================================= */
 
 function toUrlFoto(pathFoto) {
   if (!pathFoto) return "";
@@ -235,7 +114,7 @@ function mapearAlunoApi(item) {
     desembarque: item.endereco_desembarque || "",
     foto: toUrlFoto(item.foto),
     escola: item.escola || "",
-    vencimento: "",
+    vencimento: item.vencimento || "",
     tipoTrajeto: item.tipo_trajeto === "IDA" ? "ir" : item.tipo_trajeto === "VOLTA" ? "voltar" : "ambos",
     periodo: item.turno ? item.turno.toLowerCase() : "manha",
     horarioTurma: item.horario_turma || ""
@@ -264,41 +143,26 @@ async function carregarResponsaveis() {
   }
 }
 
-function encontrarResponsavelPorId(idResponsavel) {
-  const id = Number(idResponsavel);
-
-  if (!Number.isInteger(id) || id <= 0) return null;
-
-  return responsaveis.find((item) => Number(item.id_responsavel) === id) || null;
-}
-
 function encontrarResponsavelPorNome(nome) {
   const nomeNormalizado = (nome || "").trim().toLowerCase();
-
   if (!nomeNormalizado) return null;
-
   return responsaveis.find((item) => (item.nome || "").trim().toLowerCase() === nomeNormalizado) || null;
 }
 
 function aplicarMascaraNome(valor) {
-  return String(valor || "")
-    .replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'\s-]/g, "")
-    .replace(/\s{2,}/g, " ")
-    .slice(0, 80);
+  return valor.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'\s-]/g, "").replace(/\s{2,}/g, " ").slice(0, 80);
 }
 
 function aplicarMascaraTelefone(valor) {
-  const numeros = String(valor || "").replace(/\D/g, "").slice(0, 11);
-
+  const numeros = valor.replace(/\D/g, "").slice(0, 11);
   if (numeros.length <= 2) return `(${numeros}`;
   if (numeros.length <= 7) return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
   if (numeros.length <= 10) return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
-
   return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
 }
 
 function aplicarMascaraEndereco(valor) {
-  return String(valor || "")
+  return valor
     .replace(/[^0-9A-Za-zÀ-ÖØ-öø-ÿ.,º°ª\-\/\s]/g, "")
     .replace(/\s{2,}/g, " ")
     .slice(0, 140);
@@ -309,35 +173,21 @@ function configurarMascaras() {
   const camposTelefone = [el.telefoneResponsavel1, el.telefoneResponsavel2];
   const camposEndereco = [el.enderecoEmbarque, el.enderecoDesembarque];
 
-  camposNome.forEach((campo) => {
-    campo && campo.addEventListener("input", () => {
-      campo.value = aplicarMascaraNome(campo.value);
-    });
-  });
-
-  camposTelefone.forEach((campo) => {
-    campo && campo.addEventListener("input", () => {
-      campo.value = aplicarMascaraTelefone(campo.value);
-    });
-  });
-
-  camposEndereco.forEach((campo) => {
-    campo && campo.addEventListener("input", () => {
-      campo.value = aplicarMascaraEndereco(campo.value);
-    });
-  });
+  camposNome.forEach((campo) => campo && campo.addEventListener("input", () => (campo.value = aplicarMascaraNome(campo.value))));
+  camposTelefone.forEach((campo) =>
+    campo && campo.addEventListener("input", () => (campo.value = aplicarMascaraTelefone(campo.value)))
+  );
+  camposEndereco.forEach((campo) =>
+    campo && campo.addEventListener("input", () => (campo.value = aplicarMascaraEndereco(campo.value)))
+  );
 }
 
 function configurarAutocompletarResponsavel() {
   if (!el.nomeResponsavel1 || !el.telefoneResponsavel1) return;
 
   const sincronizar = () => {
-    if (estaEmFluxoGuiado()) return;
-
     const responsavel = encontrarResponsavelPorNome(el.nomeResponsavel1.value);
-
     if (!responsavel) return;
-
     el.nomeResponsavel1.value = responsavel.nome || "";
     el.telefoneResponsavel1.value = aplicarMascaraTelefone(responsavel.telefone || "");
   };
@@ -348,101 +198,29 @@ function configurarAutocompletarResponsavel() {
 
 function configurarPreviewFoto() {
   if (!el.fotoAluno) return;
-
+  
   el.fotoAluno.addEventListener("change", () => {
     const arquivo = el.fotoAluno.files[0];
-
     if (!arquivo) return esconderPreviewFoto();
-
     const leitor = new FileReader();
-
     leitor.onload = (evento) => mostrarPreviewFoto(evento.target.result);
     leitor.readAsDataURL(arquivo);
   });
-}
-
-/* =========================================================
-   CAMPOS DINÂMICOS POR TRAJETO
-   ========================================================= */
-
-function atualizarCamposEnderecoPorTrajeto() {
-  if (!el.tipoTrajetoAluno || !el.grupoEnderecoEmbarque || !el.grupoEnderecoDesembarque) return;
-
-  const tipo = el.tipoTrajetoAluno.value;
-
-  el.grupoEnderecoEmbarque.style.display = "none";
-  el.grupoEnderecoDesembarque.style.display = "none";
-
-  if (el.enderecoEmbarque) el.enderecoEmbarque.required = false;
-  if (el.enderecoDesembarque) el.enderecoDesembarque.required = false;
-
-  if (tipo === "ir") {
-    el.grupoEnderecoEmbarque.style.display = "";
-    if (el.enderecoEmbarque) el.enderecoEmbarque.required = true;
-    if (el.enderecoDesembarque) el.enderecoDesembarque.value = "";
+  
+  if (el.linkFotoAluno) {
+    el.linkFotoAluno.addEventListener("input", () => {
+      const link = el.linkFotoAluno.value.trim();
+      if (!link) return esconderPreviewFoto();
+      mostrarPreviewFoto(link);
+    });
   }
-
-  if (tipo === "voltar") {
-    el.grupoEnderecoDesembarque.style.display = "";
-    if (el.enderecoDesembarque) el.enderecoDesembarque.required = true;
-    if (el.enderecoEmbarque) el.enderecoEmbarque.value = "";
-  }
-
-  if (tipo === "ambos") {
-    el.grupoEnderecoEmbarque.style.display = "";
-    el.grupoEnderecoDesembarque.style.display = "";
-    if (el.enderecoEmbarque) el.enderecoEmbarque.required = true;
-    if (el.enderecoDesembarque) el.enderecoDesembarque.required = true;
-  }
-}
-
-/* =========================================================
-   PAYLOAD
-   ========================================================= */
-
-function converterTrajetoParaApi(tipoTrajeto) {
-  if (tipoTrajeto === "ir") return "IDA";
-  if (tipoTrajeto === "voltar") return "VOLTA";
-  return "AMBOS";
-}
-
-function converterTurnoParaApi(periodo) {
-  if (periodo === "tarde") return "TARDE";
-  if (periodo === "noite") return "NOITE";
-  return "MANHA";
-}
-
-function obterResponsavelParaPayload(payload) {
-  if (estaEmFluxoGuiado()) {
-    const responsavel = encontrarResponsavelPorId(idResponsavelFluxo) || responsavelFluxo;
-
-    if (!responsavel) {
-      throw new Error("Responsável do fluxo não encontrado.");
-    }
-
-    return responsavel;
-  }
-
-  const responsavel = encontrarResponsavelPorNome(payload.responsavel1);
-
-  if (!responsavel) {
-    throw new Error("Responsável não cadastrado.");
-  }
-
-  return responsavel;
 }
 
 function montarPayloadAluno() {
   const tipoTrajeto = el.tipoTrajetoAluno ? el.tipoTrajetoAluno.value : "ambos";
-  const embarque = el.enderecoEmbarque ? el.enderecoEmbarque.value.trim() : "";
-  const desembarque = el.enderecoDesembarque ? el.enderecoDesembarque.value.trim() : "";
-
-  const rota = normalizarRotaPorTrajeto({
-    tipoTrajeto,
-    embarque,
-    desembarque,
-    escola: el.escolaAluno ? el.escolaAluno.value.trim() : ""
-  });
+  const embarque = el.enderecoEmbarque.value.trim();
+  const desembarque = el.enderecoDesembarque.value.trim();
+  const rota = normalizarRotaPorTrajeto({ tipoTrajeto, embarque, desembarque, escola: el.escolaAluno ? el.escolaAluno.value.trim() : "" });
 
   return {
     id: el.alunoId.value || null,
@@ -454,6 +232,7 @@ function montarPayloadAluno() {
     embarque: rota.embarque,
     desembarque: rota.desembarque,
     escola: el.escolaAluno ? el.escolaAluno.value.trim() : "",
+    vencimento: el.vencimentoAluno ? el.vencimentoAluno.value : "",
     tipoTrajeto,
     periodo: el.periodoAluno ? el.periodoAluno.value : "manha",
     horarioTurma: el.horarioTurmaAluno ? el.horarioTurmaAluno.value : ""
@@ -461,39 +240,33 @@ function montarPayloadAluno() {
 }
 
 async function salvarAluno(payload) {
-  const responsavel = obterResponsavelParaPayload(payload);
-
   const form = new FormData();
-
   form.append("nome", payload.nome);
   form.append("endereco_embarque", payload.embarque);
   form.append("endereco_desembarque", payload.desembarque);
+  form.append("responsavel_nome", payload.responsavel1);
+  form.append("responsavel_telefone", payload.telefone1);
   form.append("escola", payload.escola);
-  form.append("tipo_trajeto", converterTrajetoParaApi(payload.tipoTrajeto));
-  form.append("turno", converterTurnoParaApi(payload.periodo));
-  form.append("id_responsavel", String(responsavel.id_responsavel));
+  form.append("vencimento", payload.vencimento);
+  const tipoTrajetoApi = payload.tipoTrajeto === "ir" ? "IDA" : payload.tipoTrajeto === "voltar" ? "VOLTA" : "AMBOS";
+  const turnoApi = payload.periodo ? payload.periodo.toUpperCase() : "MANHA";
 
-  /*
-    O sistema atual considera apenas 1 condutor.
-    Mantemos id_condutor = 1 para preservar o vínculo com o banco.
-  */
-  form.append("id_condutor", "1");
-
-  if (el.fotoAluno.files[0]) {
-    form.append("foto", el.fotoAluno.files[0]);
-  }
+  form.append("tipo_trajeto", tipoTrajetoApi);
+  form.append("turno", turnoApi);
+  form.append("horario_turma", payload.horarioTurma);
+  
+  if (el.fotoAluno.files[0]) form.append("foto", el.fotoAluno.files[0]);
 
   if (payload.id) {
-    const alunoAtualizado = await window.API.put(`/alunos/${payload.id}`, form);
-    return alunoAtualizado;
+    await window.API.put(`/alunos/${payload.id}`, form);
+    return;
   }
 
-  const alunoCriado = await window.API.post("/alunos", form);
-  return alunoCriado;
+  await window.API.post("/alunos", form);
 }
 
 /* =========================================================
-   MODAL E FORMULÁRIO
+   FUNÇÕES DE MODAL E FORMULÁRIO
    ========================================================= */
 
 function configurarModal() {
@@ -502,11 +275,6 @@ function configurarModal() {
   el.btnAbrirModal.addEventListener("click", abrirModalNovo);
   el.btnFecharModal.addEventListener("click", fecharModal);
   el.btnCancelar.addEventListener("click", fecharModal);
-
-  if (el.tipoTrajetoAluno) {
-    el.tipoTrajetoAluno.addEventListener("change", atualizarCamposEnderecoPorTrajeto);
-  }
-
   el.modalOverlay.addEventListener("click", (event) => {
     if (event.target === el.modalOverlay) fecharModal();
   });
@@ -528,14 +296,7 @@ function configurarBuscaEFiltros() {
     el.inputBusca.addEventListener("input", renderizar);
   }
 
-  const filtros = [
-    el.filtroOrdem,
-    el.filtroEscola,
-    el.filtroTrajeto,
-    el.filtroTurma,
-    el.filtroVencimento
-  ];
-
+  const filtros = [el.filtroOrdem, el.filtroEscola, el.filtroTrajeto, el.filtroTurma, el.filtroVencimento];
   filtros.forEach((campo) => campo && campo.addEventListener("change", renderizar));
 
   if (el.btnLimparFiltros) {
@@ -552,9 +313,10 @@ function configurarBuscaEFiltros() {
 
 function atualizarOpcoesEscola() {
   if (!el.filtroEscola) return;
-
-  const escolas = [...new Set(alunos.map((aluno) => aluno.escola).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, "pt-BR"));
+  
+  const escolas = [...new Set(alunos.map((aluno) => aluno.escola).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "pt-BR")
+  );
 
   el.filtroEscola.innerHTML = `
     <option value="">Todas as escolas</option>
@@ -564,10 +326,8 @@ function atualizarOpcoesEscola() {
 
 function atualizarOpcoesTurma() {
   if (!el.filtroTurma) return;
-
-  const turmas = [...new Set(
-    alunos.map((aluno) => `${aluno.periodo || "manha"}|${aluno.horarioTurma || "00:00"}`)
-  )].sort((a, b) => a.localeCompare(b));
+  const turmas = [...new Set(alunos.map((aluno) => `${aluno.periodo || "manha"}|${aluno.horarioTurma || "00:00"}`))]
+    .sort((a, b) => a.localeCompare(b));
 
   el.filtroTurma.innerHTML = `
     <option value="">Todas as turmas</option>
@@ -585,9 +345,9 @@ function obterDescricaoTrajeto(tipo) {
     voltar: "Apenas voltar",
     ambos: "Ambos"
   };
-
   return trajetos[tipo] || "-";
 }
+
 
 function normalizarRotaPorTrajeto(aluno) {
   const embarqueOriginal = (aluno.embarque || "").trim();
@@ -622,14 +382,7 @@ function obterAlunosFiltrados() {
   const ordem = el.filtroOrdem ? el.filtroOrdem.value : "alfabetica";
 
   let lista = alunos.filter((aluno) => {
-    const textoBusca = [
-      aluno.nome,
-      aluno.responsavel1,
-      aluno.responsavel2,
-      aluno.escola,
-      aluno.embarque,
-      aluno.desembarque
-    ]
+    const textoBusca = [aluno.nome, aluno.responsavel1, aluno.responsavel2, aluno.escola, aluno.embarque, aluno.desembarque]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
@@ -653,12 +406,12 @@ function obterAlunosFiltrados() {
 }
 
 /* =========================================================
-   RENDERIZAÇÃO
+   RENDERIZAÇÃO DA TABELA
    ========================================================= */
 
 function renderizarTabela(lista) {
   if (!el.tbodyAlunos) return;
-
+  
   if (!lista.length) {
     el.tbodyAlunos.innerHTML = "";
     if (el.emptyState) el.emptyState.style.display = "block";
@@ -666,14 +419,12 @@ function renderizarTabela(lista) {
   }
 
   if (el.emptyState) el.emptyState.style.display = "none";
-
-  el.tbodyAlunos.innerHTML = lista.map((aluno) => `
+  
+  el.tbodyAlunos.innerHTML = lista
+    .map(
+      (aluno) => `
     <tr>
-      <td>
-        <div class="celula-aluno">
-          ${aluno.foto ? `<img src="${aluno.foto}" alt="Foto de ${aluno.nome}" class="foto-aluno">` : `<div class="foto-placeholder">SEM FOTO</div>`}
-        </div>
-      </td>
+      <td><div class="celula-aluno">${aluno.foto ? `<img src="${aluno.foto}" alt="Foto de ${aluno.nome}" class="foto-aluno">` : `<div class="foto-placeholder">SEM FOTO</div>`}</div></td>
       <td><span class="nome-aluno">${aluno.nome || "-"}</span></td>
       <td>${aluno.escola || "-"}</td>
       <td>${aluno.vencimento || "-"}</td>
@@ -681,11 +432,11 @@ function renderizarTabela(lista) {
       <td>
         <span class="linha-texto">${aluno.responsavel1 || "-"}</span>
         ${aluno.responsavel2 ? `<span class="linha-texto">${aluno.responsavel2}</span>` : ""}
-      </td>
+        </td>
       <td>
         <span class="linha-texto">${aluno.telefone1 || "-"}</span>
         ${aluno.telefone2 ? `<span class="linha-texto">${aluno.telefone2}</span>` : ""}
-      </td>
+        </td>
       <td>${aluno.embarque || "-"}</td>
       <td>${aluno.desembarque || "-"}</td>
       <td>
@@ -708,34 +459,41 @@ function renderizarTabela(lista) {
         </div>
       </td>
     </tr>
-  `).join("");
+    `
+    )
+    .join("");
 }
+
+/* =========================================================
+   RENDERIZAÇÃO DE ROTAS
+   ========================================================= */
+
 
 function renderizarCardsMobile(lista) {
   if (!el.cardsAlunosMobile) return;
-
   if (!lista.length) {
     el.cardsAlunosMobile.innerHTML = "";
     return;
   }
 
-  el.cardsAlunosMobile.innerHTML = lista.map((aluno) => `
-    <article class="aluno-card-mobile trajeto-${aluno.tipoTrajeto}">
-      <header>
-        <strong>${aluno.nome || "-"}</strong>
-        <span class="tag-trajeto">${obterDescricaoTrajeto(aluno.tipoTrajeto)}</span>
-      </header>
-      <p>${aluno.escola || "-"} • ${aluno.horarioTurma || "--:--"}</p>
-      <p><b>Trajeto:</b> ${obterDescricaoTrajeto(aluno.tipoTrajeto)}</p>
-    </article>
-  `).join("");
+  el.cardsAlunosMobile.innerHTML = lista.map((aluno) => {
+    const rota = normalizarRotaPorTrajeto(aluno);
+    return `
+      <article class="aluno-card-mobile trajeto-${aluno.tipoTrajeto}">
+        <header>
+          <strong>${aluno.nome || "-"}</strong>
+          <span class="tag-trajeto">${obterDescricaoTrajeto(aluno.tipoTrajeto)}</span>
+        </header>
+        <p>${aluno.escola || "-"} • ${aluno.horarioTurma || "--:--"}</p>
+        <p><b>Trajeto:</b> ${obterDescricaoTrajeto(aluno.tipoTrajeto)}</p>
+      </article>`;
+  }).join("");
 }
 
 function renderizarRotas(lista) {
   if (!el.rotasContainer) return;
 
   const porPeriodo = { manha: [], tarde: [], noite: [] };
-
   lista.forEach((a) => porPeriodo[a.periodo || "manha"]?.push(a));
 
   const periodos = [
@@ -746,11 +504,9 @@ function renderizarRotas(lista) {
 
   const html = periodos.map(([chavePeriodo, tituloPeriodo]) => {
     const listaPeriodo = porPeriodo[chavePeriodo] || [];
-
     if (!listaPeriodo.length) return "";
 
     const gruposHorario = {};
-
     listaPeriodo.forEach((a) => {
       const h = a.horarioTurma || "00:00";
       gruposHorario[h] = gruposHorario[h] || [];
@@ -761,35 +517,25 @@ function renderizarRotas(lista) {
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([horario, alunosHorario]) => {
         const ordemTrajeto = ["ir", "ambos", "voltar"];
-
-        alunosHorario.sort((a, b) =>
-          ordemTrajeto.indexOf(a.tipoTrajeto) - ordemTrajeto.indexOf(b.tipoTrajeto)
-        );
+        alunosHorario.sort((a,b) => ordemTrajeto.indexOf(a.tipoTrajeto) - ordemTrajeto.indexOf(b.tipoTrajeto));
 
         const itens = alunosHorario.map((a) => {
           const rota = normalizarRotaPorTrajeto(a);
-
-          return `
-            <li>
-              <strong>${a.nome}</strong> — <span class="badge-trajeto ${a.tipoTrajeto}">${obterDescricaoTrajeto(a.tipoTrajeto)}</span><br>
-              <small>Embarque: ${rota.embarque || "-"} | Desembarque: ${rota.desembarque || "-"}</small>
-            </li>
-          `;
+          return `<li><strong>${a.nome}</strong> — <span class="badge-trajeto ${a.tipoTrajeto}">${obterDescricaoTrajeto(a.tipoTrajeto)}</span><br><small>Embarque: ${rota.embarque || "-"} | Desembarque: ${rota.desembarque || "-"}</small></li>`;
         }).join("");
 
         return `<div class="rota-card"><h4>Horário ${horario}</h4><ul>${itens}</ul></div>`;
       }).join("");
 
-    return `
-      <section class="periodo-rota">
-        <h3 class="titulo-periodo-rota">Alunos da ${tituloPeriodo}</h3>
-        <div class="rotas-container-periodo">${blocosHorario}</div>
-      </section>
-    `;
+    return `<section class="periodo-rota"><h3 class="titulo-periodo-rota">Alunos da ${tituloPeriodo}</h3><div class="rotas-container-periodo">${blocosHorario}</div></section>`;
   }).join("");
 
   el.rotasContainer.innerHTML = html || '<div class="empty-state">Nenhuma rota montada.</div>';
 }
+
+/* =========================================================
+   RENDERIZAÇÃO PRINCIPAL
+   ========================================================= */
 
 function renderizar() {
   const lista = obterAlunosFiltrados();
@@ -799,89 +545,120 @@ function renderizar() {
 }
 
 /* =========================================================
-   FORMULÁRIO
+   CRUD E CONFIGURAÇÕES DA TABELA - VERSÃO CORRIGIDA
    ========================================================= */
 
 function configurarFormulario() {
   if (!el.formAluno) return;
-
+  
   el.formAluno.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const payload = montarPayloadAluno();
-
-    if (!payload.nome || !payload.escola) {
-      showWarning("Preencha nome do aluno e escola.");
+    
+    // Verifica se o responsável 1 foi preenchido
+    if (!payload.responsavel1 || payload.responsavel1.trim() === "") {
+      showWarning("O campo 'Responsável 1' é obrigatório.");
       return;
     }
 
-    if (payload.tipoTrajeto === "ir" && !payload.embarque) {
-      showWarning("Informe o endereço de embarque.");
+    // Validação dos campos obrigatórios do aluno
+    if (!payload.nome || !payload.embarque || !payload.desembarque || !payload.escola || !payload.vencimento) {
+      showWarning("Preencha todos os campos obrigatórios do aluno.");
       return;
     }
 
-    if (payload.tipoTrajeto === "voltar" && !payload.desembarque) {
-      showWarning("Informe o endereço de desembarque.");
-      return;
-    }
-
-    if (payload.tipoTrajeto === "ambos" && (!payload.embarque || !payload.desembarque)) {
-      showWarning("Informe endereço de embarque e desembarque.");
-      return;
-    }
-
+    // Validação de horário e período
     if (!payload.periodo || !payload.horarioTurma) {
       showWarning("Preencha o período e o horário da turma.");
       return;
     }
 
+    // Verifica se o responsável existe, se não existir, sugere cadastrar
+    const responsavelSelecionado = encontrarResponsavelPorNome(payload.responsavel1);
+    
+    if (!responsavelSelecionado) {
+      const resposta = await Swal.fire({
+        icon: "question",
+        title: "Responsável não cadastrado",
+        text: `"${payload.responsavel1}" não está cadastrado como responsável. Deseja cadastrá-lo agora?`,
+        showCancelButton: true,
+        confirmButtonText: "Sim, cadastrar",
+        cancelButtonText: "Não, cancelar",
+        customClass: {
+          popup: "prote-alert",
+          confirmButton: "prote-alert-button",
+          cancelButton: "prote-alert-cancel-button"
+        },
+        buttonsStyling: false
+      });
+
+      if (resposta.isConfirmed) {
+        localStorage.setItem("responsavelPendente", JSON.stringify({
+          nome: payload.responsavel1,
+          telefone: payload.telefone1 || "",
+          email: "",
+          voltarParaAluno: true,
+          alunoData: payload
+        }));
+        window.location.href = "responsaveis.html?cadastrarResponsavel=1";
+      }
+      return;
+    }
+
+    // Responsável existe - prosseguir com cadastro
+    payload.responsavel1 = responsavelSelecionado.nome || payload.responsavel1;
+    payload.telefone1 = aplicarMascaraTelefone(responsavelSelecionado.telefone || "");
+    if (el.telefoneResponsavel1) el.telefoneResponsavel1.value = payload.telefone1;
+
     try {
       const novoCadastro = !payload.id;
-      const alunoSalvo = await salvarAluno(payload);
-
+      await salvarAluno(payload);
       alunos = await carregarAlunos();
-
       fecharModal();
       atualizarOpcoesEscola();
-      atualizarOpcoesTurma();
+  atualizarOpcoesTurma();
       renderizar();
-
-      if (novoCadastro && estaEmFluxoGuiado()) {
-        const idAluno = alunoSalvo?.id_aluno || alunoSalvo?.id;
-
-        if (!idAluno) {
-          showError("Aluno salvo, mas o ID não foi retornado pelo backend.");
-          return;
-        }
-
-        window.location.href = montarUrlMensalidade(idAluno);
-        return;
-      }
+      
+      await showSuccess(
+        `${payload.id ? "Aluno atualizado" : "Aluno cadastrado"} com sucesso!\n\n` +
+        `Nome: ${payload.nome}\n` +
+        `Período: ${payload.periodo === "manha" ? "Manhã" : payload.periodo === "tarde" ? "Tarde" : "Noite"}\n` +
+        `Horário: ${payload.horarioTurma}\n` +
+        `Trajeto: ${payload.tipoTrajeto === "ir" ? "Apenas ida" : payload.tipoTrajeto === "voltar" ? "Apenas volta" : "Ida e volta"}`
+      );
 
       if (novoCadastro) {
-        await showSuccess("Aluno cadastrado com sucesso.");
-        return;
+        localStorage.setItem(
+          "novoAlunoMensalidade",
+          JSON.stringify({
+            aluno: payload.nome,
+            responsavel: payload.responsavel1,
+            contato: payload.telefone1,
+            escola: payload.escola || "",
+            periodo: payload.periodo,
+            horario: payload.horarioTurma,
+            trajeto: payload.tipoTrajeto
+          })
+        );
+        window.location.href = "mensalidade.html?novoAluno=1";
       }
-
-      await showSuccess("Aluno atualizado com sucesso.");
     } catch (error) {
       console.error(error);
-      showError(error.message || "Não foi possível salvar o aluno.");
+      showError("Não foi possível salvar o aluno.");
     }
   });
 }
 
 function configurarTabela() {
   if (!el.tbodyAlunos) return;
-
+  
   el.tbodyAlunos.addEventListener("click", async (event) => {
     const botao = event.target.closest("button[data-action]");
-
     if (!botao) return;
 
     const id = botao.dataset.id;
     const aluno = alunos.find((item) => String(item.id) === String(id));
-
     if (!aluno) return;
 
     if (botao.dataset.action === "editar") {
@@ -891,18 +668,14 @@ function configurarTabela() {
     if (botao.dataset.action !== "excluir") return;
 
     const resposta = await showConfirm("Tem certeza que deseja excluir este aluno?");
-
     if (!resposta.isConfirmed) return;
 
     try {
       await window.API.del(`/alunos/${id}`);
-
       alunos = alunos.filter((item) => String(item.id) !== String(id));
-
       atualizarOpcoesEscola();
-      atualizarOpcoesTurma();
+  atualizarOpcoesTurma();
       renderizar();
-
       showSuccess("Aluno excluído com sucesso!");
     } catch (error) {
       console.error(error);
@@ -930,12 +703,12 @@ function obterElementos() {
     telefoneResponsavel2: document.getElementById("telefoneResponsavel2"),
     enderecoEmbarque: document.getElementById("enderecoEmbarque"),
     enderecoDesembarque: document.getElementById("enderecoDesembarque"),
-    grupoEnderecoEmbarque: document.getElementById("grupoEnderecoEmbarque"),
-    grupoEnderecoDesembarque: document.getElementById("grupoEnderecoDesembarque"),
     fotoAluno: document.getElementById("fotoAluno"),
+    linkFotoAluno: document.getElementById("linkFotoAluno"),
     previewFoto: document.getElementById("previewFoto"),
     avatarModalAluno: document.getElementById("avatarModalAluno"),
     escolaAluno: document.getElementById("escolaAluno"),
+    vencimentoAluno: document.getElementById("vencimentoAluno"),
     tipoTrajetoAluno: document.getElementById("tipoTrajetoAluno"),
     periodoAluno: document.getElementById("periodoAluno"),
     horarioTurmaAluno: document.getElementById("horarioTurmaAluno"),
@@ -958,35 +731,19 @@ function obterElementos() {
 
 function abrirModalNovo() {
   if (!el.modalTitulo) return;
-
   el.modalTitulo.textContent = "Novo aluno";
-
   if (el.formAluno) el.formAluno.reset();
   if (el.alunoId) el.alunoId.value = "";
-
-  if (el.nomeResponsavel1) {
-    el.nomeResponsavel1.required = true;
-    el.nomeResponsavel1.readOnly = false;
-  }
-
-  if (el.telefoneResponsavel1) {
-    el.telefoneResponsavel1.required = false;
-    el.telefoneResponsavel1.readOnly = false;
-  }
-
+  if (el.nomeResponsavel1) el.nomeResponsavel1.required = true;
+  if (el.telefoneResponsavel1) el.telefoneResponsavel1.required = false;
+  if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   esconderPreviewFoto();
-  atualizarCamposEnderecoPorTrajeto();
-
-  if (el.modalOverlay) {
-    el.modalOverlay.classList.remove("hidden");
-  }
+  if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
 }
 
 function abrirModalEditar(aluno) {
   if (!el.modalTitulo) return;
-
   el.modalTitulo.textContent = "Editar aluno";
-
   if (el.alunoId) el.alunoId.value = aluno.id || "";
   if (el.nomeAluno) el.nomeAluno.value = aplicarMascaraNome(aluno.nome || "");
   if (el.nomeResponsavel1) el.nomeResponsavel1.value = aplicarMascaraNome(aluno.responsavel1 || "");
@@ -994,23 +751,17 @@ function abrirModalEditar(aluno) {
   if (el.enderecoEmbarque) el.enderecoEmbarque.value = aplicarMascaraEndereco(aluno.embarque || "");
   if (el.enderecoDesembarque) el.enderecoDesembarque.value = aplicarMascaraEndereco(aluno.desembarque || "");
   if (el.escolaAluno) el.escolaAluno.value = aluno.escola || "";
+  if (el.vencimentoAluno) el.vencimentoAluno.value = aluno.vencimento || "";
   if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = aluno.tipoTrajeto || "ambos";
   if (el.periodoAluno) el.periodoAluno.value = aluno.periodo || "manha";
   if (el.horarioTurmaAluno) el.horarioTurmaAluno.value = aluno.horarioTurma || "";
-
+  if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   aluno.foto ? mostrarPreviewFoto(aluno.foto) : esconderPreviewFoto();
-
-  atualizarCamposEnderecoPorTrajeto();
-
-  if (el.modalOverlay) {
-    el.modalOverlay.classList.remove("hidden");
-  }
+  if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
 }
 
 function fecharModal() {
-  if (el.modalOverlay) {
-    el.modalOverlay.classList.add("hidden");
-  }
+  if (el.modalOverlay) el.modalOverlay.classList.add("hidden");
 }
 
 function mostrarPreviewFoto(src) {
@@ -1018,16 +769,9 @@ function mostrarPreviewFoto(src) {
     el.previewFoto.src = src;
     el.previewFoto.style.display = "block";
   }
-
-  if (el.avatarModalAluno) {
-    el.avatarModalAluno.classList.add("com-foto");
-  }
-
+  if (el.avatarModalAluno) el.avatarModalAluno.classList.add("com-foto");
   const placeholderIcon = document.getElementById("avatarPlaceholderIcon");
-
-  if (placeholderIcon) {
-    placeholderIcon.style.display = "none";
-  }
+  if (placeholderIcon) placeholderIcon.style.display = "none";
 }
 
 function esconderPreviewFoto() {
@@ -1035,15 +779,83 @@ function esconderPreviewFoto() {
     el.previewFoto.src = "";
     el.previewFoto.style.display = "none";
   }
-
-  if (el.avatarModalAluno) {
-    el.avatarModalAluno.classList.remove("com-foto");
-  }
-
+  if (el.avatarModalAluno) el.avatarModalAluno.classList.remove("com-foto");
   const placeholderIcon = document.getElementById("avatarPlaceholderIcon");
+  if (placeholderIcon) placeholderIcon.style.display = "block";
+}
 
-  if (placeholderIcon) {
-    placeholderIcon.style.display = "block";
+async function abrirCadastroAlunoVindoDeResponsavel() {
+  const params = new URLSearchParams(window.location.search);
+
+  if (!params.has("novoResponsavel")) return;
+
+  const raw = localStorage.getItem("responsavelParaAluno");
+  if (!raw) return;
+
+  try {
+    const responsavel = JSON.parse(raw);
+
+    // Atualiza a lista de responsáveis depois que voltou da tela de responsáveis
+    responsaveis = await carregarResponsaveis();
+
+    abrirModalNovo();
+
+    if (el.nomeResponsavel1) {
+      el.nomeResponsavel1.value = aplicarMascaraNome(responsavel.nome || "");
+    }
+
+    if (el.telefoneResponsavel1) {
+      el.telefoneResponsavel1.value = aplicarMascaraTelefone(responsavel.telefone || "");
+    }
+
+    if (el.nomeAluno) {
+      el.nomeAluno.focus();
+    }
+
+    showSuccess("Responsável cadastrado! Agora complete os dados do aluno.");
+  } catch (error) {
+    console.error(error);
+  } finally {
+    localStorage.removeItem("responsavelParaAluno");
+
+    const limpa = new URL(window.location.href);
+    limpa.searchParams.delete("novoResponsavel");
+    window.history.replaceState({}, "", limpa.pathname + (limpa.search ? limpa.search : ""));
+  }
+}
+
+async function processarRetornoResponsavel() {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has("cadastrarResponsavel")) return;
+
+  const raw = localStorage.getItem("responsavelPendente");
+  if (!raw) return;
+
+  try {
+    const dados = JSON.parse(raw);
+    if (dados.voltarParaAluno && dados.alunoData) {
+      setTimeout(() => {
+        if (el.nomeResponsavel1) el.nomeResponsavel1.value = dados.nome || "";
+        if (el.telefoneResponsavel1) el.telefoneResponsavel1.value = dados.telefone || "";
+        if (el.nomeAluno) el.nomeAluno.value = dados.alunoData.nome || "";
+        if (el.enderecoEmbarque) el.enderecoEmbarque.value = dados.alunoData.embarque || "";
+        if (el.enderecoDesembarque) el.enderecoDesembarque.value = dados.alunoData.desembarque || "";
+        if (el.escolaAluno) el.escolaAluno.value = dados.alunoData.escola || "";
+        if (el.vencimentoAluno) el.vencimentoAluno.value = dados.alunoData.vencimento || "";
+        if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = dados.alunoData.tipoTrajeto || "ambos";
+        if (el.periodoAluno) el.periodoAluno.value = dados.alunoData.periodo || "manha";
+        if (el.horarioTurmaAluno) el.horarioTurmaAluno.value = dados.alunoData.horarioTurma || "";
+        
+        showSuccess("Responsável cadastrado! Agora complete os dados do aluno.");
+      }, 100);
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    localStorage.removeItem("responsavelPendente");
+    const limpa = new URL(window.location.href);
+    limpa.searchParams.delete("cadastrarResponsavel");
+    window.history.replaceState({}, "", limpa.pathname + (limpa.search ? limpa.search : ""));
   }
 }
 
@@ -1053,18 +865,12 @@ function esconderPreviewFoto() {
 
 window.addEventListener("DOMContentLoaded", async () => {
   initMenu();
-
   el = obterElementos();
-
   if (!el || !el.formAluno) return;
-
-  lerParametrosFluxo();
 
   alunos = await carregarAlunos();
   responsaveis = await carregarResponsaveis();
-
-  await carregarResponsavelDoFluxo();
-
+  
   configurarModal();
   configurarBuscaEFiltros();
   configurarMascaras();
@@ -1072,10 +878,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   configurarPreviewFoto();
   configurarFormulario();
   configurarTabela();
-
+  
   atualizarOpcoesEscola();
   atualizarOpcoesTurma();
   renderizar();
-
-  abrirFluxoGuiadoSeNecessario();
+  abrirCadastroAlunoVindoDeResponsavel();
+  processarRetornoResponsavel();
 });

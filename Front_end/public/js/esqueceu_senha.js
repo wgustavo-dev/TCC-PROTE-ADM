@@ -64,7 +64,7 @@ botaoEnviarLink.addEventListener('click', async function () {
     try {
         await window.API.post('/auth/recuperar-senha', { email });
 
-        alert('Link enviado! Verifique sua caixa de entrada.');
+        alert('Link enviado com sucesso');
         window.location.href = 'login.html';
 
     } catch (erro) {

@@ -73,14 +73,6 @@ let mensalidades = [];
 let alunos = [];
 let idEditando = null;
 
-let fluxoCadastro = "normal";
-let idOrcamentoFluxo = null;
-let idResponsavelFluxo = null;
-let idAlunoFluxo = null;
-let alunoAtualFluxo = 1;
-let totalAlunosFluxo = 1;
-let alunoFluxo = null;
-
 /* =========================================================
    ELEMENTOS DOM
    ========================================================= */
@@ -114,38 +106,25 @@ function formatarBRL(valor) {
 
 function formatarData(data) {
   if (!data) return "—";
-
   const valor = String(data).slice(0, 10).split("-");
-
-  if (valor.length !== 3) return "—";
-
   return `${valor[2]}/${valor[1]}/${valor[0]}`;
 }
 
+function statusPorDatas(pagamento, vencimento) {
+  if (pagamento) return "pago";
+  const hoje = new Date();
+  const dataVencimento = new Date(vencimento + "T00:00:00");
+  return dataVencimento < hoje ? "atrasado" : "pendente";
+}
+
 function badgeStatus(status) {
-  if (status === "pago") {
-    return `<span class="status-badge status-pago">✔</span>`;
-  }
-
-  if (status === "atrasado") {
-    return `<span class="status-badge status-atrasado">⚠</span>`;
-  }
-
+  if (status === "pago") return `<span class="status-badge status-pago">✔</span>`;
+  if (status === "atrasado") return `<span class="status-badge status-atrasado">⚠</span>`;
   return `<span class="status-badge status-pendente">◌</span>`;
 }
 
-function toUrlFoto(pathFoto) {
-  if (!pathFoto) return "";
-  if (pathFoto.startsWith("http")) return pathFoto;
-  return `http://localhost:3000${pathFoto}`;
-}
-
-function obterMensagemErro(error) {
-  return error?.message || "Ocorreu um erro inesperado.";
-}
-
 /* =========================================================
-   MENU
+   INICIALIZAÇÃO DO MENU
    ========================================================= */
 
 function initMenu() {
@@ -166,159 +145,6 @@ function initMenu() {
     fundoEscuro.classList.remove("visivel");
     botaoMenu.classList.remove("aberto");
   });
-}
-
-/* =========================================================
-   FLUXO GUIADO
-   ========================================================= */
-
-function lerParametrosFluxo() {
-  const params = new URLSearchParams(window.location.search);
-
-  fluxoCadastro = params.get("fluxo") || "normal";
-  idOrcamentoFluxo = params.get("id_orcamento");
-  idResponsavelFluxo = params.get("id_responsavel");
-  idAlunoFluxo = params.get("id_aluno");
-  alunoAtualFluxo = Number(params.get("alunoAtual") || 1);
-  totalAlunosFluxo = Number(params.get("totalAlunos") || 1);
-
-  /*
-    Correção:
-    Se existe id_aluno na URL, o sistema deve considerar fluxo guiado,
-    mesmo se o parâmetro fluxo vier faltando ou estranho.
-  */
-  if (idAlunoFluxo && !["orcamento", "manual"].includes(fluxoCadastro)) {
-    fluxoCadastro = "manual";
-  }
-
-  if (!["orcamento", "manual"].includes(fluxoCadastro)) {
-    fluxoCadastro = "normal";
-  }
-
-  if (!Number.isInteger(alunoAtualFluxo) || alunoAtualFluxo < 1) {
-    alunoAtualFluxo = 1;
-  }
-
-  if (!Number.isInteger(totalAlunosFluxo) || totalAlunosFluxo < 1) {
-    totalAlunosFluxo = 1;
-  }
-}
-
-function estaEmFluxoGuiado() {
-  const id = Number(idAlunoFluxo);
-  return Number.isInteger(id) && id > 0;
-}
-
-async function carregarAlunoDoFluxo() {
-  if (!estaEmFluxoGuiado()) return;
-
-  try {
-    alunoFluxo = await window.API.get(`/alunos/${idAlunoFluxo}`);
-  } catch (error) {
-    console.error("Erro ao carregar aluno do fluxo:", error);
-    alunoFluxo = null;
-  }
-}
-
-function preencherModalComAlunoDoFluxo() {
-  if (!estaEmFluxoGuiado()) return;
-
-  idEditando = null;
-
-  const titulo = document.getElementById("tituloModalMensalidade");
-  if (titulo) {
-    titulo.textContent = `Mensalidade do aluno ${alunoAtualFluxo} de ${totalAlunosFluxo}`;
-  }
-
-  if (botaoSalvar) {
-    botaoSalvar.textContent = "Cadastrar";
-  }
-
-  const aluno = alunoFluxo
-    ? {
-        id: alunoFluxo.id_aluno,
-        aluno: alunoFluxo.nome || "",
-        responsavel: alunoFluxo.responsavel?.nome || "",
-        contato: alunoFluxo.responsavel?.telefone || "",
-        escola: alunoFluxo.escola || "",
-        foto: alunoFluxo.foto ? toUrlFoto(alunoFluxo.foto) : ""
-      }
-    : {
-        id: Number(idAlunoFluxo),
-        aluno: `Aluno #${idAlunoFluxo}`,
-        responsavel: "",
-        contato: "",
-        escola: "",
-        foto: ""
-      };
-
-  preencherDadosModal(aluno);
-
-  const campoAluno = document.getElementById("campoAlunoMensalidade");
-  const campoResponsavel = document.getElementById("campoResponsavelMensalidade");
-  const campoContato = document.getElementById("campoContatoMensalidade");
-  const campoEscola = document.getElementById("campoEscolaMensalidade");
-
-  if (campoAluno) campoAluno.readOnly = true;
-  if (campoResponsavel) campoResponsavel.readOnly = true;
-  if (campoContato) campoContato.readOnly = true;
-  if (campoEscola) campoEscola.readOnly = true;
-
-  const nomeAlunoSpan = document.getElementById("nomeAlunoModalInfo");
-  const responsavelSpan = document.getElementById("responsavelModalInfo");
-
-  if (nomeAlunoSpan) nomeAlunoSpan.textContent = aluno.aluno || "Novo cadastro";
-  if (responsavelSpan) responsavelSpan.textContent = aluno.responsavel || "Responsável";
-
-  if (aluno.foto && previewFotoMensalidade) {
-    previewFotoMensalidade.src = aluno.foto;
-    previewFotoMensalidade.style.display = "block";
-  }
-
-  if (fundoModal) {
-    fundoModal.classList.add("ativo");
-  }
-}
-
-function montarUrlProximoAluno() {
-  const params = new URLSearchParams();
-
-  params.set("fluxo", fluxoCadastro === "orcamento" ? "orcamento" : "manual");
-  params.set("id_responsavel", String(idResponsavelFluxo));
-  params.set("alunoAtual", String(alunoAtualFluxo + 1));
-  params.set("totalAlunos", String(totalAlunosFluxo));
-
-  if (fluxoCadastro === "orcamento" && idOrcamentoFluxo) {
-    params.set("id_orcamento", String(idOrcamentoFluxo));
-  }
-
-  return `alunos.html?${params.toString()}`;
-}
-
-async function finalizarFluxoGuiado() {
-  if (fluxoCadastro === "orcamento" && idOrcamentoFluxo) {
-    await window.API.put(`/orcamentos/${idOrcamentoFluxo}/finalizar-conversao`, {});
-  }
-
-  alert("Novo cliente cadastrado com sucesso!");
-
-  window.location.href = "responsaveis.html";
-}
-
-function avancarFluxoDepoisDaMensalidade() {
-  if (!estaEmFluxoGuiado()) return false;
-
-  if (alunoAtualFluxo < totalAlunosFluxo) {
-    window.location.href = montarUrlProximoAluno();
-    return true;
-  }
-
-  finalizarFluxoGuiado().catch((error) => {
-    console.error(error);
-    showError("Mensalidade salva, mas não foi possível finalizar o fluxo.");
-  });
-
-  return true;
 }
 
 /* =========================================================
@@ -343,20 +169,18 @@ function configurarPreviewFotoMensalidade() {
     }
 
     const leitor = new FileReader();
-
     leitor.onload = (evento) => {
       previewFotoMensalidade.src = evento.target.result;
       previewFotoMensalidade.style.display = "block";
       if (placeholder) placeholder.style.display = "none";
       if (avatar) avatar.classList.add("com-foto");
     };
-
     leitor.readAsDataURL(arquivo);
   });
 }
 
 /* =========================================================
-   MAPEAMENTO E CARREGAMENTO DE DADOS
+   MAPEAMENTO E CARREGAMENTO DE DADOS (API)
    ========================================================= */
 
 function mapearMensalidade(item) {
@@ -371,7 +195,7 @@ function mapearMensalidade(item) {
     status: (item.status || "PENDENTE").toLowerCase(),
     contato: [item.aluno?.responsavel?.telefone].filter(Boolean),
     escola: item.aluno?.escola || "",
-    foto: item.aluno?.foto ? toUrlFoto(item.aluno.foto) : ""
+    foto: item.aluno?.foto ? `http://localhost:3000${item.aluno.foto}` : "",
   };
 }
 
@@ -381,7 +205,6 @@ async function carregarDados() {
       window.API.get("/mensalidades"),
       window.API.get("/alunos")
     ]);
-
     mensalidades = (respMensalidades || []).map(mapearMensalidade);
     alunos = respAlunos || [];
   } catch (error) {
@@ -443,7 +266,6 @@ function renderizarTabela() {
     const matchBusca = item.aluno.toLowerCase().includes(busca);
     const matchVenc = !venc || item.vencimento === venc;
     const matchEscola = !escola || item.escola === escola;
-
     return matchBusca && matchVenc && matchEscola;
   });
 
@@ -467,7 +289,9 @@ function renderizarTabela() {
   if (avisoVazio) avisoVazio.style.display = "none";
   if (!linhasTabela) return;
 
-  linhasTabela.innerHTML = listaFiltrada.map((item) => `
+  linhasTabela.innerHTML = listaFiltrada
+    .map(
+      (item) => `
     <tr>
       <td>
         <div class="celula-aluno">
@@ -495,13 +319,11 @@ function renderizarTabela() {
               <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
             </svg>
           </button>
-
           <button class="botao-acao" data-acao="pagar" data-id="${item.id}" title="Marcar pago" aria-label="Marcar mensalidade como paga">
             <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </button>
-
           <button class="botao-acao" data-acao="excluir" data-id="${item.id}" title="Excluir" aria-label="Excluir mensalidade">
             <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3 6 5 6 21 6"></polyline>
@@ -514,7 +336,9 @@ function renderizarTabela() {
         </div>
       </td>
     </tr>
-  `).join("");
+    `
+    )
+    .join("");
 }
 
 /* =========================================================
@@ -539,7 +363,7 @@ function atualizarResumo() {
 }
 
 /* =========================================================
-   MODAL
+   MODAL - CRUD
    ========================================================= */
 
 function preencherDadosModal(item) {
@@ -548,17 +372,15 @@ function preencherDadosModal(item) {
     if (el) el.value = value || "";
   };
 
-  const contatoFormatado = Array.isArray(item?.contato)
-    ? item.contato.join(", ")
-    : item?.contato || "";
-
   setValue("campoIdMensalidade", item?.id);
   setValue("campoAlunoMensalidade", item?.aluno);
   setValue("campoValorMensalidade", item?.valor);
+  setValue("campoPagamentoMensalidade", item?.pagamento);
   setValue("campoVencimentoMensalidade", item?.vencimento);
-  setValue("campoContatoMensalidade", contatoFormatado);
+  setValue("campoContatoMensalidade", (item?.contato || []).join(", "));
   setValue("campoResponsavelMensalidade", item?.responsavel);
   setValue("campoEscolaMensalidade", item?.escola);
+  setValue("campoStatusMensalidade", (item?.status || "pendente").toUpperCase());
 
   const nomeAlunoSpan = document.getElementById("nomeAlunoModalInfo");
   const responsavelSpan = document.getElementById("responsavelModalInfo");
@@ -567,71 +389,42 @@ function preencherDadosModal(item) {
   if (responsavelSpan) responsavelSpan.textContent = item?.responsavel || "Responsável";
 }
 
-function limparCamposSomenteLeitura() {
-  const ids = [
-    "campoAlunoMensalidade",
-    "campoResponsavelMensalidade",
-    "campoContatoMensalidade",
-    "campoEscolaMensalidade"
-  ];
-
-  ids.forEach((id) => {
-    const campo = document.getElementById(id);
-    if (campo) campo.readOnly = false;
-  });
-}
-
 function abrirModalNova() {
   idEditando = null;
-
-  limparCamposSomenteLeitura();
-
   const titulo = document.getElementById("tituloModalMensalidade");
   if (titulo) titulo.textContent = "Nova mensalidade";
-
   if (botaoSalvar) botaoSalvar.textContent = "Cadastrar";
-
   preencherDadosModal(null);
-
   if (fundoModal) fundoModal.classList.add("ativo");
 
+  // Limpar preview da foto
   if (previewFotoMensalidade) {
     previewFotoMensalidade.src = "";
     previewFotoMensalidade.style.display = "none";
   }
-
   const placeholder = document.getElementById("avatarPlaceholderMensalidade");
   const avatar = document.getElementById("avatarModalMensalidade");
-
   if (placeholder) placeholder.style.display = "block";
   if (avatar) avatar.classList.remove("com-foto");
 }
 
 function abrirModalEditar(id) {
   const item = mensalidades.find((m) => m.id === Number(id));
-
   if (!item) return;
 
   idEditando = item.id;
-
-  limparCamposSomenteLeitura();
-
   const titulo = document.getElementById("tituloModalMensalidade");
   if (titulo) titulo.textContent = "Editar mensalidade";
-
   if (botaoSalvar) botaoSalvar.textContent = "Editar";
-
   preencherDadosModal(item);
-
   if (fundoModal) fundoModal.classList.add("ativo");
 
+  // Mostrar preview da foto se existir
   if (item.foto && previewFotoMensalidade) {
     previewFotoMensalidade.src = item.foto;
     previewFotoMensalidade.style.display = "block";
-
     const placeholder = document.getElementById("avatarPlaceholderMensalidade");
     const avatar = document.getElementById("avatarModalMensalidade");
-
     if (placeholder) placeholder.style.display = "none";
     if (avatar) avatar.classList.add("com-foto");
   }
@@ -645,50 +438,41 @@ function idAlunoPorNome(nomeAluno) {
   const aluno = alunos.find(
     (item) => item.nome?.trim().toLowerCase() === nomeAluno.trim().toLowerCase()
   );
-
   return aluno?.id_aluno || null;
 }
-
-function obterIdAlunoParaSalvar(nomeAluno, mensalidadeEditando) {
-  if (estaEmFluxoGuiado()) {
-    return Number(idAlunoFluxo);
-  }
-
-  return idAlunoPorNome(nomeAluno) || mensalidadeEditando?.idAluno || null;
-}
-
-/* =========================================================
-   SALVAR MENSALIDADE
-   ========================================================= */
 
 async function salvarMensalidade() {
   const nomeAluno = document.getElementById("campoAlunoMensalidade")?.value.trim() || "";
   const valor = Number(document.getElementById("campoValorMensalidade")?.value || 0);
+  const pagamento = document.getElementById("campoPagamentoMensalidade")?.value || "";
   const vencimento = document.getElementById("campoVencimentoMensalidade")?.value || "";
+  const statusSelecionado = document.getElementById("campoStatusMensalidade")?.value || "PENDENTE";
   const mensalidadeEditando = mensalidades.find((item) => item.id === idEditando);
-  const idAlunoFinal = obterIdAlunoParaSalvar(nomeAluno, mensalidadeEditando);
+  const idAlunoFinal = idAlunoPorNome(nomeAluno) || mensalidadeEditando?.idAluno || null;
 
   if (!nomeAluno || !valor || !vencimento || !idAlunoFinal) {
-    showWarning("Preencha aluno, valor e vencimento. O aluno precisa existir no cadastro.");
+    showWarning("Preencha os campos obrigatórios. O nome do aluno deve existir no cadastro.");
     return;
   }
 
-  if (valor <= 0) {
-    showWarning("O valor da mensalidade deve ser maior que zero.");
+  const statusFinal = statusSelecionado;
+
+  if (statusFinal === "PAGO" && !pagamento) {
+    showWarning("Para status pago, preencha a data de pagamento.");
     return;
+  }
+
+  if (statusFinal !== "PAGO" && pagamento) {
+    showWarning("Data de pagamento será removida porque o status não é PAGO.");
   }
 
   const payload = {
     id_aluno: idAlunoFinal,
     valor,
     data_vencimento: vencimento,
-    id_condutor: 1
+    data_pagamento: statusFinal === "PAGO" ? pagamento : null,
+    status: statusFinal,
   };
-
-  if (!idEditando) {
-    payload.status = "PENDENTE";
-    payload.data_pagamento = null;
-  }
 
   try {
     if (idEditando) {
@@ -696,6 +480,7 @@ async function salvarMensalidade() {
       await showSuccess("Mensalidade atualizada com sucesso!");
     } else {
       await window.API.post("/mensalidades", payload);
+      await showSuccess("Mensalidade cadastrada com sucesso!");
     }
 
     await carregarDados();
@@ -703,22 +488,14 @@ async function salvarMensalidade() {
     renderizarTabela();
     atualizarResumo();
     fecharModal();
-
-    if (!idEditando && avancarFluxoDepoisDaMensalidade()) {
-      return;
-    }
-
-    if (!idEditando) {
-      await showSuccess("Mensalidade cadastrada com sucesso!");
-    }
   } catch (error) {
     console.error(error);
-    showError(obterMensagemErro(error) || "Não foi possível salvar a mensalidade.");
+    showError("Não foi possível salvar a mensalidade.");
   }
 }
 
 /* =========================================================
-   EVENTOS DA TABELA
+   EVENTOS DA TABELA (Editar/Pagar/Excluir)
    ========================================================= */
 
 function configurarEventosTabela() {
@@ -726,7 +503,6 @@ function configurarEventosTabela() {
 
   linhasTabela.addEventListener("click", async (event) => {
     const botao = event.target.closest("[data-acao]");
-
     if (!botao) return;
 
     const id = botao.dataset.id;
@@ -739,19 +515,15 @@ function configurarEventosTabela() {
       }
 
       if (acao === "pagar") {
-        const confirmacao = await showConfirm("Deseja marcar esta mensalidade como paga?");
-
-        if (!confirmacao.isConfirmed) return;
-
+        const confirm = await showConfirm("Deseja marcar esta mensalidade como paga?");
+        if (!confirm.isConfirmed) return;
         await window.API.put(`/mensalidades/${id}/pagar`, {});
         await showSuccess("Mensalidade marcada como paga!");
       }
 
       if (acao === "excluir") {
-        const confirmacao = await showConfirm("Tem certeza que deseja excluir esta mensalidade?");
-
-        if (!confirmacao.isConfirmed) return;
-
+        const confirm = await showConfirm("Tem certeza que deseja excluir esta mensalidade?");
+        if (!confirm.isConfirmed) return;
         await window.API.del(`/mensalidades/${id}`);
         await showSuccess("Mensalidade excluída com sucesso!");
       }
@@ -768,6 +540,53 @@ function configurarEventosTabela() {
 }
 
 /* =========================================================
+   NOVO ALUNO VINDO DA TELA DE ALUNOS
+   ========================================================= */
+
+function carregarNovoAlunoDaTelaAlunos() {
+  const params = new URLSearchParams(window.location.search);
+  const veioDeAluno = params.get("novoAluno") === "1";
+
+  if (!veioDeAluno) return;
+
+  const dadosSalvos = localStorage.getItem("novoAlunoMensalidade");
+  if (!dadosSalvos) return;
+
+  const dados = JSON.parse(dadosSalvos);
+
+  idEditando = null;
+
+  const titulo = document.getElementById("tituloModalMensalidade");
+  if (titulo) titulo.textContent = "Nova mensalidade";
+  if (botaoSalvar) botaoSalvar.textContent = "Cadastrar";
+
+  const setValue = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value || "";
+  };
+
+  setValue("campoIdMensalidade", "");
+  setValue("campoAlunoMensalidade", dados.aluno || "");
+  setValue("campoResponsavelMensalidade", dados.responsavel || "");
+  setValue("campoContatoMensalidade", dados.contato || "");
+  setValue("campoEscolaMensalidade", dados.escola || "");
+  setValue("campoValorMensalidade", "");
+  setValue("campoPagamentoMensalidade", "");
+  setValue("campoVencimentoMensalidade", "");
+
+  const nomeAlunoSpan = document.getElementById("nomeAlunoModalInfo");
+  const responsavelSpan = document.getElementById("responsavelModalInfo");
+
+  if (nomeAlunoSpan) nomeAlunoSpan.textContent = dados.aluno || "Novo cadastro";
+  if (responsavelSpan) responsavelSpan.textContent = dados.responsavel || "Responsável";
+
+  if (fundoModal) fundoModal.classList.add("ativo");
+
+  localStorage.removeItem("novoAlunoMensalidade");
+  window.history.replaceState({}, document.title, "mensalidade.html");
+}
+
+/* =========================================================
    EVENTOS DOS BOTÕES
    ========================================================= */
 
@@ -775,7 +594,6 @@ function configurarBotoes() {
   if (botaoNova) botaoNova.addEventListener("click", abrirModalNova);
   if (botaoCancelar) botaoCancelar.addEventListener("click", fecharModal);
   if (botaoFecharTopo) botaoFecharTopo.addEventListener("click", fecharModal);
-
   if (botaoSalvar) {
     botaoSalvar.addEventListener("click", async () => {
       await salvarMensalidade();
@@ -795,24 +613,17 @@ function configurarBotoes() {
 
 window.addEventListener("DOMContentLoaded", async () => {
   initMenu();
-
-  lerParametrosFluxo();
-
   configurarPreviewFotoMensalidade();
   configurarFiltros();
 
   try {
     await carregarDados();
-    await carregarAlunoDoFluxo();
-
     atualizarOpcoesEscola();
     renderizarTabela();
     atualizarResumo();
-
     configurarBotoes();
     configurarEventosTabela();
-
-    preencherModalComAlunoDoFluxo();
+    carregarNovoAlunoDaTelaAlunos();
   } catch (error) {
     console.error(error);
     showError("Não foi possível carregar as mensalidades.");

@@ -2,20 +2,22 @@
 
 import { Router } from "express";
 import { ControlMensalidade } from "../controllers/control_mensalidade";
+import { authMiddleware } from "../middleware/authMiddleware";
+import { roleMiddleware } from "../middleware/roleMiddleware";
 
 const router = Router();
 
 const controlMensalidade = new ControlMensalidade();
 
-router.get("/mensalidades", (req, res) =>
+router.get("/mensalidades", authMiddleware, roleMiddleware(["CONDUTOR"]), (req, res) =>
   controlMensalidade.listar(req, res)
 );
 
-router.get("/mensalidades/:id", (req, res) =>
+router.get("/mensalidades/:id", authMiddleware, roleMiddleware(["CONDUTOR"]), (req, res) =>
   controlMensalidade.buscarPorId(req, res)
 );
 
-router.post("/mensalidades", (req, res) =>
+router.post("/mensalidades", authMiddleware, roleMiddleware(["CONDUTOR"]), (req, res) =>
   controlMensalidade.criar(req, res)
 );
 
@@ -27,19 +29,19 @@ router.post("/mensalidades", (req, res) =>
   Esta rota precisa vir antes de /mensalidades/:id,
   caso futuramente fosse criada com GET/PUT parecido.
 */
-router.put("/mensalidades/atualizar-atrasadas", (req, res) =>
+router.put("/mensalidades/atualizar-atrasadas", authMiddleware, roleMiddleware(["CONDUTOR"]), (req, res) =>
   controlMensalidade.atualizarAtrasadas(req, res)
 );
 
-router.put("/mensalidades/:id/pagar", (req, res) =>
+router.put("/mensalidades/:id/pagar", authMiddleware, roleMiddleware(["CONDUTOR"]), (req, res) =>
   controlMensalidade.marcarComoPago(req, res)
 );
 
-router.put("/mensalidades/:id", (req, res) =>
+router.put("/mensalidades/:id", authMiddleware, roleMiddleware(["CONDUTOR"]), (req, res) =>
   controlMensalidade.atualizar(req, res)
 );
 
-router.delete("/mensalidades/:id", (req, res) =>
+router.delete("/mensalidades/:id", authMiddleware, roleMiddleware(["CONDUTOR"]), (req, res) =>
   controlMensalidade.deletar(req, res)
 );
 
