@@ -350,7 +350,7 @@ INSERT INTO condutor (
 )
 VALUES (
     'Carlos Souza',
-    'carlos@email.com',
+    'liametechnologies@gmail.com',
     '$2a$10$7fAHxESMFev.n3JnpJDcI.3CqrxRSj9.d/4sxMDDM/9KI7QSnpUGG',
     '11988888888',
     'Escola Estadual São Paulo',
