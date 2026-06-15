@@ -202,13 +202,7 @@ async function obterMensagemErro(response) {
 ================================ */
 async function carregarOrcamentos() {
   try {
-    const response = await fetch(`${API_BASE}/orcamentos`);
-
-    if (!response.ok) {
-      throw new Error("Erro ao buscar orçamentos");
-    }
-
-    const dados = await response.json();
+    const dados = await window.API.get('/orcamentos');
 
     orcamentos = dados.map((o) => {
       const statusNormalizado = normalizarStatus(o.status);
@@ -380,21 +374,14 @@ async function salvarOrcamento() {
   };
 
   const url = idEmEdicao
-    ? `${API_BASE}/orcamentos/${idEmEdicao}`
-    : `${API_BASE}/orcamentos`;
-
-  const method = idEmEdicao ? "PUT" : "POST";
+    ? `/orcamentos/${idEmEdicao}`
+    : '/orcamentos';
 
   try {
-    const response = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      const mensagem = await obterMensagemErro(response);
-      throw new Error(mensagem);
+    if (idEmEdicao) {
+      await window.API.put(url, payload);
+    } else {
+      await window.API.post(url, payload);
     }
 
     await carregarOrcamentos();
@@ -413,16 +400,7 @@ async function salvarOrcamento() {
 ================================ */
 async function converterOrcamento(id) {
   try {
-    const response = await fetch(`${API_BASE}/orcamentos/${id}/converter`, {
-      method: "PUT"
-    });
-
-    if (!response.ok) {
-      const mensagem = await obterMensagemErro(response);
-      throw new Error(mensagem);
-    }
-
-    const resultado = await response.json();
+    const resultado = await window.API.put(`/orcamentos/${id}/converter`);
     const idOrcamento = resultado.orcamento?.id_orcamento || id;
 
     window.location.href = `responsaveis.html?fluxo=orcamento&id_orcamento=${idOrcamento}`;
@@ -437,14 +415,7 @@ async function converterOrcamento(id) {
 ================================ */
 async function excluirOrcamento(id) {
   try {
-    const response = await fetch(`${API_BASE}/orcamentos/${id}`, {
-      method: "DELETE"
-    });
-
-    if (!response.ok) {
-      const mensagem = await obterMensagemErro(response);
-      throw new Error(mensagem);
-    }
+    await window.API.del(`/orcamentos/${id}`);
 
     await carregarOrcamentos();
     renderizarOrcamentos();

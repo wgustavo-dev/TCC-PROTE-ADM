@@ -201,23 +201,16 @@ function configurarFormulario() {
     const payload = montarPayloadFormulario();
 
     if (!payload.tipo_documento || !payload.data_emissao) {
-  showWarning("Preencha os campos obrigatórios.");
+      showWarning("Preencha os campos obrigatórios.");
       return;
     }
 
     try {
       const id = documentoId.value;
-      const method = id ? 'PUT' : 'POST';
-      const url = id ? `/api/documentos/${id}` : '/api/documentos';
+      const url = id ? `/documentos/${id}` : '/documentos';
+      const action = id ? window.API.put : window.API.post;
 
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error('Erro ao salvar');
-
+      await action(url, payload);
       await carregarDocumentosDoBackend();
       renderizarTudo();
       fecharModal();
@@ -261,9 +254,7 @@ function atualizarPreviewDocumento() {
 
 async function carregarDocumentosDoBackend() {
   try {
-    const response = await fetch('/api/documentos');
-    if (!response.ok) throw new Error('Erro ao buscar documentos');
-    const dados = await response.json();
+    const dados = await window.API.get('/documentos');
 
     documentos = dados.map((doc) => ({
       id: doc.id_documento,
@@ -446,8 +437,7 @@ tbodyDocumentos.addEventListener('click', async (event) => {
     if (!confirmar) return;
 
     try {
-      const response = await fetch(`/api/documentos/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Erro ao excluir');
+      await window.API.del(`/documentos/${id}`);
       await carregarDocumentosDoBackend();
       renderizarTudo();
     } catch (error) {
