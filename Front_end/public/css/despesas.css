@@ -365,6 +365,8 @@
   padding: 1.75rem;
   width: 100%;
   max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto; 
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
   animation: entradaModal 0.2s ease;
 }
@@ -689,6 +691,7 @@
 .caixa-modal > .grupo-campo,
 .modal-body-scroll {
   scrollbar-width: thin;
+  
 }
 
 #formAluno,
@@ -698,6 +701,7 @@
 .modal-body-scroll,
 .caixa-modal {
   overflow-y: auto !important;
+  max-height: 85vh !important; 
 }
 
 #formAluno,
@@ -706,7 +710,7 @@
 .form-acesso,
 .modal-body-scroll {
   padding: 24px 28px !important;
-  max-height: calc(100vh - 126px) !important;
+  max-height: calc(100vh - 180px) !important; 
 }
 
 .caixa-modal > .grupo-campo:first-of-type {
@@ -721,6 +725,10 @@
 
 .caixa-modal > .acoes-modal {
   margin-bottom: 24px !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  background: white !important;
+  padding-top: 16px !important; 
 }
 
 /* Espaçamento dos grupos */
@@ -1000,7 +1008,7 @@
   .modal-card-acesso,
   .caixa-modal {
     width: calc(100vw - 24px) !important;
-    max-height: calc(100vh - 24px) !important;
+    max-height: 85vh !important;
   }
 
   .modal-header,
@@ -1016,7 +1024,7 @@
   .form-acesso,
   .modal-body-scroll {
     padding: 20px !important;
-    max-height: calc(100vh - 100px) !important;
+    max-height: calc(100vh - 140px) !important;
   }
 
   .caixa-modal > .grupo-campo,
