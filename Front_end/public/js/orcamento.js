@@ -1,71 +1,4 @@
-/* =========================================================
-   ALERTAS PERSONALIZADOS - SWEETALERT2
-   ========================================================= */
-
-function showSuccess(message) {
-  return Swal.fire({
-    icon: "success",
-    title: "Sucesso!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showError(message) {
-  return Swal.fire({
-    icon: "error",
-    title: "Erro!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showWarning(message) {
-  return Swal.fire({
-    icon: "warning",
-    title: "Atenção!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showConfirm(message) {
-  return Swal.fire({
-    icon: "warning",
-    title: "Confirmar ação",
-    text: message,
-    showCancelButton: true,
-    confirmButtonText: "Confirmar",
-    cancelButtonText: "Cancelar",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button",
-      cancelButton: "prote-alert-cancel-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-const API_BASE = "/api";
+const API_BASE = '/api';
 
 const botao = document.getElementById("botaoNovoOrcamento");
 const modal = document.getElementById("fundoModal");
@@ -202,7 +135,13 @@ async function obterMensagemErro(response) {
 ================================ */
 async function carregarOrcamentos() {
   try {
-    const dados = await window.API.get('/orcamentos');
+    const response = await fetch(`${API_BASE}/orcamentos`);
+
+    if (!response.ok) {
+      throw new Error("Erro ao buscar orçamentos");
+    }
+
+    const dados = await response.json();
 
     orcamentos = dados.map((o) => {
       const statusNormalizado = normalizarStatus(o.status);
@@ -291,11 +230,8 @@ function renderizarOrcamentos() {
   tabelaLinhas.addEventListener("click", handleTabelaClick);
 }
 
-/* ================================
-   CLIQUES DA TABELA
-================================ */
-async function handleTabelaClick(event) {
-  const btn = event.target.closest("button");
+function handleTabelaClick(event) {
+  const btn = event.target.closest('button');
   if (!btn) return;
 
   const id = btn.dataset.id;
@@ -320,20 +256,12 @@ async function handleTabelaClick(event) {
 
       modal.classList.add("ativo");
     }
-  }
-
-  if (btn.classList.contains("aprovar")) {
-    const resposta = await showConfirm("Converter este orçamento em novo cadastro?");
-
-    if (resposta.isConfirmed) {
-      converterOrcamento(id);
+  } else if (btn.classList.contains('aprovar')) {
+    if (confirm('Aprovar este orçamento?')) {
+      aprovarOrcamento(id);
     }
-  }
-
-  if (btn.classList.contains("excluir")) {
-    const resposta = await showConfirm("Excluir este orçamento?");
-
-    if (resposta.isConfirmed) {
+  } else if (btn.classList.contains('excluir')) {
+    if (confirm('Excluir este orçamento?')) {
       excluirOrcamento(id);
     }
   }
@@ -344,19 +272,7 @@ async function handleTabelaClick(event) {
 ================================ */
 async function salvarOrcamento() {
   if (!campoResponsavel || !campoResponsavel.value.trim()) {
-    showWarning("Informe o nome do responsável");
-    return;
-  }
-
-  if (!campoTelefone || !campoTelefone.value.trim()) {
-    showWarning("Informe o telefone do responsável");
-    return;
-  }
-
-  const quantidadeAlunos = obterQuantidadeAlunos();
-
-  if (!quantidadeAlunos) {
-    showWarning("Informe a quantidade de alunos");
+    alert('Informe o nome do responsável');
     return;
   }
 
@@ -374,24 +290,29 @@ async function salvarOrcamento() {
   };
 
   const url = idEmEdicao
-    ? `/orcamentos/${idEmEdicao}`
-    : '/orcamentos';
+    ? `${API_BASE}/orcamentos/${idEmEdicao}`
+    : `${API_BASE}/orcamentos`;
+
+  const method = idEmEdicao ? "PUT" : "POST";
 
   try {
-    if (idEmEdicao) {
-      await window.API.put(url, payload);
-    } else {
-      await window.API.post(url, payload);
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const mensagem = await obterMensagemErro(response);
+      throw new Error(mensagem);
     }
 
     await carregarOrcamentos();
     renderizarOrcamentos();
-
-    showSuccess("Orçamento salvo com sucesso!");
-    modal.classList.remove("ativo");
+    modal.classList.remove('ativo');
   } catch (error) {
     console.error(error);
-    showError(error.message || "Não foi possível salvar orçamento.");
+    alert('Erro ao salvar orçamento');
   }
 }
 
@@ -400,13 +321,13 @@ async function salvarOrcamento() {
 ================================ */
 async function converterOrcamento(id) {
   try {
-    const resultado = await window.API.put(`/orcamentos/${id}/converter`);
-    const idOrcamento = resultado.orcamento?.id_orcamento || id;
-
-    window.location.href = `responsaveis.html?fluxo=orcamento&id_orcamento=${idOrcamento}`;
+    const response = await fetch(`${API_BASE}/orcamentos/${id}/aprovar`, { method: 'PUT' });
+    if (!response.ok) throw new Error('Erro ao aprovar');
+    await carregarOrcamentos();
+    renderizarOrcamentos();
   } catch (error) {
     console.error(error);
-    showError(error.message || "Não foi possível converter orçamento.");
+    alert('Erro ao aprovar orçamento');
   }
 }
 
@@ -415,39 +336,21 @@ async function converterOrcamento(id) {
 ================================ */
 async function excluirOrcamento(id) {
   try {
-    await window.API.del(`/orcamentos/${id}`);
+    const response = await fetch(`${API_BASE}/orcamentos/${id}`, {
+      method: "DELETE"
+    });
+
+    if (!response.ok) {
+      const mensagem = await obterMensagemErro(response);
+      throw new Error(mensagem);
+    }
 
     await carregarOrcamentos();
     renderizarOrcamentos();
-
-    showSuccess("Orçamento excluído com sucesso!");
   } catch (error) {
     console.error(error);
-    showError(error.message || "Não foi possível excluir orçamento.");
+    alert('Erro ao excluir orçamento');
   }
-}
-
-/* ================================
-   MENU MOBILE
-================================ */
-function initMenuMobile() {
-  const botaoMenu = document.getElementById("botaoMenu");
-  const sidebar = document.getElementById("sidebar");
-  const fundoEscuro = document.getElementById("fundoEscuro");
-
-  if (!botaoMenu || !sidebar || !fundoEscuro) return;
-
-  botaoMenu.addEventListener("click", () => {
-    sidebar.classList.toggle("aberta");
-    fundoEscuro.classList.toggle("visivel");
-    botaoMenu.classList.toggle("aberto");
-  });
-
-  fundoEscuro.addEventListener("click", () => {
-    sidebar.classList.remove("aberta");
-    fundoEscuro.classList.remove("visivel");
-    botaoMenu.classList.remove("aberto");
-  });
 }
 
 /* ================================

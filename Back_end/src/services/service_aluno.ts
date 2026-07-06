@@ -1,5 +1,3 @@
-// Back_end/src/services/service_aluno.ts
-
 import { AppDataSource } from "../config/database";
 import { Aluno } from "../models/model_aluno";
 import { Responsavel } from "../models/model_responsavel";

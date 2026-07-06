@@ -201,22 +201,26 @@ function configurarFormulario() {
     const payload = montarPayloadFormulario();
 
     if (!payload.tipo_documento || !payload.data_emissao) {
-      showWarning("Preencha os campos obrigatórios.");
+  showWarning("Preencha os campos obrigatórios.");
       return;
     }
 
     try {
       const id = documentoId.value;
-      const url = id ? `/documentos/${id}` : '/documentos';
-      const action = id ? window.API.put : window.API.post;
 
-      await action(url, payload);
+      if (id) {
+        await window.API.put(`/documentos/${id}`, payload);
+      } else {
+        await window.API.post('/documentos', payload);
+      }
+
       await carregarDocumentosDoBackend();
       renderizarTudo();
       fecharModal();
+      await showSuccess(id ? 'Documento atualizado com sucesso!' : 'Documento cadastrado com sucesso!');
     } catch (error) {
       console.error(error);
-      showError("Não foi possível salvar o documento.");
+      showError(error.message || 'Não foi possível salvar o documento.');
     }
   });
 }
@@ -256,7 +260,7 @@ async function carregarDocumentosDoBackend() {
   try {
     const dados = await window.API.get('/documentos');
 
-    documentos = dados.map((doc) => ({
+    documentos = (dados || []).map((doc) => ({
       id: doc.id_documento,
       tipo: doc.tipo_documento,
       dataRealizacao: doc.data_emissao ? doc.data_emissao.split('T')[0] : '',
@@ -266,6 +270,7 @@ async function carregarDocumentosDoBackend() {
   } catch (error) {
     console.error('Erro ao carregar documentos:', error);
     documentos = [];
+    showError('Não foi possível carregar os documentos. Verifique se você está logado como condutor.');
   }
 }
 
@@ -440,9 +445,10 @@ tbodyDocumentos.addEventListener('click', async (event) => {
       await window.API.del(`/documentos/${id}`);
       await carregarDocumentosDoBackend();
       renderizarTudo();
+      await showSuccess('Documento excluído com sucesso!');
     } catch (error) {
       console.error(error);
-      showError("Não foi possível excluir o documento.");
+      showError(error.message || 'Não foi possível excluir o documento.');
     }
   }
 });

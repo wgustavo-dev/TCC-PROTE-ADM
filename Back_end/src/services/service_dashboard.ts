@@ -132,14 +132,36 @@ export class ServiceDashboard {
 
     const alertas = [];
 
-    const mensalidadesAtrasadas = await repoMensalidade.count({
-      where: {
-        status: "ATRASADO",
-      },
-    });
+    const mensalidadesAlerta = await repoMensalidade
+      .createQueryBuilder("mensalidade")
+      .leftJoinAndSelect("mensalidade.aluno", "aluno")
+      .where("mensalidade.status = :atrasado", { atrasado: "ATRASADO" })
+      .orWhere(
+        "mensalidade.status = :pendente AND mensalidade.data_vencimento = CURDATE()",
+        { pendente: "PENDENTE" }
+      )
+      .orderBy("mensalidade.data_vencimento", "ASC")
+      .addOrderBy("aluno.nome", "ASC")
+      .getMany();
 
-    if (mensalidadesAtrasadas > 0) {
-      alertas.push(`${mensalidadesAtrasadas} mensalidade(s) atrasada(s).`);
+    const hojeLocal = new Date();
+    hojeLocal.setHours(0, 0, 0, 0);
+
+    for (const mensalidade of mensalidadesAlerta) {
+      const nomeAluno = mensalidade.aluno?.nome || `Aluno #${mensalidade.id_aluno}`;
+      const dataVencimento = String(mensalidade.data_vencimento || "").slice(0, 10);
+      const [ano, mes, dia] = dataVencimento.split("-").map(Number);
+      const vencimentoLocal = new Date(ano, mes - 1, dia);
+      vencimentoLocal.setHours(0, 0, 0, 0);
+      const diasAtraso = Math.round((hojeLocal.getTime() - vencimentoLocal.getTime()) / (1000 * 60 * 60 * 24));
+      const tipo = diasAtraso === 0 ? "vence_hoje" : "atrasada";
+
+      alertas.push({
+        nome_aluno: nomeAluno,
+        data_vencimento: dataVencimento,
+        tipo,
+        dias_atraso: diasAtraso,
+      });
     }
 
     return {

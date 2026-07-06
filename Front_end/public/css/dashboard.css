@@ -692,3 +692,38 @@ button:focus-visible,
 .prote-alert-cancel-button {
   min-height: 42px !important;
 }
+
+
+/* Ajuste geral dos ícones do sistema */
+.nav-icon,
+.icone-busca,
+.icone-botao-topo,
+.icone-secao,
+.icone-acao,
+.icon-btn svg,
+#avatarPlaceholderIcon {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nav-item {
+  min-height: 38px;
+}
+
+.nav-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.nav-item.active .nav-icon {
+  color: #ffffff;
+}
+
+.icon-btn,
+.botao-acao,
+.btn-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

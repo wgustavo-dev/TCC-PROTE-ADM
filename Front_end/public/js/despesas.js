@@ -73,8 +73,9 @@ var API_BASE = '/api';
 
 async function carregarDespesas() {
   try {
-    var dados = await window.API.get('/despesas');
-    return dados.map(function(d) {
+    const dados = await window.API.get('/despesas');
+
+    return (dados || []).map(function(d) {
       return {
         id: d.id_despesa,
         tipo: d.tipo,
@@ -85,7 +86,9 @@ async function carregarDespesas() {
     });
   } catch (e) {
     console.error('Erro ao carregar despesas:', e);
+    showError('Não foi possível carregar as despesas. Verifique se você está logado como condutor.');
   }
+
   return [];
 }
 
@@ -393,33 +396,35 @@ botaoCadastrar.addEventListener('click', function() {
   if (idEmEdicao) {
     /* Edição — PUT ao backend */
     window.API.put('/despesas/' + idEmEdicao, payload)
-    .then(function() {
-      return carregarDespesas();
-    })
-    .then(function(lista) {
-      despesas = lista;
-      fecharModal();
-      renderizar();
-    })
-    .catch(function(err) {
-      console.error(err);
-      showError("Não foi possível salvar despesa.");
-    });
+      .then(function() {
+        return carregarDespesas();
+      })
+      .then(function(lista) {
+        despesas = lista;
+        fecharModal();
+        renderizar();
+        showSuccess('Despesa atualizada com sucesso!');
+      })
+      .catch(function(err) {
+        console.error(err);
+        showError(err.message || 'Não foi possível salvar despesa.');
+      });
   } else {
     /* Criação — POST ao backend */
     window.API.post('/despesas', payload)
-    .then(function() {
-      return carregarDespesas();
-    })
-    .then(function(lista) {
-      despesas = lista;
-      fecharModal();
-      renderizar();
-    })
-    .catch(function(err) {
-      console.error(err);
-      showError("Não foi possível salvar despesa.");
-    });
+      .then(function() {
+        return carregarDespesas();
+      })
+      .then(function(lista) {
+        despesas = lista;
+        fecharModal();
+        renderizar();
+        showSuccess('Despesa cadastrada com sucesso!');
+      })
+      .catch(function(err) {
+        console.error(err);
+        showError(err.message || 'Não foi possível salvar despesa.');
+      });
   }
 });
 
@@ -475,7 +480,7 @@ botaoConfirmarExclusao.addEventListener('click', function() {
     })
     .catch(function(err) {
       console.error(err);
-      showError("Não foi possível excluir despesa.");
+      showError(err.message || 'Não foi possível excluir despesa.');
     });
   }
 });
