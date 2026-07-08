@@ -73,6 +73,111 @@ let alunos = [];
 let responsaveis = [];
 let el = null;
 
+let fluxoCadastro = null;
+let idResponsavelFluxo = null;
+let idOrcamentoFluxo = null;
+let alunoAtualFluxo = 1;
+let totalAlunosFluxo = 1;
+
+function emFluxoCadastro() {
+  return Boolean(fluxoCadastro && idResponsavelFluxo);
+}
+
+function obterParametrosFluxo() {
+  const params = new URLSearchParams(window.location.search);
+  const fluxo = params.get("fluxo");
+  const idResponsavel = params.get("id_responsavel");
+
+  if (!fluxo || !idResponsavel) return false;
+
+  fluxoCadastro = fluxo;
+  idResponsavelFluxo = Number(idResponsavel);
+  idOrcamentoFluxo = params.get("id_orcamento") ? Number(params.get("id_orcamento")) : null;
+  alunoAtualFluxo = Number(params.get("alunoAtual") || 1);
+  totalAlunosFluxo = Number(params.get("totalAlunos") || 1);
+  return true;
+}
+
+function mapTrajetoOrcamento(tipo) {
+  const valor = String(tipo || "").toUpperCase();
+  if (valor === "IDA") return "ir";
+  if (valor === "VOLTA") return "voltar";
+  return "ambos";
+}
+
+function mapTurnoOrcamento(turno) {
+  const valor = String(turno || "").toUpperCase();
+  if (valor === "TARDE") return "tarde";
+  if (valor === "NOITE") return "noite";
+  return "manha";
+}
+
+function definirCamposResponsavelFluxo(responsavel, bloquear) {
+  if (!responsavel) return;
+
+  if (el.nomeResponsavel1) {
+    el.nomeResponsavel1.value = aplicarMascaraNome(responsavel.nome || "");
+    el.nomeResponsavel1.readOnly = bloquear;
+  }
+
+  if (el.telefoneResponsavel1) {
+    el.telefoneResponsavel1.value = aplicarMascaraTelefone(responsavel.telefone || "");
+    el.telefoneResponsavel1.readOnly = bloquear;
+  }
+}
+
+function redirecionarParaMensalidade(alunoSalvo, vencimentoDia) {
+  const params = new URLSearchParams();
+  params.set("fluxo", fluxoCadastro);
+  params.set("id_responsavel", String(idResponsavelFluxo));
+  params.set("id_aluno", String(alunoSalvo.id_aluno));
+  params.set("alunoAtual", String(alunoAtualFluxo));
+  params.set("totalAlunos", String(totalAlunosFluxo));
+
+  if (idOrcamentoFluxo) {
+    params.set("id_orcamento", String(idOrcamentoFluxo));
+  }
+
+  if (vencimentoDia) {
+    params.set("vencimento", vencimentoDia);
+  }
+
+  window.location.href = `mensalidade.html?${params.toString()}`;
+}
+
+async function iniciarFluxoCadastro() {
+  if (!obterParametrosFluxo()) return;
+
+  const responsavel = responsaveis.find(
+    (item) => Number(item.id_responsavel) === idResponsavelFluxo
+  );
+
+  abrirModalNovo();
+
+  if (el.modalTitulo) {
+    el.modalTitulo.textContent = `Cadastrar aluno ${alunoAtualFluxo} de ${totalAlunosFluxo}`;
+  }
+
+  definirCamposResponsavelFluxo(responsavel, true);
+
+  if (fluxoCadastro === "orcamento" && idOrcamentoFluxo) {
+    try {
+      const orcamento = await window.API.get(`/orcamentos/${idOrcamentoFluxo}`);
+
+      if (el.escolaAluno) el.escolaAluno.value = orcamento.escola || "";
+      if (el.enderecoEmbarque) el.enderecoEmbarque.value = orcamento.endereco_embarque || "";
+      if (el.enderecoDesembarque) el.enderecoDesembarque.value = orcamento.endereco_desembarque || "";
+      if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = mapTrajetoOrcamento(orcamento.tipo_trajeto);
+      if (el.periodoAluno) el.periodoAluno.value = mapTurnoOrcamento(orcamento.turno);
+    } catch (error) {
+      console.error(error);
+      showWarning("Não foi possível carregar os dados do orçamento para pré-preencher o aluno.");
+    }
+  }
+
+  if (el.nomeAluno) el.nomeAluno.focus();
+}
+
 /* =========================================================
    FUNÇÕES AUXILIARES - API E MÁSCARAS
    ========================================================= */
@@ -239,15 +344,18 @@ function montarPayloadAluno() {
   };
 }
 
-async function salvarAluno(payload) {
+async function salvarAluno(payload, idResponsavel) {
   const form = new FormData();
   form.append("nome", payload.nome);
   form.append("endereco_embarque", payload.embarque);
   form.append("endereco_desembarque", payload.desembarque);
-  form.append("responsavel_nome", payload.responsavel1);
-  form.append("responsavel_telefone", payload.telefone1);
+  if (idResponsavel) {
+    form.append("id_responsavel", String(idResponsavel));
+  } else {
+    form.append("responsavel_nome", payload.responsavel1);
+    form.append("responsavel_telefone", payload.telefone1);
+  }
   form.append("escola", payload.escola);
-  form.append("vencimento", payload.vencimento);
   const tipoTrajetoApi = payload.tipoTrajeto === "ir" ? "IDA" : payload.tipoTrajeto === "voltar" ? "VOLTA" : "AMBOS";
   const turnoApi = payload.periodo ? payload.periodo.toUpperCase() : "MANHA";
 
@@ -259,10 +367,10 @@ async function salvarAluno(payload) {
 
   if (payload.id) {
     await window.API.put(`/alunos/${payload.id}`, form);
-    return;
+    return null;
   }
 
-  await window.API.post("/alunos", form);
+  return await window.API.post("/alunos", form);
 }
 
 /* =========================================================
@@ -270,14 +378,13 @@ async function salvarAluno(payload) {
    ========================================================= */
 
 function configurarModal() {
-  if (!el.btnAbrirModal) return;
-
-  el.btnAbrirModal.addEventListener("click", abrirModalNovo);
-  el.btnFecharModal.addEventListener("click", fecharModal);
-  el.btnCancelar.addEventListener("click", fecharModal);
-  el.modalOverlay.addEventListener("click", (event) => {
-    if (event.target === el.modalOverlay) fecharModal();
-  });
+  if (el.btnFecharModal) el.btnFecharModal.addEventListener("click", fecharModal);
+  if (el.btnCancelar) el.btnCancelar.addEventListener("click", fecharModal);
+  if (el.modalOverlay) {
+    el.modalOverlay.addEventListener("click", (event) => {
+      if (event.target === el.modalOverlay) fecharModal();
+    });
+  }
 }
 
 /* =========================================================
@@ -555,11 +662,13 @@ function configurarFormulario() {
     event.preventDefault();
 
     const payload = montarPayloadAluno();
+    const fluxoAtivo = emFluxoCadastro() && !payload.id;
     
-    // Verifica se o responsável 1 foi preenchido
-    if (!payload.responsavel1 || payload.responsavel1.trim() === "") {
-      showWarning("O campo 'Responsável 1' é obrigatório.");
-      return;
+    if (!fluxoAtivo) {
+      if (!payload.responsavel1 || payload.responsavel1.trim() === "") {
+        showWarning("O campo 'Responsável 1' é obrigatório.");
+        return;
+      }
     }
 
     // Validação dos campos obrigatórios do aluno
@@ -574,51 +683,36 @@ function configurarFormulario() {
       return;
     }
 
-    // Verifica se o responsável existe, se não existir, sugere cadastrar
-    const responsavelSelecionado = encontrarResponsavelPorNome(payload.responsavel1);
-    
-    if (!responsavelSelecionado) {
-      const resposta = await Swal.fire({
-        icon: "question",
-        title: "Responsável não cadastrado",
-        text: `"${payload.responsavel1}" não está cadastrado como responsável. Deseja cadastrá-lo agora?`,
-        showCancelButton: true,
-        confirmButtonText: "Sim, cadastrar",
-        cancelButtonText: "Não, cancelar",
-        customClass: {
-          popup: "prote-alert",
-          confirmButton: "prote-alert-button",
-          cancelButton: "prote-alert-cancel-button"
-        },
-        buttonsStyling: false
-      });
-
-      if (resposta.isConfirmed) {
-        localStorage.setItem("responsavelPendente", JSON.stringify({
-          nome: payload.responsavel1,
-          telefone: payload.telefone1 || "",
-          email: "",
-          voltarParaAluno: true,
-          alunoData: payload
-        }));
-        window.location.href = "responsaveis.html?cadastrarResponsavel=1";
+    if (!fluxoAtivo) {
+      const responsavelSelecionado = encontrarResponsavelPorNome(payload.responsavel1);
+      
+      if (!responsavelSelecionado) {
+        showWarning("Responsável não encontrado. O cadastro de novos alunos deve ser feito pelo fluxo de aprovação de orçamento.");
+        return;
       }
-      return;
-    }
 
-    // Responsável existe - prosseguir com cadastro
-    payload.responsavel1 = responsavelSelecionado.nome || payload.responsavel1;
-    payload.telefone1 = aplicarMascaraTelefone(responsavelSelecionado.telefone || "");
-    if (el.telefoneResponsavel1) el.telefoneResponsavel1.value = payload.telefone1;
+      payload.responsavel1 = responsavelSelecionado.nome || payload.responsavel1;
+      payload.telefone1 = aplicarMascaraTelefone(responsavelSelecionado.telefone || "");
+      if (el.telefoneResponsavel1) el.telefoneResponsavel1.value = payload.telefone1;
+    }
 
     try {
       const novoCadastro = !payload.id;
-      await salvarAluno(payload);
+      const idResponsavelSalvar = fluxoAtivo
+        ? idResponsavelFluxo
+        : encontrarResponsavelPorNome(payload.responsavel1)?.id_responsavel;
+
+      const alunoSalvo = await salvarAluno(payload, idResponsavelSalvar);
       alunos = await carregarAlunos();
       fecharModal();
       atualizarOpcoesEscola();
-  atualizarOpcoesTurma();
+      atualizarOpcoesTurma();
       renderizar();
+
+      if (fluxoAtivo && alunoSalvo) {
+        redirecionarParaMensalidade(alunoSalvo, payload.vencimento);
+        return;
+      }
       
       await showSuccess(
         `${payload.id ? "Aluno atualizado" : "Aluno cadastrado"} com sucesso!\n\n` +
@@ -627,22 +721,6 @@ function configurarFormulario() {
         `Horário: ${payload.horarioTurma}\n` +
         `Trajeto: ${payload.tipoTrajeto === "ir" ? "Apenas ida" : payload.tipoTrajeto === "voltar" ? "Apenas volta" : "Ida e volta"}`
       );
-
-      if (novoCadastro) {
-        localStorage.setItem(
-          "novoAlunoMensalidade",
-          JSON.stringify({
-            aluno: payload.nome,
-            responsavel: payload.responsavel1,
-            contato: payload.telefone1,
-            escola: payload.escola || "",
-            periodo: payload.periodo,
-            horario: payload.horarioTurma,
-            trajeto: payload.tipoTrajeto
-          })
-        );
-        window.location.href = "mensalidade.html?novoAluno=1";
-      }
     } catch (error) {
       console.error(error);
       showError("Não foi possível salvar o aluno.");
@@ -734,8 +812,14 @@ function abrirModalNovo() {
   el.modalTitulo.textContent = "Novo aluno";
   if (el.formAluno) el.formAluno.reset();
   if (el.alunoId) el.alunoId.value = "";
-  if (el.nomeResponsavel1) el.nomeResponsavel1.required = true;
-  if (el.telefoneResponsavel1) el.telefoneResponsavel1.required = false;
+  if (el.nomeResponsavel1) {
+    el.nomeResponsavel1.required = true;
+    el.nomeResponsavel1.readOnly = false;
+  }
+  if (el.telefoneResponsavel1) {
+    el.telefoneResponsavel1.required = false;
+    el.telefoneResponsavel1.readOnly = false;
+  }
   if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   esconderPreviewFoto();
   if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
@@ -744,6 +828,8 @@ function abrirModalNovo() {
 function abrirModalEditar(aluno) {
   if (!el.modalTitulo) return;
   el.modalTitulo.textContent = "Editar aluno";
+  if (el.nomeResponsavel1) el.nomeResponsavel1.readOnly = false;
+  if (el.telefoneResponsavel1) el.telefoneResponsavel1.readOnly = false;
   if (el.alunoId) el.alunoId.value = aluno.id || "";
   if (el.nomeAluno) el.nomeAluno.value = aplicarMascaraNome(aluno.nome || "");
   if (el.nomeResponsavel1) el.nomeResponsavel1.value = aplicarMascaraNome(aluno.responsavel1 || "");
@@ -882,6 +968,5 @@ window.addEventListener("DOMContentLoaded", async () => {
   atualizarOpcoesEscola();
   atualizarOpcoesTurma();
   renderizar();
-  abrirCadastroAlunoVindoDeResponsavel();
-  processarRetornoResponsavel();
+  await iniciarFluxoCadastro();
 });

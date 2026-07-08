@@ -477,13 +477,6 @@ if (btnLimparFiltros) {
   });
 }
 
-document.getElementById('btnNovo').addEventListener('click', () => {
-  fluxoCadastro = 'manual';
-  idOrcamentoFluxo = null;
-  orcamentoFluxo = null;
-  abrirModal(false);
-});
-
 document.getElementById('btnCancelar').addEventListener('click', () => {
   modalOverlay.classList.add('hidden');
 });

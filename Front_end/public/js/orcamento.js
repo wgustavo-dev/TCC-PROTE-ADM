@@ -1,5 +1,3 @@
-const API_BASE = '/api';
-
 const botao = document.getElementById("botaoNovoOrcamento");
 const modal = document.getElementById("fundoModal");
 const cancelar = document.getElementById("botaoCancelar");
@@ -135,13 +133,7 @@ async function obterMensagemErro(response) {
 ================================ */
 async function carregarOrcamentos() {
   try {
-    const response = await fetch(`${API_BASE}/orcamentos`);
-
-    if (!response.ok) {
-      throw new Error("Erro ao buscar orçamentos");
-    }
-
-    const dados = await response.json();
+    const dados = await window.API.get("/orcamentos");
 
     orcamentos = dados.map((o) => {
       const statusNormalizado = normalizarStatus(o.status);
@@ -257,8 +249,8 @@ function handleTabelaClick(event) {
       modal.classList.add("ativo");
     }
   } else if (btn.classList.contains('aprovar')) {
-    if (confirm('Aprovar este orçamento?')) {
-      aprovarOrcamento(id);
+    if (confirm('Aprovar este orçamento e iniciar o cadastro do cliente?')) {
+      converterOrcamento(id);
     }
   } else if (btn.classList.contains('excluir')) {
     if (confirm('Excluir este orçamento?')) {
@@ -276,6 +268,12 @@ async function salvarOrcamento() {
     return;
   }
 
+  const quantidadeAlunos = obterQuantidadeAlunos();
+  if (!quantidadeAlunos) {
+    alert('Informe a quantidade de alunos');
+    return;
+  }
+
   const payload = {
     nome_responsavel: campoResponsavel.value.trim(),
     telefone: campoTelefone.value.trim(),
@@ -289,22 +287,11 @@ async function salvarOrcamento() {
     data_solicitacao: new Date().toISOString().split("T")[0]
   };
 
-  const url = idEmEdicao
-    ? `${API_BASE}/orcamentos/${idEmEdicao}`
-    : `${API_BASE}/orcamentos`;
-
-  const method = idEmEdicao ? "PUT" : "POST";
-
   try {
-    const response = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      const mensagem = await obterMensagemErro(response);
-      throw new Error(mensagem);
+    if (idEmEdicao) {
+      await window.API.put(`/orcamentos/${idEmEdicao}`, payload);
+    } else {
+      await window.API.post("/orcamentos", payload);
     }
 
     await carregarOrcamentos();
@@ -312,7 +299,7 @@ async function salvarOrcamento() {
     modal.classList.remove('ativo');
   } catch (error) {
     console.error(error);
-    alert('Erro ao salvar orçamento');
+    alert(error.message || 'Erro ao salvar orçamento');
   }
 }
 
@@ -321,13 +308,15 @@ async function salvarOrcamento() {
 ================================ */
 async function converterOrcamento(id) {
   try {
-    const response = await fetch(`${API_BASE}/orcamentos/${id}/aprovar`, { method: 'PUT' });
-    if (!response.ok) throw new Error('Erro ao aprovar');
-    await carregarOrcamentos();
-    renderizarOrcamentos();
+    await window.API.put(`/orcamentos/${id}/converter`, {});
+
+    const params = new URLSearchParams();
+    params.set("fluxo", "orcamento");
+    params.set("id_orcamento", String(id));
+    window.location.href = `responsaveis.html?${params.toString()}`;
   } catch (error) {
     console.error(error);
-    alert('Erro ao aprovar orçamento');
+    alert(error.message || 'Erro ao aprovar orçamento');
   }
 }
 
@@ -336,20 +325,12 @@ async function converterOrcamento(id) {
 ================================ */
 async function excluirOrcamento(id) {
   try {
-    const response = await fetch(`${API_BASE}/orcamentos/${id}`, {
-      method: "DELETE"
-    });
-
-    if (!response.ok) {
-      const mensagem = await obterMensagemErro(response);
-      throw new Error(mensagem);
-    }
-
+    await window.API.del(`/orcamentos/${id}`);
     await carregarOrcamentos();
     renderizarOrcamentos();
   } catch (error) {
     console.error(error);
-    alert('Erro ao excluir orçamento');
+    alert(error.message || 'Erro ao excluir orçamento');
   }
 }
 
@@ -375,10 +356,29 @@ abasStatus.forEach((aba) => {
   });
 });
 
+function initMenu() {
+  const botaoMenu = document.getElementById("botaoMenu");
+  const sidebar = document.getElementById("sidebar");
+  const fundoEscuro = document.getElementById("fundoEscuro");
+  if (!botaoMenu || !sidebar || !fundoEscuro) return;
+
+  botaoMenu.addEventListener("click", () => {
+    sidebar.classList.toggle("aberta");
+    fundoEscuro.classList.toggle("visivel");
+    botaoMenu.classList.toggle("aberto");
+  });
+
+  fundoEscuro.addEventListener("click", () => {
+    sidebar.classList.remove("aberta");
+    fundoEscuro.classList.remove("visivel");
+    botaoMenu.classList.remove("aberto");
+  });
+}
+
 /* ================================
    INICIALIZA
 ================================ */
 document.addEventListener("DOMContentLoaded", () => {
-  initMenuMobile();
+  initMenu();
   carregarOrcamentos().then(() => renderizarOrcamentos());
 });
