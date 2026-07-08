@@ -14,6 +14,13 @@ export class ControlAuth {
 
       const resultado = await serviceAuth.login(email.trim(), senha);
 
+      res.cookie("prote_token", resultado.token, {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 8 * 60 * 60 * 1000,
+      });
+
       return res.status(200).json(resultado);
     } catch (error: any) {
       return res.status(400).json({ error: error.message || "Erro ao fazer login." });

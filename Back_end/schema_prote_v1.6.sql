@@ -350,7 +350,7 @@ INSERT INTO condutor (
 )
 VALUES (
     'Carlos Souza',
-    'carlos@email.com',
+    'liametechnologies@gmail.com',
     '$2a$10$7fAHxESMFev.n3JnpJDcI.3CqrxRSj9.d/4sxMDDM/9KI7QSnpUGG',
     '11988888888',
     'Escola Estadual São Paulo',
@@ -415,7 +415,7 @@ INSERT INTO presenca (
 )
 VALUES (
     1,
-    '2025-04-10',
+    '2026-04-10',
     'PRESENTE'
 );
 
@@ -433,7 +433,7 @@ INSERT INTO mensalidade (
 VALUES (
     1,
     580.00,
-    '2025-05-10',
+    '2026-05-10',
     NULL,
     'PENDENTE',
     1
@@ -476,7 +476,7 @@ VALUES
     -- MANTIDO COMO PENDENTE: ainda não iniciou conversão.
     'PENDENTE',
     FALSE,
-    '2025-04-01',
+    '2026-04-01',
     NULL,
     1
 ),
@@ -496,8 +496,8 @@ VALUES
     -- Como APROVADO saiu do enum, orçamento já finalizado deve ser CONVERTIDO.
     'CONVERTIDO',
     TRUE,
-    '2025-04-03',
-    '2025-04-04',
+    '2026-04-03',
+    '2026-04-04',
     1
 ),
 (
@@ -516,7 +516,7 @@ VALUES
     -- Útil para testar a nova etapa intermediária.
     'EM_CADASTRO',
     FALSE,
-    '2025-04-05',
+    '2026-04-05',
     NULL,
     1
 );
@@ -536,14 +536,14 @@ VALUES
     'Combustível',
     'Abastecimento completo — posto Shell Tatuapé',
     350.00,
-    '2025-04-02',
+    '2026-04-02',
     1
 ),
 (
     'Manutenção Mecânica',
     'Troca de óleo e filtro',
     220.00,
-    '2025-03-18',
+    '2026-03-18',
     1
 );
 
