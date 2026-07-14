@@ -1,71 +1,4 @@
 /* =========================================================
-   ALERTAS PERSONALIZADOS - SWEETALERT2
-   ========================================================= */
-
-function showSuccess(message) {
-  return Swal.fire({
-    icon: "success",
-    title: "Sucesso!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showError(message) {
-  return Swal.fire({
-    icon: "error",
-    title: "Erro!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showWarning(message) {
-  return Swal.fire({
-    icon: "warning",
-    title: "Atenção!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showConfirm(message) {
-  return Swal.fire({
-    icon: "warning",
-    title: "Confirmar ação",
-    text: message,
-    showCancelButton: true,
-    confirmButtonText: "Confirmar",
-    cancelButtonText: "Cancelar",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button",
-      cancelButton: "prote-alert-cancel-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-/* =========================================================
    VARIÁVEIS GLOBAIS
    ========================================================= */
 
@@ -378,11 +311,11 @@ async function salvarAluno(payload, idResponsavel) {
    ========================================================= */
 
 function configurarModal() {
-  if (el.btnFecharModal) el.btnFecharModal.addEventListener("click", fecharModal);
-  if (el.btnCancelar) el.btnCancelar.addEventListener("click", fecharModal);
+  if (el.btnFecharModal) el.btnFecharModal.addEventListener("click", fecharModalSeguroAluno);
+  if (el.btnCancelar) el.btnCancelar.addEventListener("click", fecharModalSeguroAluno);
   if (el.modalOverlay) {
     el.modalOverlay.addEventListener("click", (event) => {
-      if (event.target === el.modalOverlay) fecharModal();
+      if (event.target === el.modalOverlay) fecharModalSeguroAluno();
     });
   }
 }
@@ -823,6 +756,7 @@ function abrirModalNovo() {
   if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   esconderPreviewFoto();
   if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
+  registrarEstadoInicialFormulario(el.formAluno);
 }
 
 function abrirModalEditar(aluno) {
@@ -844,10 +778,15 @@ function abrirModalEditar(aluno) {
   if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   aluno.foto ? mostrarPreviewFoto(aluno.foto) : esconderPreviewFoto();
   if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
+  registrarEstadoInicialFormulario(el.formAluno);
 }
 
 function fecharModal() {
   if (el.modalOverlay) el.modalOverlay.classList.add("hidden");
+}
+
+function fecharModalSeguroAluno() {
+  return fecharModalSeguro(el.formAluno, fecharModal);
 }
 
 function mostrarPreviewFoto(src) {
@@ -969,4 +908,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   atualizarOpcoesTurma();
   renderizar();
   await iniciarFluxoCadastro();
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && el?.modalOverlay && !el.modalOverlay.classList.contains('hidden')) {
+    fecharModalSeguroAluno();
+  }
 });

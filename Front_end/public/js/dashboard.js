@@ -50,6 +50,10 @@ function atualizarDashboard(dados) {
   document.getElementById("kpiPresenca").textContent = `${Number(dados.presenca_media || 0).toFixed(1)}%`;
   document.getElementById("barraPresenca").style.width = `${dados.presenca_media || 0}%`;
 
+  const documentos = dados.documentos || {};
+  document.getElementById("kpiDocsVencidos").textContent = `${Number(documentos.vencidos || 0)} vencidos`;
+  document.getElementById("kpiDocsVencemBreve").textContent = `${Number(documentos.vencem_em_ate_7_dias || 0)} vencem em até 7 dias`;
+
   document.getElementById("resumoReceita").textContent = formatarBRL(dados.resumo_financeiro?.receita_total);
   document.getElementById("resumoDespesas").textContent = formatarBRL(dados.resumo_financeiro?.despesas_total);
   document.getElementById("resumoSaldo").textContent = formatarBRL(dados.resumo_financeiro?.saldo_mensal);
@@ -142,6 +146,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     iniciarGrafico(dados);
   } catch (error) {
     console.error(error);
-    alert("Nao foi possivel carregar o dashboard.");
+    const lista = document.getElementById("listaAlertas");
+    if (lista) lista.innerHTML = '<p class="aviso-sem-dados">Não foi possível carregar o dashboard.</p>';
   }
 });

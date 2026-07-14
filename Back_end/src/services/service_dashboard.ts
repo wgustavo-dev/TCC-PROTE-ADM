@@ -4,6 +4,8 @@ import { Presenca } from "../models/model_presenca";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Despesa } from "../models/model_despesa";
 import { ServiceMensalidade } from "./service_mensalidade"
+import { Documento } from "../models/model_documento";
+import { calcularDiasRestantes } from "./service_documento";
 
 export class ServiceDashboard {
   async resumo() {
@@ -14,6 +16,7 @@ export class ServiceDashboard {
     const repoPresenca = AppDataSource.getRepository(Presenca);
     const repoMensalidade = AppDataSource.getRepository(Mensalidade);
     const repoDespesa = AppDataSource.getRepository(Despesa);
+    const repoDocumento = AppDataSource.getRepository(Documento);
     
 
 
@@ -89,6 +92,16 @@ export class ServiceDashboard {
 
     const presencaMedia =
       totalPresencas > 0 ? (presencasPresentes / totalPresencas) * 100 : 0;
+
+    const documentos = await repoDocumento.find();
+    const documentosVencidos = documentos.filter((documento) => {
+      const diasRestantes = calcularDiasRestantes(documento.data_validade);
+      return diasRestantes !== null && diasRestantes < 0;
+    }).length;
+    const documentosVencemEmBreve = documentos.filter((documento) => {
+      const diasRestantes = calcularDiasRestantes(documento.data_validade);
+      return diasRestantes !== null && diasRestantes >= 0 && diasRestantes <= 7;
+    }).length;
 
     const meses = [
       "Jan",
@@ -172,6 +185,10 @@ export class ServiceDashboard {
       presenca_media: Number(presencaMedia.toFixed(1)),
       grafico_mensal: graficoMensal,
       alertas,
+      documentos: {
+        vencidos: documentosVencidos,
+        vencem_em_ate_7_dias: documentosVencemEmBreve,
+      },
       resumo_financeiro: {
         receita_total: receitaMensal,
         despesas_total: despesasMensais,

@@ -28,7 +28,16 @@ if (botao) {
     idEmEdicao = null;
     limparFormularioOrcamento();
     modal.classList.add("ativo");
+    registrarEstadoInicialFormulario(modal);
   });
+}
+
+function fecharModalOrcamento() {
+  modal.classList.remove("ativo");
+}
+
+function fecharModalOrcamentoSeguro() {
+  return fecharModalSeguro(modal, fecharModalOrcamento);
 }
 
 /* ================================
@@ -36,7 +45,7 @@ if (botao) {
 ================================ */
 if (cancelar) {
   cancelar.addEventListener("click", () => {
-    modal.classList.remove("ativo");
+    fecharModalOrcamentoSeguro();
   });
 }
 
@@ -46,7 +55,7 @@ if (cancelar) {
 if (modal) {
   modal.addEventListener("click", (event) => {
     if (event.target.id === "fundoModal") {
-      modal.classList.remove("ativo");
+      fecharModalOrcamentoSeguro();
     }
   });
 }
@@ -222,7 +231,7 @@ function renderizarOrcamentos() {
   tabelaLinhas.addEventListener("click", handleTabelaClick);
 }
 
-function handleTabelaClick(event) {
+async function handleTabelaClick(event) {
   const btn = event.target.closest('button');
   if (!btn) return;
 
@@ -247,13 +256,14 @@ function handleTabelaClick(event) {
       if (campoDesembarque) campoDesembarque.value = orcamento.endereco_desembarque || "";
 
       modal.classList.add("ativo");
+      registrarEstadoInicialFormulario(modal);
     }
   } else if (btn.classList.contains('aprovar')) {
-    if (confirm('Aprovar este orçamento e iniciar o cadastro do cliente?')) {
+    if ((await showConfirm('Aprovar este orçamento e iniciar o cadastro do cliente?')).isConfirmed) {
       converterOrcamento(id);
     }
   } else if (btn.classList.contains('excluir')) {
-    if (confirm('Excluir este orçamento?')) {
+    if ((await showConfirm('Excluir este orçamento?')).isConfirmed) {
       excluirOrcamento(id);
     }
   }
@@ -264,13 +274,13 @@ function handleTabelaClick(event) {
 ================================ */
 async function salvarOrcamento() {
   if (!campoResponsavel || !campoResponsavel.value.trim()) {
-    alert('Informe o nome do responsável');
+    showWarning('Informe o nome do responsável');
     return;
   }
 
   const quantidadeAlunos = obterQuantidadeAlunos();
   if (!quantidadeAlunos) {
-    alert('Informe a quantidade de alunos');
+    showWarning('Informe a quantidade de alunos');
     return;
   }
 
@@ -299,7 +309,7 @@ async function salvarOrcamento() {
     modal.classList.remove('ativo');
   } catch (error) {
     console.error(error);
-    alert(error.message || 'Erro ao salvar orçamento');
+    showError(error.message || 'Erro ao salvar orçamento');
   }
 }
 
@@ -316,7 +326,7 @@ async function converterOrcamento(id) {
     window.location.href = `responsaveis.html?${params.toString()}`;
   } catch (error) {
     console.error(error);
-    alert(error.message || 'Erro ao aprovar orçamento');
+    showError(error.message || 'Erro ao aprovar orçamento');
   }
 }
 
@@ -330,7 +340,7 @@ async function excluirOrcamento(id) {
     renderizarOrcamentos();
   } catch (error) {
     console.error(error);
-    alert(error.message || 'Erro ao excluir orçamento');
+    showError(error.message || 'Erro ao excluir orçamento');
   }
 }
 
@@ -381,4 +391,10 @@ function initMenu() {
 document.addEventListener("DOMContentLoaded", () => {
   initMenu();
   carregarOrcamentos().then(() => renderizarOrcamentos());
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && modal?.classList.contains('ativo')) {
+    fecharModalOrcamentoSeguro();
+  }
 });

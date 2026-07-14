@@ -1,71 +1,4 @@
 /* =========================================================
-   ALERTAS PERSONALIZADOS - SWEETALERT2
-   ========================================================= */
-
-function showSuccess(message) {
-  return Swal.fire({
-    icon: "success",
-    title: "Sucesso!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showError(message) {
-  return Swal.fire({
-    icon: "error",
-    title: "Erro!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showWarning(message) {
-  return Swal.fire({
-    icon: "warning",
-    title: "Atenção!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showConfirm(message) {
-  return Swal.fire({
-    icon: "warning",
-    title: "Confirmar ação",
-    text: message,
-    showCancelButton: true,
-    confirmButtonText: "Confirmar",
-    cancelButtonText: "Cancelar",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button",
-      cancelButton: "prote-alert-cancel-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-/* =========================================================
    VARIÁVEIS GLOBAIS
    ========================================================= */
 
@@ -221,9 +154,9 @@ function statusPorDatas(pagamento, vencimento) {
 }
 
 function badgeStatus(status) {
-  if (status === "pago") return `<span class="status-badge status-pago">✔</span>`;
-  if (status === "atrasado") return `<span class="status-badge status-atrasado">⚠</span>`;
-  return `<span class="status-badge status-pendente">◌</span>`;
+  if (status === "pago") return `<span class="status-badge status-pago">PAGO</span>`;
+  if (status === "atrasado") return `<span class="status-badge status-atrasado">ATRASADO</span>`;
+  return `<span class="status-badge status-pendente">PENDENTE</span>`;
 }
 
 /* =========================================================

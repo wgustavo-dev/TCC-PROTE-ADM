@@ -34,34 +34,6 @@ const camposForm = {
   endereco: document.getElementById('endereco')
 };
 
-function showError(message) {
-  if (window.Swal) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Erro',
-      text: message
-    });
-    return;
-  }
-
-  alert(message);
-}
-
-function showSuccess(message) {
-  if (window.Swal) {
-    Swal.fire({
-      icon: 'success',
-      title: 'Sucesso',
-      text: message,
-      timer: 1400,
-      showConfirmButton: false
-    });
-    return;
-  }
-
-  alert(message);
-}
-
 function aplicarMascaraTelefone(valor) {
   const numeros = String(valor || '').replace(/\D/g, '').slice(0, 11);
 
@@ -321,6 +293,7 @@ function abrirModal(edicao = false, item = null, vindoDeOrcamento = false) {
   }
 
   modalOverlay.classList.remove('hidden');
+  registrarEstadoInicialFormulario(form);
 }
 
 function obterQuantidadeAlunos() {
@@ -402,21 +375,13 @@ async function salvarFormulario(e) {
 }
 
 async function confirmarExclusao(nome) {
-  if (window.Swal) {
-    const resultado = await Swal.fire({
-      title: 'Excluir responsável?',
-      text: `Tem certeza que deseja excluir ${nome || 'este responsável'}?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sim, excluir',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#d33'
-    });
+  const resultado = await showConfirm(`Tem certeza que deseja excluir ${nome || 'este responsável'}?`, {
+    title: 'Excluir responsável?',
+    confirmButtonText: 'Sim, excluir',
+    cancelButtonText: 'Cancelar'
+  });
 
-    return resultado.isConfirmed;
-  }
-
-  return confirm(`Tem certeza que deseja excluir ${nome || 'este responsável'}?`);
+  return resultado.isConfirmed;
 }
 
 async function excluirResponsavel(id) {
@@ -477,16 +442,16 @@ if (btnLimparFiltros) {
   });
 }
 
-document.getElementById('btnCancelar').addEventListener('click', () => {
+function fecharModalResponsavel() {
   modalOverlay.classList.add('hidden');
-});
+}
+
+document.getElementById('btnCancelar').addEventListener('click', () => fecharModalSeguro(form, fecharModalResponsavel));
 
 const btnCloseModal = document.getElementById('btnCancelarModal');
 
 if (btnCloseModal) {
-  btnCloseModal.addEventListener('click', () => {
-    modalOverlay.classList.add('hidden');
-  });
+  btnCloseModal.addEventListener('click', () => fecharModalSeguro(form, fecharModalResponsavel));
 }
 
 document.getElementById('btnFecharDetalhes').addEventListener('click', () => {
@@ -536,3 +501,9 @@ carregarResponsaveis()
     responsaveis = [];
     renderTabela();
   });
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !modalOverlay.classList.contains('hidden')) {
+    fecharModalSeguro(form, fecharModalResponsavel);
+  }
+});
