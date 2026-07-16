@@ -97,6 +97,10 @@ botaoEntrar.addEventListener('click', async function () {
             localStorage.setItem('prote_token', resposta.token);
         }
 
+        if (resposta && resposta.usuario) {
+            localStorage.setItem('prote_user', JSON.stringify(resposta.usuario));
+        }
+
         window.location.replace('index.html');
 
     } catch (erro) {

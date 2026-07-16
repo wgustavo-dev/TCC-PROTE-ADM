@@ -113,18 +113,18 @@
             </select>
           </div>
           <div class="grupo-filtro">
-            <label class="label-filtro" for="filtroTrajetoAluno">Tipo de trajeto</label>
+            <label class="label-filtro" for="filtroTrajetoAluno">Trajeto</label>
             <select id="filtroTrajetoAluno" class="input-filtro">
               <option value="">Todos</option>
-              <option value="ir">Apenas ir para escola</option>
-              <option value="voltar">Apenas voltar da escola</option>
-              <option value="ambos">Ambos</option>
+              <option value="ir">Ida</option>
+              <option value="voltar">Volta</option>
+              <option value="ambos">Ida e Volta</option>
             </select>
           </div>
                     <div class="grupo-filtro">
-            <label class="label-filtro" for="filtroTurmaAluno">Turma (período + horário)</label>
+            <label class="label-filtro" for="filtroTurmaAluno">Lista de itinerário</label>
             <select id="filtroTurmaAluno" class="input-filtro">
-              <option value="">Todas as turmas</option>
+              <option value="">Todas as listas</option>
             </select>
           </div>
           <div class="grupo-filtro grupo-botao-limpar">
@@ -233,11 +233,11 @@
         </div>
 
         <div class="grupo-filtro">
-          <label class="label-filtro" for="tipoTrajetoAluno">Tipo de trajeto</label>
+          <label class="label-filtro" for="tipoTrajetoAluno">Trajeto</label>
           <select id="tipoTrajetoAluno" class="input-filtro" required>
-            <option value="ir">Apenas ir para escola</option>
-            <option value="voltar">Apenas voltar da escola</option>
-            <option value="ambos" selected>Ambos</option>
+            <option value="ir">Ida</option>
+            <option value="voltar">Volta</option>
+            <option value="ambos" selected>Ida e Volta</option>
           </select>
         </div>
 
@@ -246,17 +246,11 @@
           <select id="periodoAluno" class="input-filtro" required>
             <option value="manha">Manhã</option>
             <option value="tarde">Tarde</option>
-            <option value="noite">Noite</option>
           </select>
         </div>
 
-        <div class="grupo-filtro campo-horario-turma" id="grupoHorarioTurma">
-          <label class="label-filtro" for="horarioTurmaAluno">Horário da turma</label>
-          <input type="time" id="horarioTurmaAluno" class="input-filtro" required />
-        </div>
-
         <div class="info-box">
-          Somente o condutor poderá ter acesso a esta área quando o controle de acesso for integrado ao back-end.
+          Apenas o condutor pode cadastrar, editar ou excluir alunos. O monitor tem acesso somente para visualização.
         </div>
 
         <div class="modal-actions">
@@ -268,6 +262,7 @@
   </div>
 
   <script src="core/api.js"></script>
+  <script src="core/permissoes.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="core/alerts.js"></script>
   <script src="js/alunos.js"></script>

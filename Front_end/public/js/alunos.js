@@ -6,6 +6,20 @@ let alunos = [];
 let responsaveis = [];
 let el = null;
 
+/* =========================================================
+   PERMISSÕES (C3)
+   Monitor pode visualizar os alunos, mas não pode cadastrar,
+   editar nem excluir — apenas o Condutor tem essas ações.
+   ========================================================= */
+function usuarioEhMonitor() {
+  try {
+    const usuario = JSON.parse(window.localStorage.getItem("prote_user") || "null");
+    return Boolean(usuario && usuario.role === "MONITOR");
+  } catch (erro) {
+    return false;
+  }
+}
+
 let fluxoCadastro = null;
 let idResponsavelFluxo = null;
 let idOrcamentoFluxo = null;
@@ -41,7 +55,6 @@ function mapTrajetoOrcamento(tipo) {
 function mapTurnoOrcamento(turno) {
   const valor = String(turno || "").toUpperCase();
   if (valor === "TARDE") return "tarde";
-  if (valor === "NOITE") return "noite";
   return "manha";
 }
 
@@ -154,9 +167,42 @@ function mapearAlunoApi(item) {
     escola: item.escola || "",
     vencimento: item.vencimento || "",
     tipoTrajeto: item.tipo_trajeto === "IDA" ? "ir" : item.tipo_trajeto === "VOLTA" ? "voltar" : "ambos",
-    periodo: item.turno ? item.turno.toLowerCase() : "manha",
-    horarioTurma: item.horario_turma || ""
+    periodo: item.turno ? item.turno.toLowerCase() : "manha"
   };
+}
+
+/* =========================================================
+   SISTEMA DE ITINERÁRIOS (C3)
+   A partir do Período (manhã/tarde) e do Trajeto (ir/voltar/ambos)
+   de cada aluno, o sistema organiza automaticamente quatro listas:
+   ida/manhã, volta/manhã, ida/tarde e volta/tarde. Um aluno com
+   trajeto "ambos" entra tanto na lista de ida quanto na de volta
+   do seu período. Essas listas servem de base para o sistema de
+   itinerários.
+   ========================================================= */
+const LISTAS_ITINERARIO = [
+  { chave: "manha-ida", periodo: "manha", sentido: "ida", titulo: "Ida - Manhã" },
+  { chave: "manha-volta", periodo: "manha", sentido: "volta", titulo: "Volta - Manhã" },
+  { chave: "tarde-ida", periodo: "tarde", sentido: "ida", titulo: "Ida - Tarde" },
+  { chave: "tarde-volta", periodo: "tarde", sentido: "volta", titulo: "Volta - Tarde" }
+];
+
+function alunoPertenceALista(aluno, lista) {
+  const periodo = aluno.periodo || "manha";
+  if (periodo !== lista.periodo) return false;
+
+  if (lista.sentido === "ida") {
+    return aluno.tipoTrajeto === "ir" || aluno.tipoTrajeto === "ambos";
+  }
+  return aluno.tipoTrajeto === "voltar" || aluno.tipoTrajeto === "ambos";
+}
+
+function montarListasItinerario(lista) {
+  const resultado = {};
+  LISTAS_ITINERARIO.forEach((definicao) => {
+    resultado[definicao.chave] = lista.filter((aluno) => alunoPertenceALista(aluno, definicao));
+  });
+  return resultado;
 }
 
 async function carregarAlunos() {
@@ -272,8 +318,7 @@ function montarPayloadAluno() {
     escola: el.escolaAluno ? el.escolaAluno.value.trim() : "",
     vencimento: el.vencimentoAluno ? el.vencimentoAluno.value : "",
     tipoTrajeto,
-    periodo: el.periodoAluno ? el.periodoAluno.value : "manha",
-    horarioTurma: el.horarioTurmaAluno ? el.horarioTurmaAluno.value : ""
+    periodo: el.periodoAluno ? el.periodoAluno.value : "manha"
   };
 }
 
@@ -292,11 +337,12 @@ async function salvarAluno(payload, idResponsavel) {
   const tipoTrajetoApi = payload.tipoTrajeto === "ir" ? "IDA" : payload.tipoTrajeto === "voltar" ? "VOLTA" : "AMBOS";
   const turnoApi = payload.periodo ? payload.periodo.toUpperCase() : "MANHA";
 
-  form.append("tipo_trajeto", tipoTrajetoApi);
-  form.append("turno", turnoApi);
-  form.append("horario_turma", payload.horarioTurma);
-  
-  if (el.fotoAluno.files[0]) form.append("foto", el.fotoAluno.files[0]);
+    form.append("tipo_trajeto", tipoTrajetoApi);
+    form.append("turno", turnoApi);
+
+    if (el.fotoAluno?.files?.[0]) {
+        form.append("foto", el.fotoAluno.files[0]);
+    }
 
   if (payload.id) {
     await window.API.put(`/alunos/${payload.id}`, form);
@@ -366,24 +412,18 @@ function atualizarOpcoesEscola() {
 
 function atualizarOpcoesTurma() {
   if (!el.filtroTurma) return;
-  const turmas = [...new Set(alunos.map((aluno) => `${aluno.periodo || "manha"}|${aluno.horarioTurma || "00:00"}`))]
-    .sort((a, b) => a.localeCompare(b));
 
   el.filtroTurma.innerHTML = `
-    <option value="">Todas as turmas</option>
-    ${turmas.map((turma) => {
-      const [periodo, horario] = turma.split("|");
-      const periodoLabel = periodo === "manha" ? "Manhã" : periodo === "tarde" ? "Tarde" : "Noite";
-      return `<option value="${turma}">${periodoLabel} • ${horario}</option>`;
-    }).join("")}
+    <option value="">Todas as listas</option>
+    ${LISTAS_ITINERARIO.map((lista) => `<option value="${lista.chave}">${lista.titulo}</option>`).join("")}
   `;
 }
 
 function obterDescricaoTrajeto(tipo) {
   const trajetos = {
-    ir: "Apenas ir",
-    voltar: "Apenas voltar",
-    ambos: "Ambos"
+    ir: "Ida",
+    voltar: "Volta",
+    ambos: "Ida e Volta"
   };
   return trajetos[tipo] || "-";
 }
@@ -427,11 +467,13 @@ function obterAlunosFiltrados() {
       .join(" ")
       .toLowerCase();
 
+    const listaSelecionada = turma ? LISTAS_ITINERARIO.find((item) => item.chave === turma) : null;
+
     return (
       (!busca || textoBusca.includes(busca)) &&
       (!escola || aluno.escola === escola) &&
       (!trajeto || aluno.tipoTrajeto === trajeto) &&
-      (!turma || `${aluno.periodo || "manha"}|${aluno.horarioTurma || "00:00"}` === turma) &&
+      (!listaSelecionada || alunoPertenceALista(aluno, listaSelecionada)) &&
       (!venc || aluno.vencimento === venc)
     );
   });
@@ -480,6 +522,7 @@ function renderizarTabela(lista) {
       <td>${aluno.embarque || "-"}</td>
       <td>${aluno.desembarque || "-"}</td>
       <td>
+        ${usuarioEhMonitor() ? `<span class="texto-somente-leitura">Somente visualização</span>` : `
         <div class="actions">
           <button class="icon-btn edit" data-id="${aluno.id}" data-action="editar" aria-label="Editar aluno">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
@@ -497,6 +540,7 @@ function renderizarTabela(lista) {
             </svg>
           </button>
         </div>
+        `}
       </td>
     </tr>
     `
@@ -524,7 +568,7 @@ function renderizarCardsMobile(lista) {
           <strong>${aluno.nome || "-"}</strong>
           <span class="tag-trajeto">${obterDescricaoTrajeto(aluno.tipoTrajeto)}</span>
         </header>
-        <p>${aluno.escola || "-"} • ${aluno.horarioTurma || "--:--"}</p>
+        <p>${aluno.escola || "-"}</p>
         <p><b>Trajeto:</b> ${obterDescricaoTrajeto(aluno.tipoTrajeto)}</p>
       </article>`;
   }).join("");
@@ -533,41 +577,21 @@ function renderizarCardsMobile(lista) {
 function renderizarRotas(lista) {
   if (!el.rotasContainer) return;
 
-  const porPeriodo = { manha: [], tarde: [], noite: [] };
-  lista.forEach((a) => porPeriodo[a.periodo || "manha"]?.push(a));
+  const listasItinerario = montarListasItinerario(lista);
 
-  const periodos = [
-    ["manha", "Manhã"],
-    ["tarde", "Tarde"],
-    ["noite", "Noite"]
-  ];
+  const html = LISTAS_ITINERARIO.map((definicao) => {
+    const alunosLista = listasItinerario[definicao.chave] || [];
+    if (!alunosLista.length) return "";
 
-  const html = periodos.map(([chavePeriodo, tituloPeriodo]) => {
-    const listaPeriodo = porPeriodo[chavePeriodo] || [];
-    if (!listaPeriodo.length) return "";
-
-    const gruposHorario = {};
-    listaPeriodo.forEach((a) => {
-      const h = a.horarioTurma || "00:00";
-      gruposHorario[h] = gruposHorario[h] || [];
-      gruposHorario[h].push(a);
-    });
-
-    const blocosHorario = Object.entries(gruposHorario)
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([horario, alunosHorario]) => {
-        const ordemTrajeto = ["ir", "ambos", "voltar"];
-        alunosHorario.sort((a,b) => ordemTrajeto.indexOf(a.tipoTrajeto) - ordemTrajeto.indexOf(b.tipoTrajeto));
-
-        const itens = alunosHorario.map((a) => {
-          const rota = normalizarRotaPorTrajeto(a);
-          return `<li><strong>${a.nome}</strong> — <span class="badge-trajeto ${a.tipoTrajeto}">${obterDescricaoTrajeto(a.tipoTrajeto)}</span><br><small>Embarque: ${rota.embarque || "-"} | Desembarque: ${rota.desembarque || "-"}</small></li>`;
-        }).join("");
-
-        return `<div class="rota-card"><h4>Horário ${horario}</h4><ul>${itens}</ul></div>`;
+    const itens = alunosLista
+      .slice()
+      .sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"))
+      .map((a) => {
+        const rota = normalizarRotaPorTrajeto(a);
+        return `<li><strong>${a.nome}</strong> — <span class="badge-trajeto ${a.tipoTrajeto}">${obterDescricaoTrajeto(a.tipoTrajeto)}</span><br><small>Embarque: ${rota.embarque || "-"} | Desembarque: ${rota.desembarque || "-"}</small></li>`;
       }).join("");
 
-    return `<section class="periodo-rota"><h3 class="titulo-periodo-rota">Alunos da ${tituloPeriodo}</h3><div class="rotas-container-periodo">${blocosHorario}</div></section>`;
+    return `<section class="periodo-rota"><h3 class="titulo-periodo-rota">${definicao.titulo}</h3><div class="rotas-container-periodo"><div class="rota-card"><ul>${itens}</ul></div></div></section>`;
   }).join("");
 
   el.rotasContainer.innerHTML = html || '<div class="empty-state">Nenhuma rota montada.</div>';
@@ -591,7 +615,10 @@ function renderizar() {
 function configurarFormulario() {
   if (!el.formAluno) return;
   
+  console.log('Configurando formulário de alunos');
+  
   el.formAluno.addEventListener("submit", async (event) => {
+    console.log('Formulário enviado (submit)');
     event.preventDefault();
 
     const payload = montarPayloadAluno();
@@ -606,13 +633,21 @@ function configurarFormulario() {
 
     // Validação dos campos obrigatórios do aluno
     if (!payload.nome || !payload.embarque || !payload.desembarque || !payload.escola || !payload.vencimento) {
+      console.warn('Validação falhou. Campos vazios:', {
+        nome: !!payload.nome,
+        embarque: !!payload.embarque,
+        desembarque: !!payload.desembarque,
+        escola: !!payload.escola,
+        vencimento: !!payload.vencimento
+      });
       showWarning("Preencha todos os campos obrigatórios do aluno.");
       return;
     }
 
-    // Validação de horário e período
-    if (!payload.periodo || !payload.horarioTurma) {
-      showWarning("Preencha o período e o horário da turma.");
+    // Validação de período
+    if (!payload.periodo) {
+      console.warn('Validação de período falhou.');
+      showWarning("Selecione o período do aluno.");
       return;
     }
 
@@ -630,6 +665,7 @@ function configurarFormulario() {
     }
 
     try {
+      console.log('Iniciando salvamento do aluno...');
       const novoCadastro = !payload.id;
       const idResponsavelSalvar = fluxoAtivo
         ? idResponsavelFluxo
@@ -637,8 +673,11 @@ function configurarFormulario() {
 
       const alunoSalvo = await salvarAluno(payload, idResponsavelSalvar);
       alunos = await carregarAlunos();
+      console.log('Alunos recarregados, total:', alunos.length);
+      
       fecharModal();
       atualizarOpcoesEscola();
+      atualizarOpcoesTurma();
       atualizarOpcoesTurma();
       renderizar();
 
@@ -650,13 +689,12 @@ function configurarFormulario() {
       await showSuccess(
         `${payload.id ? "Aluno atualizado" : "Aluno cadastrado"} com sucesso!\n\n` +
         `Nome: ${payload.nome}\n` +
-        `Período: ${payload.periodo === "manha" ? "Manhã" : payload.periodo === "tarde" ? "Tarde" : "Noite"}\n` +
-        `Horário: ${payload.horarioTurma}\n` +
-        `Trajeto: ${payload.tipoTrajeto === "ir" ? "Apenas ida" : payload.tipoTrajeto === "voltar" ? "Apenas volta" : "Ida e volta"}`
+        `Período: ${payload.periodo === "manha" ? "Manhã" : "Tarde"}\n` +
+        `Trajeto: ${payload.tipoTrajeto === "ir" ? "Ida" : payload.tipoTrajeto === "voltar" ? "Volta" : "Ida e Volta"}`
       );
     } catch (error) {
-      console.error(error);
-      showError("Não foi possível salvar o aluno.");
+      console.error('Erro ao salvar aluno:', error);
+      showError(`Não foi possível salvar o aluno: ${error.message || error}`);
     }
   });
 }
@@ -722,7 +760,6 @@ function obterElementos() {
     vencimentoAluno: document.getElementById("vencimentoAluno"),
     tipoTrajetoAluno: document.getElementById("tipoTrajetoAluno"),
     periodoAluno: document.getElementById("periodoAluno"),
-    horarioTurmaAluno: document.getElementById("horarioTurmaAluno"),
     inputBusca: document.getElementById("inputBusca"),
     tbodyAlunos: document.getElementById("tbodyAlunos"),
     emptyState: document.getElementById("emptyState"),
@@ -774,7 +811,6 @@ function abrirModalEditar(aluno) {
   if (el.vencimentoAluno) el.vencimentoAluno.value = aluno.vencimento || "";
   if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = aluno.tipoTrajeto || "ambos";
   if (el.periodoAluno) el.periodoAluno.value = aluno.periodo || "manha";
-  if (el.horarioTurmaAluno) el.horarioTurmaAluno.value = aluno.horarioTurma || "";
   if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   aluno.foto ? mostrarPreviewFoto(aluno.foto) : esconderPreviewFoto();
   if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
@@ -869,7 +905,6 @@ async function processarRetornoResponsavel() {
         if (el.vencimentoAluno) el.vencimentoAluno.value = dados.alunoData.vencimento || "";
         if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = dados.alunoData.tipoTrajeto || "ambos";
         if (el.periodoAluno) el.periodoAluno.value = dados.alunoData.periodo || "manha";
-        if (el.horarioTurmaAluno) el.horarioTurmaAluno.value = dados.alunoData.horarioTurma || "";
         
         showSuccess("Responsável cadastrado! Agora complete os dados do aluno.");
       }, 100);
@@ -893,21 +928,28 @@ window.addEventListener("DOMContentLoaded", async () => {
   el = obterElementos();
   if (!el || !el.formAluno) return;
 
+  const monitor = usuarioEhMonitor();
+
   alunos = await carregarAlunos();
-  responsaveis = await carregarResponsaveis();
-  
+  responsaveis = monitor ? [] : await carregarResponsaveis();
+
   configurarModal();
   configurarBuscaEFiltros();
-  configurarMascaras();
-  configurarAutocompletarResponsavel();
-  configurarPreviewFoto();
-  configurarFormulario();
+  if (!monitor) {
+    configurarMascaras();
+    configurarAutocompletarResponsavel();
+    configurarPreviewFoto();
+    configurarFormulario();
+  }
   configurarTabela();
-  
+
   atualizarOpcoesEscola();
   atualizarOpcoesTurma();
   renderizar();
-  await iniciarFluxoCadastro();
+
+  if (!monitor) {
+    await iniciarFluxoCadastro();
+  }
 });
 
 document.addEventListener('keydown', (event) => {
