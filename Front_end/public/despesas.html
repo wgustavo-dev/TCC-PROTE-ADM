@@ -6,6 +6,7 @@
   <title>PROTE — Despesas</title>
 <link rel="stylesheet" href="css/dashboard.css" />
   <link rel="stylesheet" href="css/despesas.css" />
+  <link rel="stylesheet" href="core/alerts.css" />
 </head>
 <body>
 
@@ -195,64 +196,162 @@
   </div>
 
   <!-- MODAL: NOVA DESPESA / EDITAR DESPESA -->
-  <div class="fundo-modal" id="fundoModal">
+<div class="fundo-modal" id="fundoModal">
+
     <div class="caixa-modal" role="dialog" aria-modal="true" aria-labelledby="tituloModal">
-      <h2 class="titulo-modal" id="tituloModal">Nova Despesa</h2>
 
-      <div class="grupo-campo">
-        <label class="label-campo" for="campTipo">Tipo de Despesa</label>
-        <select class="select-campo" id="campTipo">
-          <option value="">Selecione...</option>
-          <option value="Combustível">Combustível</option>
-          <option value="Manutenção Mecânica">Manutenção Mecânica</option>
-          <option value="Pneus">Pneus</option>
-          <option value="Seguro">Seguro</option>
-          <option value="Licenciamento">Licenciamento</option>
-          <option value="Lavagem">Lavagem</option>
-          <option value="Outros">Outros</option>
-        </select>
-        <span class="mensagem-erro" id="erroTipo"></span>
-      </div>
+        <div class="modal-header">
+            <h2 class="titulo-modal" id="tituloModal">Nova Despesa</h2>
 
-      <div class="grupo-campo">
-        <label class="label-campo" for="campValor">Valor (R$)</label>
-        <input type="number" class="input-campo" id="campValor" placeholder="0,00" min="0.01" step="0.01" />
-        <span class="mensagem-erro" id="erroValor"></span>
-      </div>
+            <button
+                type="button"
+                class="btn-close"
+                id="botaoFecharModal">
+                ×
+            </button>
+        </div>
 
-      <div class="grupo-campo">
-        <label class="label-campo" for="campData">Data</label>
-        <input type="date" class="input-campo" id="campData" />
-        <span class="mensagem-erro" id="erroData"></span>
-      </div>
+        <div class="modal-body-scroll">
 
-      <div class="grupo-campo">
-        <label class="label-campo" for="campDescricao">Descrição</label>
-        <textarea class="textarea-campo" id="campDescricao" placeholder="Informações complementares..." maxlength="255"></textarea>
-        <span class="contador-caracteres" id="contadorCaracteres">0/255 caracteres</span>
-      </div>
+            <div class="grupo-campo">
+                <label class="label-campo" for="campTipo">
+                    Tipo de Despesa
+                </label>
 
-      <div class="acoes-modal">
-        <button class="botao-cancelar" id="botaoCancelar">Cancelar</button>
-        <button class="botao-cadastrar" id="botaoCadastrar">Cadastrar</button>
-      </div>
+                <select class="select-campo" id="campTipo">
+                    <option value="">Selecione...</option>
+                    <option value="Combustível">Combustível</option>
+                    <option value="Manutenção Mecânica">Manutenção Mecânica</option>
+                    <option value="Pneus">Pneus</option>
+                    <option value="Seguro">Seguro</option>
+                    <option value="Licenciamento">Licenciamento</option>
+                    <option value="Lavagem">Lavagem</option>
+                    <option value="Outros">Outros</option>
+                </select>
+
+                <span class="mensagem-erro" id="erroTipo"></span>
+            </div>
+
+            <div class="grupo-campo">
+                <label class="label-campo" for="campValor">
+                    Valor (R$)
+                </label>
+
+                <input
+                    type="number"
+                    class="input-campo"
+                    id="campValor"
+                    placeholder="0,00"
+                    min="0.01"
+                    step="0.01">
+
+                <span class="mensagem-erro" id="erroValor"></span>
+            </div>
+
+            <div class="grupo-campo">
+                <label class="label-campo" for="campData">
+                    Data
+                </label>
+
+                <input
+                    type="date"
+                    class="input-campo"
+                    id="campData">
+
+                <span class="mensagem-erro" id="erroData"></span>
+            </div>
+
+            <div class="grupo-campo">
+                <label class="label-campo" for="campDescricao">
+                    Descrição
+                </label>
+
+                <textarea
+                    class="textarea-campo"
+                    id="campDescricao"
+                    maxlength="255"
+                    placeholder="Informações complementares..."></textarea>
+
+                <span
+                    class="contador-caracteres"
+                    id="contadorCaracteres">
+                    0/255 caracteres
+                </span>
+            </div>
+
+            <div class="acoes-modal">
+                <button
+                    class="botao-cancelar"
+                    id="botaoCancelar">
+                    Cancelar
+                </button>
+
+                <button
+                    class="botao-cadastrar"
+                    id="botaoCadastrar">
+                    Cadastrar
+                </button>
+            </div>
+
+        </div>
+
     </div>
-  </div>
 
-  <!--MODAL: CONFIRMAÇÃO DE EXCLUSÃO-->
-  <div class="fundo-modal" id="fundoModalExcluir">
-    <div class="caixa-modal caixa-modal-pequena" role="dialog" aria-modal="true">
-      <h2 class="titulo-modal">Excluir Despesa</h2>
-      <p class="texto-confirmacao">Tem certeza que deseja excluir esta despesa? Esta ação não pode ser desfeita.</p>
-      <div class="acoes-modal">
-        <button class="botao-cancelar" id="botaoCancelarExclusao">Cancelar</button>
-        <button class="botao-excluir"  id="botaoConfirmarExclusao">Excluir</button>
-      </div>
+</div>
+  <!-- MODAL DE EXCLUSÃO -->
+<div class="fundo-modal" id="fundoModalExcluir">
+
+    <div class="caixa-modal caixa-modal-pequena"
+         role="dialog"
+         aria-modal="true">
+
+        <div class="modal-header">
+
+            <h2 class="titulo-modal">
+                Excluir Despesa
+            </h2>
+
+            <button
+                type="button"
+                class="btn-close"
+                id="botaoFecharExcluir">
+                ×
+            </button>
+
+        </div>
+
+        <div class="modal-body-scroll">
+
+            <p class="texto-confirmacao">
+                Tem certeza que deseja excluir esta despesa?
+                Esta ação não pode ser desfeita.
+            </p>
+
+            <div class="acoes-modal">
+
+                <button
+                    class="botao-cancelar"
+                    id="botaoCancelarExclusao">
+                    Cancelar
+                </button>
+
+                <button
+                    class="botao-excluir"
+                    id="botaoConfirmarExclusao">
+                    Excluir
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
+
+</div>
 
   <script src="core/api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="core/alerts.js"></script>
   <script src="js/despesas.js"></script>
 </body>
 </html>

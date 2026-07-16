@@ -7,6 +7,8 @@
 
   <link rel="stylesheet" href="css/dashboard.css" />
   <link rel="stylesheet" href="css/alunos.css" />
+  <link rel="stylesheet" href="core/alerts.css" />
+  <link rel="stylesheet" href="css/formularios.css">
 </head>
 <body>
   <div class="fundo-escuro" id="fundoEscuro"></div>
@@ -73,11 +75,6 @@
           <h1 class="page-title">Controle de alunos</h1>
           <p class="page-sub">Gerencie dados dos alunos e responsáveis</p>
         </div>
-
-        <button class="btn-primary btn-aluno-topo" id="btnAbrirModal" type="button">
-          <span>+</span>
-          Novo aluno
-        </button>
       </div>
 
       <div class="campo-busca">
@@ -86,6 +83,54 @@
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
         <input type="text" id="inputBusca" class="input-busca" placeholder="Buscar por aluno..." />
+      </div>
+  <div class="barra-filtro">
+        <button type="button" class="botao-filtro" id="botaoFiltroAluno"> 
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg> 
+          Filtro
+        </button>
+      </div>
+
+      <div class="painel-filtros hidden" id="painelFiltrosAluno">
+        <div class="campos-filtro">
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroVencimentoAluno">Data de vencimento</label>
+            <input type="date" id="filtroVencimentoAluno" class="input-filtro">
+          </div>
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroOrdemAluno">Ordem</label>
+            <select id="filtroOrdemAluno" class="input-filtro">
+              <option value="alfabetica">Ordem alfabética</option>
+              <option value="vencimento">Data de vencimento</option>
+            </select>
+          </div>
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroEscolaAluno">Escola</label>
+            <select id="filtroEscolaAluno" class="input-filtro">
+              <option value="">Todas as escolas</option>
+            </select>
+          </div>
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroTrajetoAluno">Tipo de trajeto</label>
+            <select id="filtroTrajetoAluno" class="input-filtro">
+              <option value="">Todos</option>
+              <option value="ir">Apenas ir para escola</option>
+              <option value="voltar">Apenas voltar da escola</option>
+              <option value="ambos">Ambos</option>
+            </select>
+          </div>
+                    <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroTurmaAluno">Turma (período + horário)</label>
+            <select id="filtroTurmaAluno" class="input-filtro">
+              <option value="">Todas as turmas</option>
+            </select>
+          </div>
+          <div class="grupo-filtro grupo-botao-limpar">
+            <button type="button" id="btnLimparFiltrosAluno" class="botao-limpar-filtros">Limpar</button>
+          </div>
+        </div>
       </div>
 
       <div class="card table-card tabela-alunos-wrapper">
@@ -224,6 +269,7 @@
 
   <script src="core/api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="core/alerts.js"></script>
   <script src="js/alunos.js"></script>
 
 </body>

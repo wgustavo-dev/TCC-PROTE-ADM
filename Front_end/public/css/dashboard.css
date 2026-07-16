@@ -727,3 +727,25 @@ button:focus-visible,
   align-items: center;
   justify-content: center;
 }
+
+.card-documentos-dashboard {
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.card-documentos-dashboard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+.documentos-alerta-valor {
+  color: var(--vermelho-texto);
+}
+.swal2-container {
+  z-index: 999999 !important;
+}
+
+.swal2-backdrop-show {
+  z-index: 999998 !important;
+}

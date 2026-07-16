@@ -7,6 +7,7 @@
 
   <link rel="stylesheet" href="css/dashboard.css" />
   <link rel="stylesheet" href="css/mensalidade.css" />
+  <link rel="stylesheet" href="core/alerts.css" />
 </head>
 <body>
 
@@ -75,14 +76,6 @@
           <h1 class="page-title titulo-mensalidades">Controle de mensalidades</h1>
           <p class="page-sub">Gerencie pagamentos e comunicação com clientes</p>
         </div>
-
-        <button class="botao-primario-mensalidade" id="botaoNovaMensalidade">
-          <svg class="icone-botao-topo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Nova mensalidade
-        </button>
       </div>
 
       <!-- Cards resumo -->
@@ -214,10 +207,7 @@
           </div>
         </div>
 
-        <div class="grupo-filtro">
-          <label class="label-filtro" for="fotoMensalidade">Foto do aluno</label>
-          <input type="file" id="fotoMensalidade" class="input-arquivo" accept="image/*" />
-        </div>
+ 
 
         <div class="grupo-filtro">
           <label class="label-filtro" for="campoAlunoMensalidade">Nome do aluno</label>
@@ -263,6 +253,7 @@
   <!-- SCRIPTS -->
   <script src="core/api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="core/alerts.js"></script>
   <script src="js/mensalidade.js"></script>
 
 </body>

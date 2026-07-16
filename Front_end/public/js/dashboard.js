@@ -19,6 +19,29 @@ function formatarBRL(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+function formatarDataBR(dataISO) {
+  if (!dataISO) return "";
+  const partes = String(dataISO).slice(0, 10).split("-");
+  if (partes.length !== 3) return dataISO;
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+function formatarVencimentoRelativo(dataISO) {
+  if (!dataISO) return "";
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const vencimento = new Date(`${String(dataISO).slice(0, 10)}T00:00:00`);
+  vencimento.setHours(0, 0, 0, 0);
+
+  const diffDias = Math.round((hoje - vencimento) / (1000 * 60 * 60 * 24));
+
+  if (diffDias === 0) return "hoje";
+  if (diffDias === 1) return "ontem";
+  return formatarDataBR(dataISO);
+}
+
 function atualizarDashboard(dados) {
   document.getElementById("kpiReceita").textContent = formatarBRL(dados.receita_mensal);
   document.getElementById("kpiDespesas").textContent = formatarBRL(dados.despesas_mensais);
@@ -26,6 +49,10 @@ function atualizarDashboard(dados) {
   document.getElementById("kpiAlunos").textContent = String(dados.alunos_ativos || 0);
   document.getElementById("kpiPresenca").textContent = `${Number(dados.presenca_media || 0).toFixed(1)}%`;
   document.getElementById("barraPresenca").style.width = `${dados.presenca_media || 0}%`;
+
+  const documentos = dados.documentos || {};
+  document.getElementById("kpiDocsVencidos").textContent = `${Number(documentos.vencidos || 0)} vencidos`;
+  document.getElementById("kpiDocsVencemBreve").textContent = `${Number(documentos.vencem_em_ate_7_dias || 0)} vencem em até 7 dias`;
 
   document.getElementById("resumoReceita").textContent = formatarBRL(dados.resumo_financeiro?.receita_total);
   document.getElementById("resumoDespesas").textContent = formatarBRL(dados.resumo_financeiro?.despesas_total);
@@ -54,8 +81,23 @@ function renderizarAlertas(alertas) {
     return;
   }
 
-  lista.innerHTML = alertas
-    .map((item) => `<div class="alerta alerta-vermelho"><p class="titulo-alerta vermelho">Alerta</p><p class="descricao-alerta vermelho">${item}</p></div>`)
+  const alertasOrdenados = [...alertas].sort((a, b) => {
+    const diffDias = (b.dias_atraso ?? 0) - (a.dias_atraso ?? 0);
+    if (diffDias !== 0) return diffDias;
+    return String(a.nome_aluno || "").localeCompare(String(b.nome_aluno || ""));
+  });
+
+  lista.innerHTML = alertasOrdenados
+    .map((item) => {
+      const nomeAluno = item.nome_aluno || "Aluno";
+
+      if (item.tipo === "vence_hoje") {
+        return `<div class="alerta alerta-amarelo"><p class="titulo-alerta amarelo">${nomeAluno}</p><p class="descricao-alerta amarelo">A mensalidade de ${nomeAluno} vence hoje.</p></div>`;
+      }
+
+      const quando = formatarVencimentoRelativo(item.data_vencimento);
+      return `<div class="alerta alerta-vermelho"><p class="titulo-alerta vermelho">${nomeAluno}</p><p class="descricao-alerta vermelho">A mensalidade de ${nomeAluno} venceu ${quando}.</p></div>`;
+    })
     .join("");
 }
 
@@ -104,6 +146,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     iniciarGrafico(dados);
   } catch (error) {
     console.error(error);
-    alert("Nao foi possivel carregar o dashboard.");
+    const lista = document.getElementById("listaAlertas");
+    if (lista) lista.innerHTML = '<p class="aviso-sem-dados">Não foi possível carregar o dashboard.</p>';
   }
 });

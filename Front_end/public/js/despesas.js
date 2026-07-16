@@ -1,70 +1,3 @@
-/* =========================================================
-   ALERTAS PERSONALIZADOS - SWEETALERT2
-   ========================================================= */
-
-function showSuccess(message) {
-  return Swal.fire({
-    icon: "success",
-    title: "Sucesso!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showError(message) {
-  return Swal.fire({
-    icon: "error",
-    title: "Erro!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showWarning(message) {
-  return Swal.fire({
-    icon: "warning",
-    title: "Atenção!",
-    text: message,
-    confirmButtonText: "OK",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button"
-    },
-    buttonsStyling: false
-  });
-}
-
-function showConfirm(message) {
-  return Swal.fire({
-    icon: "warning",
-    title: "Confirmar ação",
-    text: message,
-    showCancelButton: true,
-    confirmButtonText: "Confirmar",
-    cancelButtonText: "Cancelar",
-    customClass: {
-      popup: "prote-alert",
-      title: "prote-alert-title",
-      confirmButton: "prote-alert-button",
-      cancelButton: "prote-alert-cancel-button"
-    },
-    buttonsStyling: false
-  });
-}
-
 /* 
    DADOS
    Carrega da API /api/despesas
@@ -313,6 +246,7 @@ function abrirModal(despesa) {
 
   atualizarContador();
   fundoModal.classList.add('aberto');
+  registrarEstadoInicialFormulario(fundoModal);
   campTipo.focus();
 }
 
@@ -335,9 +269,9 @@ botaoNovaDespesa.addEventListener('click', function() {
 });
 
 /* Fecha ao clicar em Cancelar ou fora da caixa do modal */
-botaoCancelar.addEventListener('click', fecharModal);
+botaoCancelar.addEventListener('click', () => fecharModalSeguro(fundoModal, fecharModal));
 fundoModal.addEventListener('click', function(e) {
-  if (e.target === fundoModal) fecharModal();
+  if (e.target === fundoModal) fecharModalSeguro(fundoModal, fecharModal);
 });
 
 
@@ -491,7 +425,7 @@ botaoConfirmarExclusao.addEventListener('click', function() {
  */
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    fecharModal();
+    fecharModalSeguro(fundoModal, fecharModal);
     fundoModalExcluir.classList.remove('aberto');
   }
 });

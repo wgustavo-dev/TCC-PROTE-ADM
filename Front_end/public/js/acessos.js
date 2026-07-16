@@ -61,52 +61,6 @@ function dadosIniciais() {
   ];
 }
 
-function showError(message) {
-  if (window.Swal) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Erro',
-      text: message,
-      confirmButtonText: 'OK'
-    });
-    return;
-  }
-
-  alert(message);
-}
-
-function showSuccess(message) {
-  if (window.Swal) {
-    Swal.fire({
-      icon: 'success',
-      title: 'Sucesso',
-      text: message,
-      timer: 1300,
-      showConfirmButton: false
-    });
-    return;
-  }
-
-  alert(message);
-}
-
-async function showConfirm(message) {
-  if (window.Swal) {
-    const result = await Swal.fire({
-      icon: 'warning',
-      title: 'Confirmar ação',
-      text: message,
-      showCancelButton: true,
-      confirmButtonText: 'Excluir',
-      cancelButtonText: 'Cancelar'
-    });
-
-    return result.isConfirmed;
-  }
-
-  return confirm(message);
-}
-
 function aplicarMascaraTelefone(valor) {
   const numeros = String(valor || '').replace(/\D/g, '').slice(0, 11);
 
@@ -236,6 +190,7 @@ function abrirModal(editando = false, acesso = null) {
   campos.telefone.value = acesso?.telefone || '';
 
   modalOverlay.classList.remove('hidden');
+  registrarEstadoInicialFormulario(form);
 
   setTimeout(() => campos.nome.focus(), 80);
 }
@@ -317,7 +272,7 @@ async function salvarAcesso(event) {
 
 async function excluirAcesso(id) {
   const confirmado = await showConfirm('Deseja excluir este acesso?');
-  if (!confirmado) return;
+  if (!confirmado.isConfirmed) return;
 
   try {
     if (usandoApi) {
@@ -336,10 +291,10 @@ async function excluirAcesso(id) {
 }
 
 btnNovo.addEventListener('click', () => abrirModal(false));
-btnCancelar.addEventListener('click', fecharModal);
+btnCancelar.addEventListener('click', () => fecharModalSeguro(form, fecharModal));
 
 modalOverlay.addEventListener('click', (event) => {
-  if (event.target === modalOverlay) fecharModal();
+  if (event.target === modalOverlay) fecharModalSeguro(form, fecharModal);
 });
 
 form.addEventListener('submit', salvarAcesso);
@@ -378,7 +333,7 @@ tbody.addEventListener('click', (event) => {
 
 window.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !modalOverlay.classList.contains('hidden')) {
-    fecharModal();
+    fecharModalSeguro(form, fecharModal);
   }
 });
 
