@@ -33,6 +33,7 @@
 
     if ((response.status === 401 || response.status === 403) && !path.startsWith("/auth/")) {
       window.localStorage.removeItem("prote_token");
+      window.localStorage.removeItem("prote_user");
       if (isProtectedPage) {
         window.location.replace("login.html");
       }

@@ -320,6 +320,12 @@
   align-items: center;
 }
 
+.texto-somente-leitura {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+}
+
 .icon-btn {
   background: none;
   border: none;

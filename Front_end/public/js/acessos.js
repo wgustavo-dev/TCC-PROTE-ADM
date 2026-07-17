@@ -26,8 +26,21 @@ const campos = {
   nome: document.getElementById('nomeAcesso'),
   acesso: document.getElementById('tipoAcesso'),
   email: document.getElementById('emailAcesso'),
-  telefone: document.getElementById('telefoneAcesso')
+  telefone: document.getElementById('telefoneAcesso'),
+  senha: document.getElementById('senhaAcesso'),
+  confirmarSenha: document.getElementById('confirmarSenhaAcesso'),
+  condutorResponsavel: document.getElementById('condutorResponsavel')
 };
+
+const grupoCondutor = document.getElementById('grupoCondutorResponsavel');
+
+function carregarCondutores() {
+  const condutores = acessos.filter((item) => item.acesso === 'Condutor');
+  campos.condutorResponsavel.innerHTML = '<option value="">Selecione...</option>';
+  condutores.forEach((condutor) => {
+    campos.condutorResponsavel.innerHTML += `<option value="${condutor.id}">${condutor.nome}</option>`;
+  });
+}
 
 function dadosIniciais() {
   return [
@@ -203,6 +216,14 @@ function validarPayload(payload) {
   if (!payload.email) return 'Preencha o email.';
   if (!payload.telefone || payload.telefone.length < 10) return 'Preencha um telefone válido.';
 
+  if (payload.acesso === 'Monitor' && !campos.condutorResponsavel.value) {
+    return 'Selecione o condutor responsável.';
+  }
+
+  if (campos.senha.value !== campos.confirmarSenha.value) {
+    return 'As senhas não coincidem.';
+  }
+
   return null;
 }
 
@@ -317,3 +338,33 @@ window.addEventListener('keydown', (event) => {
 });
 
 carregarAcessos();
+
+
+// Mostrar campo de condutor para monitor + validar senha
+campos.acesso.addEventListener('change', () => {
+  if (campos.acesso.value === 'Monitor') {
+    grupoCondutor.style.display = 'block';
+    carregarCondutores();
+  } else {
+    grupoCondutor.style.display = 'none';
+    campos.condutorResponsavel.value = '';
+  }
+});
+
+form.addEventListener('submit', (e) => {
+  if (campos.senha && campos.confirmarSenha) {
+    if (campos.senha.value !== campos.confirmarSenha.value) {
+      e.preventDefault();
+      if (window.Swal) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Senhas diferentes',
+          text: 'A senha e a confirmação de senha devem ser iguais.'
+        });
+      } else {
+        alert('A senha e a confirmação de senha devem ser iguais.');
+      }
+      return false;
+    }
+  }
+});
