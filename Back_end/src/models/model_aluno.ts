@@ -10,6 +10,7 @@ import {
 
 import { Responsavel } from "./model_responsavel";
 import { Condutor } from "./model_condutor";
+import { Escola } from "./model_escola";
 
 @Entity("aluno")
 export class Aluno {
@@ -22,8 +23,15 @@ export class Aluno {
   @Column({ type: "varchar", length: 100, nullable: true })
   bairro!: string;
 
-  @Column({ type: "varchar", length: 150, nullable: true })
-  escola!: string;
+  /*
+    ALTERADO:
+    Antes existia um campo "escola" (varchar) com o nome da escola
+    digitado como texto livre.
+    Agora o aluno se relaciona com a escola por ID, pois escolas
+    recebem alunos (relação real, não texto solto).
+  */
+  @Column({ type: "int" })
+  id_escola!: number;
 
   @Column({
     type: "enum",
@@ -66,4 +74,12 @@ export class Aluno {
   @ManyToOne(() => Condutor, { nullable: true })
   @JoinColumn({ name: "id_condutor" })
   condutor!: Condutor;
+
+  /*
+    ADICIONADO:
+    Relação obrigatória com escola.
+  */
+  @ManyToOne(() => Escola, { nullable: false })
+  @JoinColumn({ name: "id_escola" })
+  escola!: Escola;
 }

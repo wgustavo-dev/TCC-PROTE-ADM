@@ -3,6 +3,7 @@ import { Aluno } from "../models/model_aluno";
 import { Responsavel } from "../models/model_responsavel";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Presenca } from "../models/model_presenca";
+import { Escola } from "../models/model_escola";
 
 export class ServiceAluno {
   private get alunoRepository() {
@@ -19,6 +20,10 @@ export class ServiceAluno {
 
   private get presencaRepository() {
     return AppDataSource.getRepository(Presenca);
+  }
+
+  private get escolaRepository() {
+    return AppDataSource.getRepository(Escola);
   }
 
   private async validarResponsavel(id_responsavel: any) {
@@ -39,14 +44,37 @@ export class ServiceAluno {
     return responsavel;
   }
 
+  private async validarEscola(id_escola: any) {
+    const idEscola = Number(id_escola);
+
+    if (!Number.isInteger(idEscola) || idEscola <= 0) {
+      throw new Error("Escola é obrigatória para cadastrar aluno");
+    }
+
+    const escola = await this.escolaRepository.findOneBy({
+      id_escola: idEscola,
+    });
+
+    if (!escola) {
+      throw new Error("Escola não encontrada");
+    }
+
+    return escola;
+  }
+
   private limparCamposAntigos(dados: Partial<Aluno> & any) {
     /*
       Removido do fluxo:
       O sistema antigo recebia responsavel_nome e responsavel_telefone.
       Agora o aluno deve ser vinculado por id_responsavel.
+
+      ALTERADO:
+      O sistema antigo também recebia "escola" como texto livre.
+      Agora o aluno deve ser vinculado por id_escola.
     */
     delete dados.responsavel_nome;
     delete dados.responsavel_telefone;
+    delete dados.escola;
 
     return dados;
   }
@@ -65,11 +93,24 @@ export class ServiceAluno {
     });
   }
 
+  async listarEscolas() {
+    return await this.escolaRepository.find({
+      select: {
+        id_escola: true,
+        nome: true,
+      },
+      order: {
+        nome: "ASC",
+      },
+    });
+  }
+
   async listar() {
     return await this.alunoRepository.find({
       relations: {
         responsavel: true,
         condutor: true,
+        escola: true,
       },
       order: {
         nome: "ASC",
@@ -83,6 +124,7 @@ export class ServiceAluno {
       relations: {
         responsavel: true,
         condutor: true,
+        escola: true,
       },
     });
 
@@ -101,11 +143,12 @@ export class ServiceAluno {
     }
 
     const responsavel = await this.validarResponsavel(dados.id_responsavel);
+    const escola = await this.validarEscola(dados.id_escola);
 
     const aluno = this.alunoRepository.create({
       nome: dados.nome.trim(),
       bairro: dados.bairro?.trim() || null,
-      escola: dados.escola?.trim() || null,
+      id_escola: escola.id_escola,
       turno: dados.turno || null,
       endereco_embarque: dados.endereco_embarque?.trim() || null,
       endereco_desembarque: dados.endereco_desembarque?.trim() || null,
@@ -140,16 +183,17 @@ export class ServiceAluno {
       aluno.id_responsavel = responsavel.id_responsavel;
     }
 
+    if (dados.id_escola !== undefined) {
+      const escola = await this.validarEscola(dados.id_escola);
+      aluno.id_escola = escola.id_escola;
+    }
+
     if (dados.nome !== undefined) {
       aluno.nome = dados.nome.trim();
     }
 
     if (dados.bairro !== undefined) {
       aluno.bairro = dados.bairro?.trim() || null;
-    }
-
-    if (dados.escola !== undefined) {
-      aluno.escola = dados.escola?.trim() || null;
     }
 
     if (dados.turno !== undefined) {

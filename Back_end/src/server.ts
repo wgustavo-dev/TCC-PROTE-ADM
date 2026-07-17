@@ -95,6 +95,37 @@ AppDataSource.initialize()
       `ALTER TABLE monitor ADD COLUMN IF NOT EXISTS expiracao_recuperacao DATETIME`
     );
 
+    await AppDataSource.query(`
+      CREATE TABLE IF NOT EXISTS escola (
+        id_escola INT AUTO_INCREMENT PRIMARY KEY,
+        nome VARCHAR(150) NOT NULL,
+        endereco VARCHAR(255)
+      )
+    `);
+
+    await AppDataSource.query(`
+      ALTER TABLE aluno
+      ADD COLUMN IF NOT EXISTS id_escola INT NULL
+    `);
+
+    const [escolaCountRow]: any[] = await AppDataSource.query(
+      `SELECT COUNT(*) AS total FROM escola`
+    );
+
+    if (Number(escolaCountRow?.total || 0) === 0) {
+      await AppDataSource.query(
+        `INSERT INTO escola (nome, endereco) VALUES ('Escola Padrão', 'Endereço não informado')`
+      );
+    }
+
+    await AppDataSource.query(`
+      UPDATE aluno
+      SET id_escola = (
+        SELECT id_escola FROM escola ORDER BY id_escola LIMIT 1
+      )
+      WHERE id_escola IS NULL OR id_escola = 0
+    `);
+
     console.log("Models carregados:");
 
     AppDataSource.entityMetadatas.forEach((entity) => {
