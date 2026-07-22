@@ -95,6 +95,59 @@ AppDataSource.initialize()
       `ALTER TABLE monitor ADD COLUMN IF NOT EXISTS expiracao_recuperacao DATETIME`
     );
 
+    // ===== Módulo Controle de Acessos =====
+    // 1) Remove a antiga FK condutor -> monitor (id_monitor), pois o
+    //    relacionamento passou a ser monitor -> condutor (id_condutor).
+    const [fkAntigaRow]: any[] = await AppDataSource.query(`
+      SELECT CONSTRAINT_NAME
+      FROM information_schema.KEY_COLUMN_USAGE
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'condutor'
+        AND COLUMN_NAME = 'id_monitor'
+        AND REFERENCED_TABLE_NAME = 'monitor'
+      LIMIT 1
+    `);
+
+    if (fkAntigaRow?.CONSTRAINT_NAME) {
+      await AppDataSource.query(
+        `ALTER TABLE condutor DROP FOREIGN KEY \`${fkAntigaRow.CONSTRAINT_NAME}\``
+      );
+    }
+
+    await AppDataSource.query(
+      `ALTER TABLE condutor DROP COLUMN IF EXISTS id_monitor`
+    );
+    await AppDataSource.query(
+      `ALTER TABLE condutor DROP COLUMN IF EXISTS possui_monitor`
+    );
+
+    // 2) Coluna "ativo" (exclusão lógica) em condutor e monitor
+    await AppDataSource.query(
+      `ALTER TABLE condutor ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE`
+    );
+    await AppDataSource.query(
+      `ALTER TABLE monitor ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE`
+    );
+
+    // 3) Nova FK monitor -> condutor (todo monitor pertence a um condutor)
+    await AppDataSource.query(
+      `ALTER TABLE monitor ADD COLUMN IF NOT EXISTS id_condutor INT NULL`
+    );
+
+    const [condutorCountRow]: any[] = await AppDataSource.query(
+      `SELECT COUNT(*) AS total FROM condutor`
+    );
+
+    if (Number(condutorCountRow?.total || 0) > 0) {
+      await AppDataSource.query(`
+        UPDATE monitor
+        SET id_condutor = (
+          SELECT id_condutor FROM condutor ORDER BY id_condutor LIMIT 1
+        )
+        WHERE id_condutor IS NULL
+      `);
+    }
+
     await AppDataSource.query(`
       CREATE TABLE IF NOT EXISTS escola (
         id_escola INT AUTO_INCREMENT PRIMARY KEY,

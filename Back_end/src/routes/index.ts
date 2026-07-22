@@ -9,10 +9,12 @@ import routeMensalidade from "./route_mensalidade";
 import routeDashboard from "./route_dashboard";
 import routeResponsavel from "./route_responsavel";
 import routeEscola from "./route_escola";
+import routeAcessos from "./route_acessos";
 
 const routes = Router();
 
 routes.use('/api/auth', routeAuth);
+routes.use('/api', routeAcessos);
 routes.use('/api', routeResponsavel);
 routes.use('/api', routeAluno);
 routes.use('/api', routeEscola);

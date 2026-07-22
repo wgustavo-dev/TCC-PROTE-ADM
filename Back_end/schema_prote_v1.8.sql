@@ -1,28 +1,26 @@
 -- =====================================================
--- SCHEMA PROTE ADM - v1.7
+-- SCHEMA PROTE ADM - v1.8
 -- =====================================================
--- ALTERAÇÃO NESTA VERSÃO EM RELAÇÃO À v1.6:
+-- ALTERAÇÕES NESTA VERSÃO EM RELAÇÃO À v1.7:
 --
--- 1) NOVA TABELA: escola
---    - id_escola, nome (obrigatório), endereco (opcional).
+-- 1) RELACIONAMENTO CONDUTOR <-> MONITOR INVERTIDO
+--    - Antes: condutor.id_monitor -> monitor (1 condutor apontava
+--      para 1 monitor). Isso não representava a regra de negócio real
+--      (um condutor pode ter VÁRIOS monitores).
+--    - Agora: monitor.id_condutor -> condutor (N monitores para 1
+--      condutor). Todo monitor pertence obrigatoriamente a um condutor.
+--    - Os campos condutor.id_monitor e condutor.possui_monitor foram
+--      REMOVIDOS, pois deixaram de fazer sentido com a FK invertida.
 --
--- 2) TABELA aluno:
---    - Campo escola (texto) REMOVIDO.
---    - Campo id_escola (FK obrigatória para escola) ADICIONADO.
---    - Motivo: escolas recebem alunos — relação real em vez de texto solto.
---    - ON DELETE RESTRICT: não deixamos apagar uma escola que ainda
---      tem alunos vinculados (diferente de responsavel/condutor, que
---      usam CASCADE porque são "donos" do aluno).
+-- 2) EXCLUSÃO LÓGICA (novo módulo Controle de Acessos)
+--    - Adicionada a coluna "ativo BOOLEAN NOT NULL DEFAULT TRUE" nas
+--      tabelas condutor e monitor.
+--    - O DELETE do módulo de Acessos não remove a linha do banco,
+--      apenas define ativo = FALSE. Isso preserva o histórico
+--      (mensalidades, despesas, documentos, alunos vinculados, etc.)
+--      e mantém a integridade dos relacionamentos existentes.
+--    - Usuários com ativo = FALSE não conseguem mais efetuar login.
 --
--- 3) TABELA orcamento:
---    - NÃO ALTERADA, para não mexer no fluxo de orçamento além do que
---      já foi definido no plano de mega-manutenção.
---
--- 4) TABELA condutor:
---    - NÃO ALTERADA. O campo escolas (texto) é uma lista livre das
---      escolas atendidas pelo condutor, sem relação com a tabela escola.
---
-
 -- =====================================================
 
 
@@ -35,6 +33,26 @@ CREATE DATABASE schema_prote;
 USE schema_prote;
 
 -- =========================
+-- TABELA: CONDUTOR
+-- =========================
+-- Criada antes de "monitor" porque agora é o monitor que referencia
+-- o condutor (e não o contrário, como era na v1.7).
+CREATE TABLE condutor (
+    id_condutor INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100),
+    senha VARCHAR(255),
+    telefone VARCHAR(20),
+    escolas TEXT,
+    foto VARCHAR(255),
+    token_recuperacao VARCHAR(255),
+    expiracao_recuperacao DATETIME,
+
+    -- NOVO (v1.8): exclusão lógica
+    ativo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- =========================
 -- TABELA: MONITOR
 -- =========================
 CREATE TABLE monitor (
@@ -45,7 +63,20 @@ CREATE TABLE monitor (
     telefone VARCHAR(20),
     foto VARCHAR(255),
     token_recuperacao VARCHAR(255),
-    expiracao_recuperacao DATETIME
+    expiracao_recuperacao DATETIME,
+
+    -- NOVO (v1.8): todo monitor pertence obrigatoriamente a um condutor.
+    -- Preenchido automaticamente pelo backend a partir do condutor
+    -- autenticado (req.user), nunca escolhido pelo frontend.
+    id_condutor INT NOT NULL,
+
+    -- NOVO (v1.8): exclusão lógica
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+    FOREIGN KEY (id_condutor)
+    REFERENCES condutor(id_condutor)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 -- =========================
@@ -64,29 +95,7 @@ CREATE TABLE responsavel (
 );
 
 -- =========================
--- TABELA: CONDUTOR
--- =========================
-CREATE TABLE condutor (
-    id_condutor INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    email VARCHAR(100),
-    senha VARCHAR(255),
-    telefone VARCHAR(20),
-    escolas TEXT,
-    possui_monitor BOOLEAN DEFAULT FALSE,
-    foto VARCHAR(255),
-    token_recuperacao VARCHAR(255),
-    expiracao_recuperacao DATETIME,
-    id_monitor INT,
-
-    FOREIGN KEY (id_monitor)
-    REFERENCES monitor(id_monitor)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE
-);
-
--- =========================
--- TABELA: ESCOLA  (NOVA)
+-- TABELA: ESCOLA
 -- =========================
 CREATE TABLE escola (
     id_escola INT AUTO_INCREMENT PRIMARY KEY,
@@ -101,11 +110,7 @@ CREATE TABLE aluno (
     id_aluno INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     bairro VARCHAR(100),
-
-    -- ALTERADO: antes "escola VARCHAR(150)" (texto livre).
-    -- Agora é uma FK obrigatória para a tabela escola.
     id_escola INT NOT NULL,
-
     turno ENUM('MANHA','TARDE','NOITE'),
     endereco_embarque VARCHAR(255),
     endereco_desembarque VARCHAR(255),
@@ -139,10 +144,7 @@ CREATE TABLE orcamento (
     nome_responsavel VARCHAR(100) NOT NULL,
     telefone VARCHAR(20) NOT NULL,
     bairro VARCHAR(100),
-
-    -- NÃO ALTERADO: continua texto livre por decisão explícita.
     escola VARCHAR(150),
-
     turno ENUM('MANHA','TARDE','NOITE'),
     quantidade_alunos INT NOT NULL DEFAULT 1,
     tipo_trajeto ENUM('IDA','VOLTA','AMBOS'),
@@ -244,35 +246,36 @@ CREATE TABLE documento (
 -- INSERTS BASE
 -- =====================================================
 
-INSERT INTO monitor (nome, email, telefone, foto)
-VALUES ('João Monitor', 'monitor@email.com', '11977777777', 'monitor.jpg');
-
-INSERT INTO responsavel (nome, telefone, email, endereco, quantidade_alunos)
-VALUES ('Maria Silva', '11999999999', 'maria@email.com', 'Rua das Flores, 100', 1);
-
-INSERT INTO condutor (nome, email, senha, telefone, escolas, possui_monitor, foto, id_monitor)
+-- Condutor precisa existir ANTES do monitor, pois agora é o monitor
+-- que carrega a FK id_condutor.
+INSERT INTO condutor (nome, email, senha, telefone, escolas, foto)
 VALUES (
     'Carlos Souza',
     'liametechnologies@gmail.com',
     '$2a$10$7fAHxESMFev.n3JnpJDcI.3CqrxRSj9.d/4sxMDDM/9KI7QSnpUGG',
     '11988888888',
     'Escola Estadual São Paulo',
-    TRUE,
-    'carlos.jpg',
-    1
+    'carlos.jpg'
 );
 
-INSERT INTO monitor (nome, email, senha, telefone, foto)
+INSERT INTO monitor (nome, email, telefone, foto, id_condutor)
+VALUES ('João Monitor', 'monitor@email.com', '11977777777', 'monitor.jpg', 1);
+
+INSERT INTO monitor (nome, email, senha, telefone, foto, id_condutor)
 VALUES (
     'Monitor de Teste',
     'monitor@prote.com',
     '$2a$10$bThJp8oEuGYybn67.u4DCO93tlb0Mon64TtEScKBAvA/Hn0j6wLMu',
     '11977712345',
-    'monitor.jpg'
+    'monitor.jpg',
+    1
 );
 
+INSERT INTO responsavel (nome, telefone, email, endereco, quantidade_alunos)
+VALUES ('Maria Silva', '11999999999', 'maria@email.com', 'Rua das Flores, 100', 1);
+
 -- =========================
--- ESCOLA (NOVA)
+-- ESCOLA
 -- =========================
 INSERT INTO escola (nome, endereco)
 VALUES ('Escola Estadual São Paulo', 'Rua da Escola, 500');
@@ -334,9 +337,9 @@ VALUES
 -- =========================
 -- TESTES
 -- =========================
+SELECT * FROM condutor;
 SELECT * FROM monitor;
 SELECT * FROM responsavel;
-SELECT * FROM condutor;
 SELECT * FROM escola;
 SELECT * FROM aluno;
 SELECT * FROM presenca;
