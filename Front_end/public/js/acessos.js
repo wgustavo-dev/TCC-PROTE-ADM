@@ -145,12 +145,15 @@ function abrirModal(editando = false, acesso = null) {
   campos.senha.value = '';
   campos.confirmarSenha.value = '';
 
-  // O tipo de acesso (Condutor/Monitor) só pode ser definido na
-  // criação. Editar não converte um condutor em monitor (ou vice-versa).
-  campos.acesso.disabled = editando;
+  // NOVA REGRA DE NEGÓCIO: o tipo de acesso agora PODE ser alterado
+  // durante a edição (Condutor <-> Monitor). O <select> deixou de ser
+  // desabilitado ao editar. O backend detecta a troca comparando o
+  // tipo original (guardado em idEditando.tipo) com o valor enviado
+  // no campo "acesso", e faz a conversão automaticamente.
 
   // Ao criar, a senha é obrigatória. Ao editar, deixar em branco
-  // mantém a senha atual do usuário.
+  // mantém a senha atual do usuário (inclusive quando o tipo é
+  // convertido: a senha atual é levada para o novo registro).
   campos.senha.required = !editando;
   campos.confirmarSenha.required = !editando;
   labelSenha.textContent = editando ? 'Senha (deixe em branco para manter a atual)' : 'Senha';
@@ -165,7 +168,6 @@ function abrirModal(editando = false, acesso = null) {
 function fecharModal() {
   modalOverlay.classList.add('hidden');
   form.reset();
-  campos.acesso.disabled = false;
   idEditando = null;
 }
 
@@ -188,7 +190,7 @@ function montarPayload() {
 
 function validarPayload(payload) {
   if (!payload.nome) return 'Preencha o nome.';
-  if (!idEditando && !payload.acesso) return 'Selecione o tipo de acesso.';
+  if (!payload.acesso) return 'Selecione o tipo de acesso.';
   if (!payload.email) return 'Preencha o email.';
   if (!payload.telefone || payload.telefone.length < 10) return 'Preencha um telefone válido.';
 
@@ -209,6 +211,17 @@ function validarPayload(payload) {
   return null;
 }
 
+// Está convertendo o nível de acesso quando: já existe um item em
+// edição E o tipo escolhido no <select> é diferente do tipo original
+// do registro (idEditando.tipo).
+function estaConvertendoTipo(payload) {
+  if (!idEditando) return false;
+
+  const tipoDestino = payload.acesso.toLowerCase() === 'monitor' ? 'monitor' : 'condutor';
+
+  return tipoDestino !== idEditando.tipo;
+}
+
 async function salvarAcesso(event) {
   event.preventDefault();
 
@@ -218,6 +231,15 @@ async function salvarAcesso(event) {
   if (erro) {
     showError(erro);
     return;
+  }
+
+  if (estaConvertendoTipo(payload)) {
+    const confirmado = await showConfirm(
+      `Isso vai desativar o cadastro atual e criar um novo registro como "${payload.acesso}". Deseja continuar?`,
+      { title: 'Trocar nível de acesso' }
+    );
+
+    if (!confirmado.isConfirmed) return;
   }
 
   try {

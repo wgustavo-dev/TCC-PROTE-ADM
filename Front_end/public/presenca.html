@@ -3,6 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Anti-flicker: esconde via CSS os módulos que o Monitor não pode ver,
+       ANTES da sidebar ser desenhada na tela. Precisa ser um script INLINE
+       (sem arquivo externo): um <script src="..."> ainda sofre uma volta de
+       rede, mesmo em cache, e isso já é tempo suficiente para o navegador
+       pintar o menu completo antes do JS remover os itens (o "piscar"). -->
+  <script>
+    (function () {
+      try {
+        var usuario = JSON.parse(window.localStorage.getItem("prote_user") || "null");
+        if (usuario && usuario.role === "MONITOR") {
+          var estilo = document.createElement("style");
+          estilo.textContent =
+            ".nav-item { display: none !important; }" +
+            ".nav-item[data-page=\"presenca\"], .nav-item[data-page=\"alunos\"] { display: flex !important; }";
+          document.head.appendChild(estilo);
+        }
+      } catch (erro) {}
+    })();
+  </script>
   <title>PROTE — Presença</title>
 
   <link rel="stylesheet" href="css/dashboard.css" />
