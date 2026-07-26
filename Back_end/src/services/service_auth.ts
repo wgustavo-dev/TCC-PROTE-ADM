@@ -180,12 +180,15 @@ export class ServiceAuth {
   }
 
   private async findUserByEmail(email: string) {
-    const condutor = await this.condutorRepository.findOneBy({ email });
+    // ativo: true garante que um usuário desativado no módulo de
+    // Controle de Acessos não consiga mais logar nem solicitar
+    // recuperação de senha. Ele ta buscando os emails dos usuarios ativos
+    const condutor = await this.condutorRepository.findOneBy({ email, ativo: true });
     if (condutor) {
       return { user: condutor, role: "CONDUTOR" as AccessRole, repository: this.condutorRepository };
     }
 
-    const monitor = await this.monitorRepository.findOneBy({ email });
+    const monitor = await this.monitorRepository.findOneBy({ email, ativo: true });
     if (monitor) {
       return { user: monitor, role: "MONITOR" as AccessRole, repository: this.monitorRepository };
     }
@@ -194,12 +197,12 @@ export class ServiceAuth {
   }
 
   private async findUserByToken(token: string) {
-    const condutor = await this.condutorRepository.findOneBy({ token_recuperacao: token });
+    const condutor = await this.condutorRepository.findOneBy({ token_recuperacao: token, ativo: true });
     if (condutor) {
       return { user: condutor, role: "CONDUTOR" as AccessRole, repository: this.condutorRepository };
     }
 
-    const monitor = await this.monitorRepository.findOneBy({ token_recuperacao: token });
+    const monitor = await this.monitorRepository.findOneBy({ token_recuperacao: token, ativo: true });
     if (monitor) {
       return { user: monitor, role: "MONITOR" as AccessRole, repository: this.monitorRepository };
     }

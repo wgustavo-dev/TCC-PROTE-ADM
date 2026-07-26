@@ -2,13 +2,10 @@ import { initMenu } from '../core/menu.js';
 
 initMenu();
 
-const STORAGE_KEY = 'prote_acessos';
-
 let acessos = [];
 let buscaAtual = '';
 let filtroAtual = 'todos';
-let idEditando = null;
-let usandoApi = true;
+let idEditando = null; // { id, tipo } do item em edição, ou null ao criar
 
 const tbody = document.getElementById('tbodyAcessos');
 const emptyState = document.getElementById('emptyStateAcessos');
@@ -28,38 +25,11 @@ const campos = {
   email: document.getElementById('emailAcesso'),
   telefone: document.getElementById('telefoneAcesso'),
   senha: document.getElementById('senhaAcesso'),
-  confirmarSenha: document.getElementById('confirmarSenhaAcesso'),
-  condutorResponsavel: document.getElementById('condutorResponsavel')
+  confirmarSenha: document.getElementById('confirmarSenhaAcesso')
 };
 
-const grupoCondutor = document.getElementById('grupoCondutorResponsavel');
-
-function carregarCondutores() {
-  const condutores = acessos.filter((item) => item.acesso === 'Condutor');
-  campos.condutorResponsavel.innerHTML = '<option value="">Selecione...</option>';
-  condutores.forEach((condutor) => {
-    campos.condutorResponsavel.innerHTML += `<option value="${condutor.id}">${condutor.nome}</option>`;
-  });
-}
-
-function dadosIniciais() {
-  return [
-    {
-      id: 1,
-      nome: 'Gabriel Soares',
-      acesso: 'Condutor',
-      email: 'gabriel@gmail.com',
-      telefone: '(11) 99999-9999'
-    },
-    {
-      id: 2,
-      nome: 'Eduarda Souza',
-      acesso: 'Monitor',
-      email: 'eduarda@gmail.com',
-      telefone: '(11) 99999-9999'
-    }
-  ];
-}
+const labelSenha = document.getElementById('labelSenhaAcesso');
+const labelConfirmarSenha = document.getElementById('labelConfirmarSenhaAcesso');
 
 function aplicarMascaraTelefone(valor) {
   const numeros = String(valor || '').replace(/\D/g, '').slice(0, 11);
@@ -84,45 +54,29 @@ function escaparHTML(valor) {
     .replace(/'/g, '&#039;');
 }
 
+// O backend retorna "tipo" (condutor|monitor), necessário para montar
+// as rotas PUT/DELETE /acessos/:tipo/:id. Mantemos "acesso" (Condutor|
+// Monitor) só para exibição/filtro, igual ao <select> de filtro.
 function normalizarAcesso(item) {
+  const tipo = String(item.tipo || (item.acesso === 'Monitor' ? 'monitor' : 'condutor')).toLowerCase();
+
   return {
-    id: Number(item.id_acesso || item.id || Date.now()),
+    id: Number(item.id),
+    tipo,
     nome: item.nome || '',
-    acesso: item.acesso || item.tipo_acesso || '',
+    acesso: item.acesso || (tipo === 'monitor' ? 'Monitor' : 'Condutor'),
     email: item.email || '',
     telefone: aplicarMascaraTelefone(item.telefone || '')
   };
-}
-
-function salvarLocal() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(acessos));
-}
-
-function carregarLocal() {
-  const salvo = localStorage.getItem(STORAGE_KEY);
-
-  if (!salvo) {
-    acessos = dadosIniciais();
-    salvarLocal();
-    return;
-  }
-
-  try {
-    const lista = JSON.parse(salvo);
-    acessos = Array.isArray(lista) ? lista.map(normalizarAcesso) : dadosIniciais();
-  } catch {
-    acessos = dadosIniciais();
-  }
 }
 
 async function carregarAcessos() {
   try {
     const dados = await window.API.get('/acessos');
     acessos = Array.isArray(dados) ? dados.map(normalizarAcesso) : [];
-    usandoApi = true;
   } catch (error) {
-    usandoApi = false;
-    carregarLocal();
+    acessos = [];
+    showError(error.message || 'Não foi possível carregar os acessos.');
   }
 
   renderTabela();
@@ -139,7 +93,7 @@ function listaFiltrada() {
 
       return passouBusca && passouFiltro;
     })
-    .sort((a, b) => a.id - b.id);
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 }
 
 function renderTabela() {
@@ -153,14 +107,14 @@ function renderTabela() {
       <td>${escaparHTML(item.telefone)}<br>${escaparHTML(item.email)}</td>
       <td>
         <div class="acoes-acesso">
-          <button class="btn-acao-acesso editar" type="button" data-acao="editar" data-id="${item.id}" title="Editar" aria-label="Editar acesso">
+          <button class="btn-acao-acesso editar" type="button" data-acao="editar" data-id="${item.id}" data-tipo="${item.tipo}" title="Editar" aria-label="Editar acesso">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 20h9"></path>
               <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
             </svg>
           </button>
 
-          <button class="btn-acao-acesso excluir" type="button" data-acao="excluir" data-id="${item.id}" title="Excluir" aria-label="Excluir acesso">
+          <button class="btn-acao-acesso excluir" type="button" data-acao="excluir" data-id="${item.id}" data-tipo="${item.tipo}" title="Excluir" aria-label="Excluir acesso">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6l-1 14H6L5 6"></path>
@@ -178,7 +132,7 @@ function renderTabela() {
 }
 
 function abrirModal(editando = false, acesso = null) {
-  idEditando = editando && acesso ? acesso.id : null;
+  idEditando = editando && acesso ? { id: acesso.id, tipo: acesso.tipo } : null;
 
   modalTitulo.textContent = editando ? 'Editar acesso' : 'Novo acesso';
   btnSalvar.textContent = editando ? 'Editar' : 'Cadastrar';
@@ -188,6 +142,22 @@ function abrirModal(editando = false, acesso = null) {
   campos.acesso.value = acesso?.acesso || '';
   campos.email.value = acesso?.email || '';
   campos.telefone.value = acesso?.telefone || '';
+  campos.senha.value = '';
+  campos.confirmarSenha.value = '';
+
+  // NOVA REGRA DE NEGÓCIO: o tipo de acesso agora PODE ser alterado
+  // durante a edição (Condutor <-> Monitor). O <select> deixou de ser
+  // desabilitado ao editar. O backend detecta a troca comparando o
+  // tipo original (guardado em idEditando.tipo) com o valor enviado
+  // no campo "acesso", e faz a conversão automaticamente.
+
+  // Ao criar, a senha é obrigatória. Ao editar, deixar em branco
+  // mantém a senha atual do usuário (inclusive quando o tipo é
+  // convertido: a senha atual é levada para o novo registro).
+  campos.senha.required = !editando;
+  campos.confirmarSenha.required = !editando;
+  labelSenha.textContent = editando ? 'Senha (deixe em branco para manter a atual)' : 'Senha';
+  labelConfirmarSenha.textContent = editando ? 'Confirmar nova senha' : 'Confirmar senha';
 
   modalOverlay.classList.remove('hidden');
   registrarEstadoInicialFormulario(form);
@@ -202,12 +172,20 @@ function fecharModal() {
 }
 
 function montarPayload() {
-  return {
+  const payload = {
     nome: campos.nome.value.trim(),
     acesso: campos.acesso.value,
     email: campos.email.value.trim(),
     telefone: limparMascaraTelefone(campos.telefone.value)
   };
+
+  // Só envia a senha quando o usuário digitou algo. Isso permite
+  // editar um acesso sem ser obrigado a trocar a senha.
+  if (campos.senha.value) {
+    payload.senha = campos.senha.value;
+  }
+
+  return payload;
 }
 
 function validarPayload(payload) {
@@ -216,8 +194,14 @@ function validarPayload(payload) {
   if (!payload.email) return 'Preencha o email.';
   if (!payload.telefone || payload.telefone.length < 10) return 'Preencha um telefone válido.';
 
-  if (payload.acesso === 'Monitor' && !campos.condutorResponsavel.value) {
-    return 'Selecione o condutor responsável.';
+  const precisaSenha = !idEditando;
+
+  if (precisaSenha && !campos.senha.value) {
+    return 'Preencha a senha.';
+  }
+
+  if (campos.senha.value && campos.senha.value.length < 6) {
+    return 'A senha deve ter no mínimo 6 caracteres.';
   }
 
   if (campos.senha.value !== campos.confirmarSenha.value) {
@@ -225,6 +209,17 @@ function validarPayload(payload) {
   }
 
   return null;
+}
+
+// Está convertendo o nível de acesso quando: já existe um item em
+// edição E o tipo escolhido no <select> é diferente do tipo original
+// do registro (idEditando.tipo).
+function estaConvertendoTipo(payload) {
+  if (!idEditando) return false;
+
+  const tipoDestino = payload.acesso.toLowerCase() === 'monitor' ? 'monitor' : 'condutor';
+
+  return tipoDestino !== idEditando.tipo;
 }
 
 async function salvarAcesso(event) {
@@ -238,30 +233,23 @@ async function salvarAcesso(event) {
     return;
   }
 
+  if (estaConvertendoTipo(payload)) {
+    const confirmado = await showConfirm(
+      `Isso vai desativar o cadastro atual e criar um novo registro como "${payload.acesso}". Deseja continuar?`,
+      { title: 'Trocar nível de acesso' }
+    );
+
+    if (!confirmado.isConfirmed) return;
+  }
+
   try {
-    if (usandoApi) {
-      if (idEditando) {
-        await window.API.put(`/acessos/${idEditando}`, payload);
-      } else {
-        await window.API.post('/acessos', payload);
-      }
-
-      await carregarAcessos();
+    if (idEditando) {
+      await window.API.put(`/acessos/${idEditando.tipo}/${idEditando.id}`, payload);
     } else {
-      const dadosNormalizados = normalizarAcesso(payload);
-
-      if (idEditando) {
-        acessos = acessos.map((item) => (
-          item.id === idEditando ? { ...dadosNormalizados, id: idEditando } : item
-        ));
-      } else {
-        const proximoId = acessos.length ? Math.max(...acessos.map((item) => item.id)) + 1 : 1;
-        acessos.push({ ...dadosNormalizados, id: proximoId });
-      }
-
-      salvarLocal();
-      renderTabela();
+      await window.API.post('/acessos', payload);
     }
+
+    await carregarAcessos();
 
     showSuccess(idEditando ? 'Acesso editado com sucesso.' : 'Acesso cadastrado com sucesso.');
     fecharModal();
@@ -270,19 +258,13 @@ async function salvarAcesso(event) {
   }
 }
 
-async function excluirAcesso(id) {
+async function excluirAcesso(item) {
   const confirmado = await showConfirm('Deseja excluir este acesso?');
   if (!confirmado.isConfirmed) return;
 
   try {
-    if (usandoApi) {
-      await window.API.del(`/acessos/${id}`);
-      await carregarAcessos();
-    } else {
-      acessos = acessos.filter((item) => item.id !== id);
-      salvarLocal();
-      renderTabela();
-    }
+    await window.API.del(`/acessos/${item.tipo}/${item.id}`);
+    await carregarAcessos();
 
     showSuccess('Acesso excluído com sucesso.');
   } catch (error) {
@@ -318,7 +300,8 @@ tbody.addEventListener('click', (event) => {
   if (!botao) return;
 
   const id = Number(botao.dataset.id);
-  const acesso = acessos.find((item) => item.id === id);
+  const tipo = botao.dataset.tipo;
+  const acesso = acessos.find((item) => item.id === id && item.tipo === tipo);
 
   if (!acesso) return;
 
@@ -327,7 +310,7 @@ tbody.addEventListener('click', (event) => {
   }
 
   if (botao.dataset.acao === 'excluir') {
-    excluirAcesso(id);
+    excluirAcesso(acesso);
   }
 });
 
@@ -338,33 +321,3 @@ window.addEventListener('keydown', (event) => {
 });
 
 carregarAcessos();
-
-
-// Mostrar campo de condutor para monitor + validar senha
-campos.acesso.addEventListener('change', () => {
-  if (campos.acesso.value === 'Monitor') {
-    grupoCondutor.style.display = 'block';
-    carregarCondutores();
-  } else {
-    grupoCondutor.style.display = 'none';
-    campos.condutorResponsavel.value = '';
-  }
-});
-
-form.addEventListener('submit', (e) => {
-  if (campos.senha && campos.confirmarSenha) {
-    if (campos.senha.value !== campos.confirmarSenha.value) {
-      e.preventDefault();
-      if (window.Swal) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Senhas diferentes',
-          text: 'A senha e a confirmação de senha devem ser iguais.'
-        });
-      } else {
-        alert('A senha e a confirmação de senha devem ser iguais.');
-      }
-      return false;
-    }
-  }
-});
