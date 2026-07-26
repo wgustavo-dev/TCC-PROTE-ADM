@@ -16,7 +16,9 @@ export class ServiceAcessos {
   private monitorRepository = AppDataSource.getRepository(Monitor);
 
   // Normaliza e valida o parâmetro ":tipo" recebido nas rotas
-  // PUT/DELETE /acessos/:tipo/:id.
+  // PUT/DELETE /acessos/:tipo/:id, e também o campo "acesso" enviado
+  // no corpo da requisição (usado para decidir a entidade no POST e,
+  // agora, o tipo de destino no PUT).
   private normalizarTipo(tipo: string): TipoAcesso {
     const tipoNormalizado = String(tipo || "").trim().toLowerCase();
 
@@ -162,11 +164,25 @@ export class ServiceAcessos {
     return this.formatarMonitor(monitor);
   }
 
-  // PUT /acessos/:tipo/:id -> edita condutor ou monitor
-  async atualizar(tipoParam: string, id: number, dados: any) {
-    const tipo = this.normalizarTipo(tipoParam);
+  // PUT /acessos/:tipo/:id -> edita condutor ou monitor.
+  //
+  // NOVA REGRA DE NEGÓCIO: se o campo "acesso" enviado no corpo
+  // representar um tipo DIFERENTE do ":tipo" da URL (ex: URL diz
+  // "condutor", mas o corpo manda acesso: "Monitor"), significa que o
+  // usuário quer TROCAR o nível de acesso. Como as duas entidades são
+  // tabelas independentes, essa troca não pode ser um simples UPDATE:
+  // ela é feita através do método converterTipo(), que desativa o
+  // registro de origem e cria um novo na tabela de destino,
+  // preservando os dados (nome, e-mail, telefone e senha).
+  async atualizar(tipoParam: string, id: number, dados: any, usuarioLogado: UsuarioLogado) {
+    const tipoOrigem = this.normalizarTipo(tipoParam);
+    const tipoDestino = dados.acesso ? this.normalizarTipo(dados.acesso) : tipoOrigem;
 
-    if (tipo === "condutor") {
+    if (tipoDestino !== tipoOrigem) {
+      return this.converterTipo(tipoOrigem, id, tipoDestino, dados, usuarioLogado);
+    }
+
+    if (tipoOrigem === "condutor") {
       const condutor = await this.condutorRepository.findOneBy({ id_condutor: id });
 
       if (!condutor || !condutor.ativo) {
@@ -202,7 +218,7 @@ export class ServiceAcessos {
       return this.formatarCondutor(condutor);
     }
 
-    // tipo === "monitor"
+    // tipoOrigem === "monitor"
     const monitor = await this.monitorRepository.findOneBy({ id_monitor: id });
 
     if (!monitor || !monitor.ativo) {
@@ -234,11 +250,191 @@ export class ServiceAcessos {
     }
 
     // O vínculo id_condutor é definido apenas na criação (a partir do
-    // req.user). A edição não permite trocar o condutor responsável.
+    // req.user). A edição comum (sem troca de tipo) não permite
+    // trocar o condutor responsável.
 
     await this.monitorRepository.save(monitor);
 
     return this.formatarMonitor(monitor);
+  }
+
+  // Troca o nível de acesso de um usuário (Condutor <-> Monitor).
+  //
+  // Como condutor e monitor são tabelas independentes (sem herança),
+  // não existe um "UPDATE" que mude um registro de uma tabela para a
+  // outra. Dentro do modelo de exclusão lógica já adotado no sistema,
+  // existem dois cenários possíveis:
+  //
+  //   A) Já existe um registro (ativo ou não) com esse e-mail na
+  //      tabela de DESTINO — geralmente porque essa mesma pessoa já
+  //      foi convertida antes (ex: Condutor -> Monitor -> Condutor).
+  //      Nesse caso, o sistema REATIVA esse registro antigo (mantendo
+  //      os dados que já estavam salvos nele) em vez de criar um novo,
+  //      e desativa o registro de origem.
+  //
+  //   B) Não existe nenhum registro com esse e-mail na tabela de
+  //      destino. Nesse caso, cria-se um novo registro (copiando
+  //      nome/e-mail/telefone/senha do registro de origem) e desativa
+  //      o registro de origem — comportamento igual ao de antes.
+  //
+  // Em ambos os casos, o registro de origem nunca é apagado — apenas
+  // desativado —, preservando o histórico.
+  private async converterTipo(
+    tipoOrigem: TipoAcesso,
+    idOrigem: number,
+    tipoDestino: TipoAcesso,
+    dados: any,
+    usuarioLogado: UsuarioLogado
+  ) {
+    if (tipoOrigem === "condutor") {
+      const condutorOrigem = await this.condutorRepository.findOneBy({ id_condutor: idOrigem });
+
+      if (!condutorOrigem || !condutorOrigem.ativo) {
+        throw new Error("Condutor não encontrado.");
+      }
+
+      // Segurança: o sistema não pode ficar sem nenhum condutor ativo,
+      // pois só um condutor tem permissão para acessar o módulo de
+      // Controle de Acessos. Convertendo o último, ninguém mais
+      // conseguiria gerenciar usuários.
+      const totalCondutoresAtivos = await this.condutorRepository.count({
+        where: { ativo: true },
+      });
+
+      if (totalCondutoresAtivos <= 1) {
+        throw new Error(
+          "Não é possível converter o único condutor ativo do sistema em monitor."
+        );
+      }
+
+      const emailDestino =
+        dados.email !== undefined ? String(dados.email).trim().toLowerCase() : condutorOrigem.email;
+      if (!emailDestino) throw new Error("E-mail é obrigatório.");
+
+      // Cenário A: já existe um monitor (ativo ou inativo) com esse
+      // e-mail — provavelmente de uma conversão anterior. Reativa o
+      // registro existente, mantendo os dados que já estavam salvos
+      // nele (não sobrescreve nome/telefone/senha com os valores
+      // enviados agora).
+      const monitorExistente = await this.monitorRepository.findOneBy({ email: emailDestino });
+
+      if (monitorExistente) {
+        monitorExistente.ativo = true;
+        await this.monitorRepository.save(monitorExistente);
+
+        condutorOrigem.ativo = false;
+        await this.condutorRepository.save(condutorOrigem);
+
+        return this.formatarMonitor(monitorExistente);
+      }
+
+      // Cenário B: não existe registro anterior — cria um novo.
+      const nome = dados.nome !== undefined ? String(dados.nome).trim() : condutorOrigem.nome;
+      if (!nome) throw new Error("Nome é obrigatório.");
+
+      const telefone =
+        dados.telefone !== undefined ? String(dados.telefone).trim() : condutorOrigem.telefone;
+      if (!telefone) throw new Error("Telefone é obrigatório.");
+
+      if (dados.senha && dados.senha.length < 6) {
+        throw new Error("A senha deve ter no mínimo 6 caracteres.");
+      }
+
+      // Ignora o próprio registro de origem na checagem de e-mail,
+      // já que ele está prestes a ser desativado e o e-mail será
+      // reaproveitado no novo registro.
+      await this.validarEmailDisponivel(emailDestino, { tipo: "condutor", id: idOrigem });
+
+      // Mantém a senha atual (hash) se nenhuma nova foi informada.
+      const senha = dados.senha
+        ? await bcrypt.hash(dados.senha, 10)
+        : condutorOrigem.senha;
+
+      // Regra de negócio já usada na criação: todo monitor pertence ao
+      // condutor autenticado que está realizando a operação.
+      const condutorResponsavel = await this.condutorRepository.findOneBy({
+        id_condutor: usuarioLogado.id,
+        ativo: true,
+      });
+
+      if (!condutorResponsavel) {
+        throw new Error("Condutor autenticado não encontrado.");
+      }
+
+      const novoMonitor = this.monitorRepository.create({
+        nome,
+        email: emailDestino,
+        telefone,
+        senha,
+        id_condutor: condutorResponsavel.id_condutor,
+        ativo: true,
+      });
+
+      await this.monitorRepository.save(novoMonitor);
+
+      condutorOrigem.ativo = false;
+      await this.condutorRepository.save(condutorOrigem);
+
+      return this.formatarMonitor(novoMonitor);
+    }
+
+    // tipoOrigem === "monitor" -> tipoDestino === "condutor"
+    const monitorOrigem = await this.monitorRepository.findOneBy({ id_monitor: idOrigem });
+
+    if (!monitorOrigem || !monitorOrigem.ativo) {
+      throw new Error("Monitor não encontrado.");
+    }
+
+    const emailDestino =
+      dados.email !== undefined ? String(dados.email).trim().toLowerCase() : monitorOrigem.email;
+    if (!emailDestino) throw new Error("E-mail é obrigatório.");
+
+    // Cenário A: já existe um condutor (ativo ou inativo) com esse
+    // e-mail — reativa mantendo os dados que já estavam salvos nele.
+    const condutorExistente = await this.condutorRepository.findOneBy({ email: emailDestino });
+
+    if (condutorExistente) {
+      condutorExistente.ativo = true;
+      await this.condutorRepository.save(condutorExistente);
+
+      monitorOrigem.ativo = false;
+      await this.monitorRepository.save(monitorOrigem);
+
+      return this.formatarCondutor(condutorExistente);
+    }
+
+    // Cenário B: não existe registro anterior — cria um novo.
+    const nome = dados.nome !== undefined ? String(dados.nome).trim() : monitorOrigem.nome;
+    if (!nome) throw new Error("Nome é obrigatório.");
+
+    const telefone =
+      dados.telefone !== undefined ? String(dados.telefone).trim() : monitorOrigem.telefone;
+    if (!telefone) throw new Error("Telefone é obrigatório.");
+
+    if (dados.senha && dados.senha.length < 6) {
+      throw new Error("A senha deve ter no mínimo 6 caracteres.");
+    }
+
+    await this.validarEmailDisponivel(emailDestino, { tipo: "monitor", id: idOrigem });
+
+    const senha = dados.senha
+      ? await bcrypt.hash(dados.senha, 10)
+      : monitorOrigem.senha;
+
+    const novoCondutor = this.condutorRepository.create({
+      nome,
+      email: emailDestino,
+      telefone,
+      senha,
+      ativo: true,
+    });
+
+    await this.condutorRepository.save(novoCondutor);
+
+    monitorOrigem.ativo = false;
+    await this.monitorRepository.save(monitorOrigem);
+
+    return this.formatarCondutor(novoCondutor);
   }
 
   // DELETE /acessos/:tipo/:id -> exclusão lógica (ativo = false)

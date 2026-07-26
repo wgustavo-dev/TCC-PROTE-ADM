@@ -39,10 +39,15 @@ export class ControlAcessos {
 
   async atualizar(req: AuthRequest, res: Response) {
     try {
-      const { tipo, id } = req.params;
+      if (!req.user) {
+        return res.status(401).json({ error: "Usuário não autenticado." });
+      }
+
+      const tipo = Array.isArray(req.params.tipo) ? req.params.tipo[0] : req.params.tipo;
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
       const dados = req.body;
 
-      const acesso = await serviceAcessos.atualizar(tipo as string, Number(id), dados);
+      const acesso = await serviceAcessos.atualizar(tipo, Number(id), dados, req.user);
 
       return res.status(200).json(acesso);
     } catch (error: any) {
@@ -54,9 +59,10 @@ export class ControlAcessos {
 
   async deletar(req: AuthRequest, res: Response) {
     try {
-      const { tipo, id } = req.params;
+      const tipo = Array.isArray(req.params.tipo) ? req.params.tipo[0] : req.params.tipo;
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
-      const resultado = await serviceAcessos.deletar(tipo as string, Number(id));
+      const resultado = await serviceAcessos.deletar(tipo, Number(id));
 
       return res.status(200).json(resultado);
     } catch (error: any) {
