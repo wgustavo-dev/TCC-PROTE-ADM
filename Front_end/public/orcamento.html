@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Anti-flicker: esconde via CSS os módulos que o Monitor não pode ver,
+       ANTES da sidebar ser desenhada na tela. Precisa ser um script INLINE
+       (sem arquivo externo): um <script src="..."> ainda sofre uma volta de
+       rede, mesmo em cache, e isso já é tempo suficiente para o navegador
+       pintar o menu completo antes do JS remover os itens (o "piscar"). -->
+  <script>
+    (function () {
+      try {
+        var usuario = JSON.parse(window.localStorage.getItem("prote_user") || "null");
+        if (usuario && usuario.role === "MONITOR") {
+          var estilo = document.createElement("style");
+          estilo.textContent =
+            ".nav-item { display: none !important; }" +
+            ".nav-item[data-page=\"presenca\"], .nav-item[data-page=\"alunos\"] { display: flex !important; }";
+          document.head.appendChild(estilo);
+        }
+      } catch (erro) {}
+    })();
+  </script>
+  <title>PROTE — Orçamentos</title>
+
+  <link rel="stylesheet" href="css/globalcss.css" />
+  <link rel="stylesheet" href="css/orcamento.css" />
+  <link rel="stylesheet" href="core/alerts.css" />
+  
+</head>
+<body>
+
+  <div class="fundo-escuro" id="fundoEscuro"></div>
+
+    <div class="layout">
+    <header class="barra-topo">
+      <button class="botao-menu" id="botaoMenu" aria-label="Abrir menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <span class="nome-sistema-topo">PROTE</span>
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-title">PROTE</div>
+        <div class="logo-sub">Painel Administrativo</div>
+      </div>
+
+      <nav class="nav">
+        <a href="index.html" class="nav-item" data-page="dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+          Dashboard
+        </a>
+        <a href="despesas.html" class="nav-item" data-page="despesas">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          Despesas
+        </a>
+        <a href="documentos.html" class="nav-item" data-page="documentos">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8"></path><path d="M8 17h5"></path></svg>
+          Documentos
+        </a>
+        <a href="responsaveis.html" class="nav-item" data-page="responsaveis">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Responsáveis
+        </a>
+        <a href="alunos.html" class="nav-item" data-page="alunos">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Alunos
+        </a>
+        <a href="orcamento.html" class="nav-item active" data-page="orcamento">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
+          Orçamento
+        </a>
+        <a href="mensalidade.html" class="nav-item" data-page="mensalidades">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path><path d="M6 15h4"></path></svg>
+          Mensalidades
+        </a>
+        <a href="presenca.html" class="nav-item" data-page="presenca">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          Presença
+        </a>
+        <a href="acessos.html" class="nav-item" data-page="acessos">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path><circle cx="12" cy="16" r="1"></circle></svg>
+          Acessos
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main">
+
+      <div class="cabecalho-pagina cabecalho-orcamento">
+        <div>
+          <h1 class="page-title titulo-orcamento">Gestão de orçamentos</h1>
+          <p class="page-sub">Gerencie pagamentos e comunicação com clientes</p>
+        </div>
+
+<button class="botao-primario-orcamento" id="botaoNovoOrcamento">
+  <svg class="icone-botao-topo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <line x1="12" y1="5" x2="12" y2="19"></line>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+  </svg>
+  Novo orçamento
+</button>
+      </div>
+
+      <div class="card barra-status">
+        <button class="aba-status active" data-status="pendente">PENDENTES</button>
+        <button class="aba-status" data-status="convertido">APROVADOS</button>
+        
+      </div>
+
+      <div class="card caixa-busca-orcamento">
+        <div class="campo-busca-com-icone">
+          <svg class="icone-busca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+
+          <input
+            type="text"
+            id="campoBusca"
+            class="input-busca-orcamento"
+            placeholder="Buscar por Responsável..."
+          />
+        </div>
+      </div>
+
+      <div class="card tabela-orcamentos-card">
+        <div class="tabela-responsiva">
+          <table class="tabela-orcamentos" id="tabelaOrcamentos">
+            <thead>
+              <tr>
+                <th>RESPONSÁVEL</th>
+                <th>TRAJETO</th>
+                <th>ENDEREÇO EMBARQUE</th>
+                <th>ENDEREÇO DESEMBARQUE</th>
+                <th>STATUS</th>
+                <th>AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody id="linhasOrcamentos"></tbody>
+          </table>
+        </div>
+
+        <div class="aviso-vazio" id="avisoVazio">
+          Nenhum orçamento cadastrado ainda.
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <!-- Modal -->
+<div class="fundo-modal" id="fundoModal">
+  <div class="caixa-modal" role="dialog" aria-modal="true" aria-labelledby="tituloModal">
+
+    <div class="modal-header">
+      <h2 id="tituloModal">Novo orçamento</h2>
+
+      <button
+        type="button"
+        class="btn-close"
+        id="botaoFecharModal"
+        aria-label="Fechar">
+        ×
+      </button>
+    </div>
+
+    <form id="formOrcamento">
+
+      <input type="hidden" id="campoId">
+
+      <div class="grupo-campo">
+        <label class="label-campo" for="campoResponsavel">
+          Nome do Responsável
+        </label>
+
+        <input
+          type="text"
+          class="input-campo"
+          id="campoResponsavel"
+          placeholder="Digite...">
+
+        <span class="mensagem-erro" id="erroResponsavel"></span>
+      </div>
+
+      <div class="grupo-campo">
+        <label class="label-campo" for="campoTelefone">
+          Telefone
+        </label>
+
+        <input
+          type="text"
+          class="input-campo"
+          id="campoTelefone"
+          placeholder="Digite o telefone...">
+
+        <span class="mensagem-erro" id="erroTelefone"></span>
+      </div>
+
+      <div class="grupo-campo">
+        <label class="label-campo" for="campoQuantidadeAlunos">
+          Quantidade de alunos
+        </label>
+
+        <input
+          type="number"
+          class="input-campo"
+          id="campoQuantidadeAlunos"
+          min="1"
+          step="1"
+          placeholder="Digite a quantidade...">
+
+        <span class="mensagem-erro" id="erroQuantidadeAlunos"></span>
+      </div>
+
+      <div class="grupo-campo">
+        <label class="label-campo" for="campoTrajeto">
+          Trajeto
+        </label>
+
+        <select
+          class="select-campo"
+          id="campoTrajeto">
+
+          <option value="">Selecione...</option>
+          <option value="IDA">Ida</option>
+          <option value="VOLTA">Volta</option>
+          <option value="AMBOS">Ambos</option>
+
+        </select>
+
+        <span class="mensagem-erro" id="erroTrajeto"></span>
+      </div>
+
+      <div class="grupo-campo">
+        <label class="label-campo" for="campoEmbarque">
+          Endereço embarque
+        </label>
+
+        <input
+          type="text"
+          class="input-campo"
+          id="campoEmbarque"
+          placeholder="Digite o endereço...">
+
+        <span class="mensagem-erro" id="erroEmbarque"></span>
+      </div>
+
+      <div class="grupo-campo">
+        <label class="label-campo" for="campoDesembarque">
+          Endereço desembarque
+        </label>
+
+        <input
+          type="text"
+          class="input-campo"
+          id="campoDesembarque"
+          placeholder="Digite o endereço...">
+
+        <span class="mensagem-erro" id="erroDesembarque"></span>
+      </div>
+
+      <div class="acoes-modal">
+
+        <button
+          type="button"
+          class="botao-cancelar"
+          id="botaoCancelar">
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="botao-cadastrar"
+          id="botaoSalvar">
+          Cadastrar
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<script src="core/api.js"></script>
+  <script src="core/permissoes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="core/alerts.js"></script>
+<script src="js/orcamento.js"></script>
+</body>
+</html>

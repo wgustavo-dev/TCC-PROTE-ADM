@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PROTE — Login</title>
+    <link rel="stylesheet" href="css/login.css" />
+  <link rel="stylesheet" href="core/alerts.css" />
+</head>
+
+<body>
+
+    <div class="pagina-fundo"></div>
+
+    <div class="modal-login" role="dialog" aria-modal="true">
+        <div class="tela">
+
+            <!-- Painel esquerdo: formulário -->
+            <div class="painel-formulario">
+                <button class="botao-fechar" id="botaoFecharLogin" aria-label="Fechar">✕</button>
+
+                <h1 class="titulo-modal">Entrar em sua conta</h1>
+                <p class="subtitulo-modal">Que bom ver você! Faça login para continuar.</p>
+
+                <div class="grupo-campo">
+                    <div class="input-com-icone">
+                        <svg class="icone-input" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="16" rx="2" />
+                            <polyline points="2,4 12,13 22,4" />
+                        </svg>
+                        <input type="email" class="input-login" id="campEmail" placeholder="E-mail"
+                            autocomplete="email" />
+                    </div>
+                    <span class="mensagem-erro" id="erroEmail"></span>
+                </div>
+
+                <div class="grupo-campo">
+                    <div class="input-com-icone">
+                        <svg class="icone-input" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                        <input type="password" class="input-login" id="campSenha" placeholder="Senha"
+                            autocomplete="current-password" />
+                        <button class="botao-ver-senha" id="botaoVerSenha" aria-label="Mostrar senha" tabindex="-1">
+                            <svg id="iconeOlhoAberto" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                            <svg id="iconeOlhoFechado" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" style="display:none">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                        </button>
+                    </div>
+                    <span class="mensagem-erro" id="erroSenha"></span>
+                </div>
+
+                <!-- Link para esqueceu a senha — redireciona para outra página -->
+                <a href="esqueceu_senha.html" class="link-acao">Esqueceu a senha?</a>
+
+                <button class="botao-primario" id="botaoEntrar">Entrar</button>
+                <span class="mensagem-erro mensagem-erro-geral" id="erroLogin"></span>
+            </div>
+
+            <!-- Painel direito: apresentação -->
+            <div class="painel-azul painel-apresentacao">
+                <p class="apresentacao-nome-empresa">PROTE</p>
+                <p class="apresentacao-slogan">Painel Administrativo</p>
+
+                <div class="ilustracao-escudo">
+                    <svg class="escudo-svg" viewBox="0 0 80 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M40 4 L72 16 L72 44 C72 62 56 76 40 84 C24 76 8 62 8 44 L8 16 Z"
+                            fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)" stroke-width="2" />
+                        <path d="M40 12 L66 22 L66 44 C66 59 52 71 40 78 C28 71 14 59 14 44 L14 22 Z"
+                            fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" />
+                        <rect x="31" y="42" width="18" height="14" rx="2" fill="white" opacity="0.9" />
+                        <path d="M34 42 V38 A6 6 0 0 1 46 38 V42" stroke="white" stroke-width="2.5" fill="none"
+                            opacity="0.9" />
+                        <circle cx="40" cy="49" r="2" fill="#1a56db" />
+                    </svg>
+                    <div class="check-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </div>
+                </div>
+
+                <p class="apresentacao-titulo">Acesso exclusivo</p>
+                <p class="apresentacao-descricao">
+                    Este sistema é de uso exclusivo do proprietário. Suas informações estão seguras conosco.
+                </p>
+
+                <div class="apresentacao-divisor"></div>
+
+                <ul class="lista-beneficios">
+                    <li>
+                        <div class="icone-beneficio">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                <polyline points="9 12 11 14 15 10" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="beneficio-titulo">Segurança garantida</p>
+                            <p class="beneficio-desc">Seus dados protegidos com tecnologia avançada.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="icone-beneficio">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <line x1="23" y1="11" x2="17" y2="11" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="beneficio-titulo">Acesso exclusivo</p>
+                            <p class="beneficio-desc">Sistema restrito ao proprietário.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="icone-beneficio">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="beneficio-titulo">Sessões monitoradas</p>
+                            <p class="beneficio-desc">Acompanhamento de atividades em tempo real.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="core/api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="core/alerts.js"></script>
+    <script src="js/login.js"></script>
+</body>
+
+</html>

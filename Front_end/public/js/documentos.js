@@ -1,0 +1,435 @@
+const PRAZOS = {
+  CNH: { anos: 10 },
+  'Tacógrafo Vistoria': { anos: 2 },
+  'CRLV Perua': { anos: 1 },
+  'Vistoria Inspeção DETRAN': { meses: 6 },
+  CRMC: { anos: 5 },
+  'Certificado de Registro Municipal': { anos: 1 }
+};
+
+const botaoMenu = document.getElementById('botaoMenu');
+const sidebar = document.getElementById('sidebar');
+const fundoEscuro = document.getElementById('fundoEscuro');
+
+const btnAbrirModal = document.getElementById('btnAbrirModal');
+const btnFecharModal = document.getElementById('btnFecharModal');
+const btnCancelar = document.getElementById('btnCancelar');
+const modalOverlay = document.getElementById('modalOverlay');
+/* */
+const btnToggleFiltros = document.getElementById('btnToggleFiltros');
+const filtrosCard = document.getElementById('filtrosCard');
+const btnLimparFiltros = document.getElementById('btnLimparFiltros');
+
+const formDocumento = document.getElementById('formDocumento');
+const documentoId = document.getElementById('documentoId');
+const tipoDocumento = document.getElementById('tipoDocumento');
+const dataRealizacao = document.getElementById('dataRealizacao');
+const dataValidade = document.getElementById('dataValidade');
+const statusPreview = document.getElementById('statusPreview');
+const modalTitulo = document.getElementById('modalTitulo');
+
+const inputBusca = document.getElementById('inputBusca');
+const filtroStatus = document.getElementById('filtroStatus');
+const filtroRealizacao = document.getElementById('filtroRealizacao');
+const filtroValidade = document.getElementById('filtroValidade');
+
+const tbodyDocumentos = document.getElementById('tbodyDocumentos');
+const emptyState = document.getElementById('emptyState');
+const alertasContainer = document.getElementById('alertasContainer');
+
+const totalDocs = document.getElementById('totalDocs');
+const validosDocs = document.getElementById('validosDocs');
+const vencidosDocs = document.getElementById('vencidosDocs');
+
+let documentos = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  configurarMenuMobile();
+  configurarModal();
+  configurarFiltros();
+  configurarFormulario();
+
+  await carregarDocumentosDoBackend();
+  renderizarTudo();
+});
+
+function configurarMenuMobile() {
+  if (!botaoMenu || !sidebar || !fundoEscuro) return;
+
+  botaoMenu.addEventListener('click', () => {
+    botaoMenu.classList.toggle('aberto');
+    sidebar.classList.toggle('aberta');
+    fundoEscuro.classList.toggle('visivel');
+  });
+
+  fundoEscuro.addEventListener('click', () => {
+    botaoMenu.classList.remove('aberto');
+    sidebar.classList.remove('aberta');
+    fundoEscuro.classList.remove('visivel');
+  });
+}
+
+function configurarModal() {
+  btnAbrirModal.addEventListener('click', abrirModalNovo);
+  btnFecharModal.addEventListener('click', fecharModalSeguroDocumento);
+  btnCancelar.addEventListener('click', fecharModalSeguroDocumento);
+
+  modalOverlay.addEventListener('click', (event) => {
+    if (event.target === modalOverlay) {
+      fecharModalSeguroDocumento();
+    }
+  });
+
+  tipoDocumento.addEventListener('change', atualizarPreviewDocumento);
+  dataRealizacao.addEventListener('input', atualizarPreviewDocumento);
+}
+
+function abrirModalNovo() {
+  modalTitulo.textContent = 'Nova Vistoria';
+  formDocumento.reset();
+  documentoId.value = '';
+  dataValidade.value = '';
+  statusPreview.value = '';
+  modalOverlay.classList.remove('hidden');
+  registrarEstadoInicialFormulario(formDocumento);
+}
+
+function abrirModalEditar(documento) {
+  modalTitulo.textContent = 'Editar Documento';
+  documentoId.value = documento.id || '';
+  tipoDocumento.value = documento.tipo || '';
+  dataRealizacao.value = documento.dataRealizacao || '';
+  dataValidade.value = documento.dataValidade || '';
+  statusPreview.value = formatarStatusTexto(documento.status || '');
+  modalOverlay.classList.remove('hidden');
+  registrarEstadoInicialFormulario(formDocumento);
+}
+
+function fecharModal() {
+  modalOverlay.classList.add('hidden');
+}
+
+function fecharModalSeguroDocumento() {
+  return fecharModalSeguro(formDocumento, fecharModal);
+}
+
+function configurarFiltros() {
+  btnToggleFiltros.addEventListener('click', () => {
+    filtrosCard.classList.toggle('hidden');
+    btnToggleFiltros.classList.toggle('aberto');
+  });
+
+  inputBusca.addEventListener('input', renderizarTabela);
+  filtroStatus.addEventListener('change', renderizarTabela);
+  filtroRealizacao.addEventListener('change', renderizarTabela);
+  filtroValidade.addEventListener('change', renderizarTabela);
+
+  btnLimparFiltros.addEventListener('click', () => {
+    inputBusca.value = '';
+    filtroStatus.value = '';
+    filtroRealizacao.value = '';
+    filtroValidade.value = '';
+    renderizarTabela();
+  });
+}
+
+function configurarFormulario() {
+  formDocumento.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const payload = montarPayloadFormulario();
+
+    if (!payload.tipo_documento || !payload.data_emissao) {
+  showWarning("Preencha os campos obrigatórios.");
+      return;
+    }
+
+    try {
+      const id = documentoId.value;
+
+      if (id) {
+        await window.API.put(`/documentos/${id}`, payload);
+      } else {
+        await window.API.post('/documentos', payload);
+      }
+
+      await carregarDocumentosDoBackend();
+      renderizarTudo();
+      fecharModal();
+      await showSuccess(id ? 'Documento atualizado com sucesso!' : 'Documento cadastrado com sucesso!');
+    } catch (error) {
+      console.error(error);
+      showError(error.message || 'Não foi possível salvar o documento.');
+    }
+  });
+}
+
+function montarPayloadFormulario() {
+  const tipo = tipoDocumento.value;
+  const realizacao = dataRealizacao.value;
+  const validade = tipo && realizacao ? calcularValidade(tipo, realizacao) : '';
+  const status = validade ? calcularStatus(validade) : '';
+
+  return {
+    tipo_documento: tipo,
+    data_emissao: realizacao,
+    data_validade: validade,
+    status: status === 'Vencido' ? 'VENCIDO' : 'VALIDO'
+  };
+}
+
+function atualizarPreviewDocumento() {
+  const tipo = tipoDocumento.value;
+  const realizacao = dataRealizacao.value;
+
+  if (!tipo || !realizacao) {
+    dataValidade.value = '';
+    statusPreview.value = '';
+    return;
+  }
+
+  const validade = calcularValidade(tipo, realizacao);
+  const status = calcularStatus(validade);
+
+  dataValidade.value = validade;
+  statusPreview.value = formatarStatusTexto(status);
+}
+
+async function carregarDocumentosDoBackend() {
+  try {
+    const dados = await window.API.get('/documentos');
+
+    documentos = (dados || []).map((doc) => ({
+      id: doc.id_documento,
+      tipo: doc.tipo_documento,
+      dataRealizacao: doc.data_emissao ? doc.data_emissao.split('T')[0] : '',
+      dataValidade: doc.data_validade ? doc.data_validade.split('T')[0] : '',
+      status: doc.status || calcularStatusDocumento(doc.data_validade ? doc.data_validade.split('T')[0] : ''),
+      diasRestantes: doc.diasRestantes ?? calcularDiasRestantes(doc.data_validade ? doc.data_validade.split('T')[0] : '')
+    }));
+  } catch (error) {
+    console.error('Erro ao carregar documentos:', error);
+    documentos = [];
+    showError('Não foi possível carregar os documentos. Verifique se você está logado como condutor.');
+  }
+}
+
+function calcularValidade(tipo, dataBase) {
+  const prazo = PRAZOS[tipo];
+  const data = new Date(`${dataBase}T00:00:00`);
+
+  if (!prazo) return dataBase;
+
+  if (prazo.anos) {
+    data.setFullYear(data.getFullYear() + prazo.anos);
+  }
+
+  if (prazo.meses) {
+    data.setMonth(data.getMonth() + prazo.meses);
+  }
+
+  return data.toISOString().split('T')[0];
+}
+
+function calcularDiasRestantes(dataValidadeFinal) {
+  if (!dataValidadeFinal) return null;
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const validade = new Date(`${dataValidadeFinal}T00:00:00`);
+  validade.setHours(0, 0, 0, 0);
+
+  return Math.round((validade - hoje) / (1000 * 60 * 60 * 24));
+}
+
+function calcularStatusDocumento(dataValidadeFinal) {
+  const diasRestantes = calcularDiasRestantes(dataValidadeFinal);
+
+  if (diasRestantes === null) return 'Em dia';
+  if (diasRestantes < 0) return 'Vencido';
+  if (diasRestantes === 0) return 'Vence hoje';
+  if (diasRestantes <= 7) return 'Vence em breve';
+  return 'Em dia';
+}
+
+function calcularStatus(dataValidadeFinal) {
+  return calcularStatusDocumento(dataValidadeFinal);
+}
+
+function formatarData(dataIso) {
+  if (!dataIso) return '-';
+  const [ano, mes, dia] = dataIso.split('-');
+  return `${dia}/${mes}/${ano}`;
+}
+
+function normalizarStatusClasse(status) {
+  const mapa = {
+    'Em dia': 'em-dia',
+    'Vence em breve': 'vence-em-breve',
+    'Vence hoje': 'vence-hoje',
+    Vencido: 'vencido',
+    valido: 'em-dia',
+    proximo: 'vence-em-breve',
+    vencido: 'vencido'
+  };
+
+  return mapa[status] || 'em-dia';
+}
+
+function formatarStatusTexto(status) {
+  if (status === 'valido') return 'Em dia';
+  if (status === 'proximo') return 'Vence em breve';
+  if (status === 'vencido') return 'Vencido';
+  return status || '-';
+}
+
+function renderizarStatus(status) {
+  const classe = normalizarStatusClasse(status);
+  const icones = {
+    'em-dia': '',
+    'vence-em-breve': '',
+    'vence-hoje': '',
+    vencido: ''
+  };
+
+  return `<span class="badge-status ${classe}">${icones[classe]} ${formatarStatusTexto(status)}</span>`;
+}
+
+function renderizarTudo() {
+  renderizarCards();
+  renderizarAlertas();
+  renderizarTabela();
+}
+
+function renderizarCards() {
+  const total = documentos.length;
+  const validos = documentos.filter(doc => normalizarStatusClasse(doc.status) === 'em-dia').length;
+  const vencidos = documentos.filter(doc => normalizarStatusClasse(doc.status) === 'vencido').length;
+
+  totalDocs.textContent = total;
+  validosDocs.textContent = validos;
+  vencidosDocs.textContent = vencidos;
+}
+
+function renderizarAlertas() {
+  const alertas = documentos.filter(
+    doc => ['vence-em-breve', 'vence-hoje', 'vencido'].includes(normalizarStatusClasse(doc.status))
+  );
+
+  if (!alertas.length) {
+    alertasContainer.innerHTML = '';
+    return;
+  }
+
+  alertasContainer.innerHTML = `
+    <div class="alert-list">
+      ${alertas.map(doc => `
+        <div class="alert-card ${normalizarStatusClasse(doc.status)}">
+          <strong>${doc.tipo}</strong>
+          <span>
+            ${normalizarStatusClasse(doc.status) === 'vencido'
+              ? `Documento vencido em ${formatarData(doc.dataValidade)}.`
+              : `Documento próximo do vencimento em ${formatarData(doc.dataValidade)}.`}
+          </span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function obterDocumentosFiltrados() {
+  const busca = inputBusca.value.trim().toLowerCase();
+  const status = filtroStatus.value;
+  const realizacao = filtroRealizacao.value;
+  const validade = filtroValidade.value;
+
+  return documentos.filter((doc) => {
+    const matchBusca = !busca || (doc.tipo || '').toLowerCase().includes(busca);
+    const matchStatus = !status || normalizarStatusClasse(doc.status) === status;
+    const matchRealizacao = !realizacao || doc.dataRealizacao === realizacao;
+    const matchValidade = !validade || doc.dataValidade === validade;
+
+    return matchBusca && matchStatus && matchRealizacao && matchValidade;
+  });
+}
+
+function renderizarTabela() {
+  const lista = obterDocumentosFiltrados();
+
+  if (!lista.length) {
+    tbodyDocumentos.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+
+  tbodyDocumentos.innerHTML = lista.map((doc) => `
+    <tr class="${normalizarStatusClasse(doc.status)}">
+      <td>${doc.tipo || '-'}</td>
+      <td>${formatarData(doc.dataRealizacao)}</td>
+      <td>${formatarData(doc.dataValidade)}</td>
+      <td>
+        ${renderizarStatus(doc.status)}
+      </td>
+      <td>
+        <div class="actions">
+          <button class="icon-btn edit" data-id="${doc.id || ''}" data-action="editar" aria-label="Editar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+            </svg>
+          </button>
+
+          <button class="icon-btn delete" data-id="${doc.id || ''}" data-action="excluir" aria-label="Excluir">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14H6L5 6"/>
+              <path d="M10 11v6"/>
+              <path d="M14 11v6"/>
+              <path d="M9 6V4h6v2"/>
+            </svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+tbodyDocumentos.addEventListener('click', async (event) => {
+  const botao = event.target.closest('button[data-action]');
+  if (!botao) return;
+
+  const action = botao.dataset.action;
+  const id = botao.dataset.id;
+
+  const documento = documentos.find(doc => String(doc.id) === String(id));
+  if (!documento) return;
+
+  if (action === 'editar') {
+    abrirModalEditar(documento);
+    return;
+  }
+
+  if (action === 'excluir') {
+    const confirmar = await showConfirm('Tem certeza que deseja excluir este documento?');
+    if (!confirmar.isConfirmed) return;
+
+    try {
+      await window.API.del(`/documentos/${id}`);
+      await carregarDocumentosDoBackend();
+      renderizarTudo();
+      await showSuccess('Documento excluído com sucesso!');
+    } catch (error) {
+      console.error(error);
+      showError(error.message || 'Não foi possível excluir o documento.');
+    }
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !modalOverlay.classList.contains('hidden')) {
+    fecharModalSeguroDocumento();
+  }
+});

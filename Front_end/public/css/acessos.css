@@ -1,0 +1,493 @@
+/* ==========================================================================
+   PROTE SYSTEM - CONTROLE DE ACESSOS (COMPLETO E CORRIGIDO)
+   ========================================================================== */
+
+:root {
+  --fundo-pagina: #F8FAFC;
+  --fundo-card: #FFFFFF;
+  --borda: #E2E8F0;
+  --texto-primario: #0F172A;
+  --texto-secundario: #334155;
+  --texto-suave: #475569;
+  --cor-principal: #1A56DB;
+  --cor-principal-escura: #1E40AF;
+  --cor-principal-clara: #EFF6FF;
+  --verde: #16a34a;
+  --vermelho: #ff3131;
+  --vermelho-claro: #fef2f2;
+  --arredondamento-pequeno: 6px;
+  --arredondamento-medio: 8px;
+  --arredondamento-grande: 16px;
+  --sombra-card: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+}
+
+.acessos-main {
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* --- CABEÇALHO --- */
+.acessos-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.acessos-cabecalho .page-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--texto-primario);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.acessos-cabecalho .page-sub {
+  font-size: 13.5px;
+  color: var(--texto-secundario);
+  margin-top: 4px;
+}
+
+/* --- BOTÕES --- */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--cor-principal);
+  color: #fff;
+  border: none;
+  border-radius: var(--arredondamento-medio);
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-primary:hover {
+  background: var(--cor-principal-escura);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-novo-acesso {
+  height: 42px;
+  padding: 0 20px;
+}
+
+/* --- TOOLBAR (BUSCA E FILTRO ALINHADOS) --- */
+.acessos-toolbar {
+  display: grid !important;
+  grid-template-columns: 1fr 220px !important;
+  align-items: center !important;
+  gap: 16px !important;
+  margin-bottom: 20px !important;
+  width: 100% !important;
+}
+
+.campo-busca-acessos,
+.campo-busca {
+  position: relative;
+  width: 100%;
+}
+
+.icone-busca {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  stroke: var(--texto-suave);
+  pointer-events: none;
+}
+
+.input-busca-acessos,
+.input-busca {
+  width: 100% !important;
+  height: 44px !important;
+  padding: 8px 12px 8px 44px !important;
+  background: var(--fundo-card) !important;
+  border: 1px solid var(--borda) !important;
+  border-radius: var(--arredondamento-medio) !important;
+  color: var(--texto-primario) !important;
+  font-size: 14px !important;
+  outline: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.select-filtro-acessos,
+.input-filtro-acessos {
+  width: 100% !important;
+  height: 44px !important;
+  padding: 0 16px !important;
+  background: var(--fundo-card) !important;
+  border: 1px solid var(--borda) !important;
+  border-radius: var(--arredondamento-medio) !important;
+  color: var(--texto-primario) !important;
+  font-size: 14px !important;
+  outline: none !important;
+  cursor: pointer !important;
+}
+
+.input-busca-acessos:focus,
+.input-busca:focus,
+.select-filtro-acessos:focus,
+.input-filtro-acessos:focus {
+  border-color: var(--cor-principal) !important;
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.12) !important;
+}
+
+/* --- TABELA DE ACESSOS --- */
+.card-acessos,
+.table-card {
+  width: 100% !important;
+  background: var(--fundo-card) !important;
+  border: 1px solid var(--borda) !important;
+  border-radius: var(--arredondamento-grande) !important;
+  box-shadow: var(--sombra-card) !important;
+  overflow: hidden !important;
+}
+
+.table-wrapper-acessos,
+.table-wrapper {
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.tabela-acessos {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  background: #ffffff !important;
+  font-size: 13.5px !important;
+}
+
+.tabela-acessos thead tr {
+  background: var(--fundo-pagina) !important;
+  border-bottom: 1px solid var(--borda) !important;
+}
+
+.tabela-acessos th {
+  padding: 14px 16px !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  color: var(--texto-secundario) !important;
+  letter-spacing: 0.04em !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+.tabela-acessos td {
+  padding: 16px !important;
+  color: var(--texto-primario) !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid var(--borda) !important;
+}
+
+.tabela-acessos tbody tr {
+  height: 60px !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.tabela-acessos tbody tr:hover {
+  background-color: var(--fundo-pagina) !important;
+}
+
+.tabela-acessos tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+/* Ações na Tabela */
+.acoes-acesso,
+.actions {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+}
+
+.btn-acao-acesso,
+.icon-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border: 0 !important;
+  border-radius: var(--arredondamento-pequeno) !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  transition: background-color 0.15s, transform 0.1s !important;
+}
+
+.btn-acao-acesso:hover,
+.icon-btn:hover {
+  background-color: var(--cor-principal-clara) !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-acao-acesso svg,
+.icon-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.btn-acao-acesso.editar,
+.icon-btn.edit svg {
+  stroke: var(--cor-principal) !important;
+  color: var(--cor-principal) !important;
+}
+
+.btn-acao-acesso.excluir,
+.icon-btn.delete svg {
+  stroke: var(--vermelho) !important;
+  color: var(--vermelho) !important;
+}
+
+.empty-state {
+  padding: 30px !important;
+  text-align: center !important;
+  color: var(--texto-suave) !important;
+  font-size: 14px !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* =========================================================
+   MODAL E FORMULÁRIO DE CADASTRO DE ACESSOS
+   ========================================================= */
+
+.modal-overlay,
+.fundo-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.45) !important;
+  z-index: 9999 !important;
+  padding: 22px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.modal-overlay.hidden {
+  display: none !important;
+}
+
+.modal-card,
+.modal-card-acesso,
+.caixa-modal {
+  width: min(520px, calc(100vw - 32px)) !important;
+  max-width: 520px !important;
+  max-height: calc(100vh - 44px) !important;
+  background: #ffffff !important;
+  border-radius: var(--arredondamento-grande) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22) !important;
+  border: none !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  animation: abrirModalAcesso 0.18s ease-out;
+}
+
+@keyframes abrirModalAcesso {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Cabeçalho do Modal */
+.modal-header,
+.modal-header-acesso {
+  min-height: 82px !important;
+  padding: 24px 28px !important;
+  border-bottom: 1px solid var(--borda) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.modal-header h2,
+.modal-header-acesso h2 {
+  margin: 0 !important;
+  font-size: 22px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+  color: var(--texto-primario) !important;
+}
+
+.btn-close,
+.btn-fechar-acesso {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: #f3f4f6 !important;
+  color: var(--texto-primario) !important;
+  font-size: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+.btn-close:hover,
+.btn-fechar-acesso:hover {
+  background: #e5e7eb !important;
+}
+
+/* Corpo do Formulário do Modal */
+.form-acesso {
+  padding: 24px 28px !important;
+  overflow-y: auto !important;
+  max-height: calc(100vh - 160px) !important;
+  scrollbar-width: thin;
+}
+
+.grupo-form-acesso {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  margin-bottom: 16px !important;
+}
+
+.grupo-form-acesso label {
+  display: block !important;
+  font-size: 14px !important;
+  color: var(--texto-primario) !important;
+  font-weight: 600 !important;
+}
+
+.grupo-form-acesso input,
+.grupo-form-acesso select,
+.grupo-form-acesso textarea {
+  width: 100% !important;
+  min-height: 44px !important;
+  border: 1px solid #D1D5DB !important;
+  border-radius: var(--arredondamento-medio) !important;
+  background: #ffffff !important;
+  color: var(--texto-primario) !important;
+  padding: 0 14px !important;
+  font-size: 14px !important;
+  outline: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.grupo-form-acesso input:focus,
+.grupo-form-acesso select:focus,
+.grupo-form-acesso textarea:focus {
+  border-color: var(--cor-principal) !important;
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.12) !important;
+}
+
+/* Rodapé do Modal (Botões lado a lado) */
+.modal-actions-acesso,
+.modal-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  margin-top: 24px !important;
+  width: 100% !important;
+  flex-shrink: 0 !important;
+}
+
+.btn-secondary-acesso,
+.btn-salvar-acesso,
+.btn-cancelar-acesso,
+.modal-actions-acesso button,
+.modal-actions button {
+  width: 100% !important;
+  height: 46px !important;
+  border-radius: var(--arredondamento-medio) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 16px !important;
+  box-sizing: border-box !important;
+}
+
+.btn-secondary-acesso,
+.btn-cancelar-acesso {
+  background: #ffffff !important;
+  color: var(--texto-primario) !important;
+  border: 1px solid #D1D5DB !important;
+}
+
+.btn-secondary-acesso:hover,
+.btn-cancelar-acesso:hover {
+  background: #F9FAFB !important;
+}
+
+.btn-salvar-acesso,
+.btn-primary-acesso {
+  background: var(--cor-principal) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.btn-salvar-acesso:hover,
+.btn-primary-acesso:hover {
+  background: var(--cor-principal-escura) !important;
+}
+
+/* SweetAlert fix */
+.swal2-container {
+  z-index: 999999 !important;
+}
+
+.swal2-backdrop-show {
+  z-index: 999998 !important;
+}
+
+/* --- RESPONSIVIDADE --- */
+@media (max-width: 900px) {
+  .acessos-toolbar {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .acessos-cabecalho {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-novo-acesso {
+    width: 100%;
+  }
+
+  .modal-actions-acesso,
+  .modal-actions {
+    grid-template-columns: 1fr !important;
+  }
+}

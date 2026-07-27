@@ -1,0 +1,457 @@
+
+:root {
+  --bg-fundo: var(--fundo-pagina, #F8FAFC);
+  --bg-card: var(--fundo-card, #FFFFFF);
+  --cor-borda: var(--borda, #E2E8F0);
+
+  --texto-principal: var(--texto-primario, #0F172A);
+  --texto-mutado: var(--texto-secundario, #334155);
+  --texto-suave: var(--texto-suave, #475569);
+  --azul-link: var(--cor-principal, #1A56DB);
+
+  /* Badges Suaves dos Cards Operacionais */
+  --badge-verde: #DCFCE7;
+  --badge-vermelho: #FEE2E2;
+  --badge-amarelo: #FEF3C7;
+  --badge-roxo: #F3E8FF;
+  --badge-azul: #DBEAFE;
+  --badge-azul-claro: #E0F2FE;
+  --badge-laranja: #FFEDD5;
+  --badge-rosa: #FCE7F3;
+
+  /* Cores dos Números e Indicadores */
+  --verde-num: #10B981;
+  --vermelho-num: #EF4444;
+  --laranja-num: #F59E0B;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+}
+
+/* --- ESTRUTURA PRINCIPAL DO DASHBOARD --- */
+.dashboard-main {
+  width: 100%;
+}
+
+/* --- CABEÇALHO DA PÁGINA --- */
+.cabecalho-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--texto-principal);
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.page-sub {
+  font-size: 13.5px;
+  color: var(--texto-mutado);
+  margin: 0;
+}
+
+/* --- CARDS BASE --- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--arredondamento-grande, 16px);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--sombra-card, 0 1px 3px rgba(0, 0, 0, 0.03));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.15s ease;
+}
+
+/* Tamanho reduzido para os cards de 4 colunas */
+.grid-4-colunas .card {
+  padding: 0.85rem 1.15rem;
+}
+
+/* --- CENTRALIZAÇÃO DOS CARDS SUPERIORES --- */
+.grid-3-colunas .card,
+.grid-4-colunas .card,
+.card-centro {
+  align-items: center;
+  text-align: center;
+}
+
+.grid-3-colunas .card .card-topo,
+.grid-4-colunas .card .card-topo,
+.card-centro .card-topo {
+  justify-content: center;
+  width: 100%;
+}
+
+.grid-3-colunas .card .valor-destaque,
+.grid-3-colunas .card .subtexto-card,
+.grid-4-colunas .card .valor-destaque,
+.grid-4-colunas .card .subtexto-card,
+.card-centro .valor-destaque,
+.card-centro .subtexto-card {
+  text-align: center;
+  width: 100%;
+}
+
+.margin-bottom {
+  margin-bottom: 18px;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+/* --- BADGES QUADRADAS E RÓTULOS --- */
+.card-topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.badge-quadrado {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--arredondamento-medio, 8px);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.badge-verde-pastel { background-color: var(--badge-verde); }
+.badge-vermelho-pastel { background-color: var(--badge-vermelho); }
+.badge-amarelo-pastel { background-color: var(--badge-amarelo); }
+.badge-roxo-pastel { background-color: var(--badge-roxo); }
+.badge-azul-pastel { background-color: var(--badge-azul); }
+.badge-azul-claro-pastel { background-color: var(--badge-azul-claro); }
+.badge-laranja-pastel { background-color: var(--badge-laranja); }
+.badge-rosa-pastel { background-color: var(--badge-rosa); }
+
+/* Título das boxes bem evidente */
+.rotulo-card {
+  font-size: 14px;
+  color: var(--texto-principal);
+  font-weight: 800;
+}
+
+/* Números grandes em destaque */
+.valor-destaque {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--texto-principal);
+  line-height: 1.2;
+}
+
+.subtexto-card {
+  font-size: 12px;
+  color: var(--texto-suave);
+  margin-top: 4px;
+}
+
+/* --- GRIDS DE LAYOUT --- */
+.grid-3-colunas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.grid-4-colunas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.grid-2-colunas {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* --- BARRA DE PROGRESSO --- */
+.barra-progresso {
+  width: 100%;
+  height: 6px;
+  background-color: var(--cor-borda);
+  border-radius: 999px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.barra-progresso-preenchimento {
+  height: 100%;
+  background-color: var(--azul-link);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* --- LISTA ALUNOS POR ESCOLA --- */
+.lista-escolas {
+  list-style: none;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.lista-escolas li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+  color: var(--texto-principal);
+  padding: 1px 4px;
+}
+
+.lista-escolas li span {
+  font-weight: 600;
+  color: var(--texto-mutado);
+}
+
+.lista-escolas li strong {
+  font-weight: 800;
+  color: var(--texto-principal);
+}
+
+/* --- LISTA DE PAGAMENTOS --- */
+.card-titulo {
+  font-size: 15px;
+  color: var(--texto-principal);
+  margin-bottom: 12px;
+  font-weight: 800;
+  text-align: center;
+  width: 100%;
+}
+
+.lista-pagamentos {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-pagamento {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.item-pagamento:last-child {
+  border-bottom: none;
+}
+
+.nome-pagamento {
+  font-weight: 600;
+  color: var(--texto-principal);
+  flex: 1;
+}
+
+.data-pagamento {
+  color: var(--texto-mutado);
+  margin: 0 16px;
+  font-size: 12.5px;
+}
+
+.valor-pagamento {
+  font-weight: 800;
+}
+
+.valor-pagamento.laranja { color: var(--laranja-num); }
+.valor-pagamento.verde { color: var(--verde-num); }
+
+/* --- LINKS DE CARDS --- */
+.link-card {
+  color: var(--azul-link);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  margin-top: 8px;
+  display: block;
+  text-align: center;
+  width: 100%;
+  transition: color 0.15s ease;
+}
+
+.link-card:hover {
+  text-decoration: underline;
+  color: var(--cor-principal-escura, #1E40AF);
+}
+
+/* --- ÁREA DO GRÁFICO --- */
+.card-cabecalho-grafico {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.subtitulo-grafico {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--texto-mutado);
+}
+
+.legenda-grafico {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.item-legenda::before {
+  content: "— ";
+  font-weight: bold;
+}
+
+.item-legenda.verde { color: var(--verde-num); }
+.item-legenda.vermelho { color: var(--vermelho-num); }
+
+.area-grafico {
+  height: 220px;
+  width: 100%;
+  position: relative;
+}
+
+/* --- DOCUMENTOS E ORÇAMENTOS (CORREÇÃO DE ESPAÇAMENTO E ALTURA) --- */
+.card-header-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.card-titulo-center {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--texto-principal);
+}
+
+.grid-metricas {
+  display: grid;
+  align-items: start;
+  margin-bottom: 12px;
+  padding: 4px 0;
+}
+
+.metricas-2-col {
+  grid-template-columns: 1fr 1fr;
+}
+
+.metricas-3-col {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.coluna-metrica {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding: 0 12px;
+}
+
+.coluna-metrica:not(:last-child) {
+  border-right: 1px solid var(--cor-borda);
+}
+
+.metrica-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--texto-principal);
+  margin-bottom: 6px;
+  min-height: 32px; /* Garante que os números comecem na mesma linha horizontal */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metrica-numero {
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-top: 2px; /* Puxa o número para perto do título */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metrica-numero.laranja { color: var(--laranja-num); }
+.metrica-numero.vermelho { color: var(--vermelho-num); }
+.metrica-numero.verde { color: var(--verde-num); }
+
+.card-footer-center {
+  text-align: center;
+  margin-top: auto;
+}
+
+/* =========================================================
+   RESPONSIVIDADE PADRONIZADA COM AS DEMAIS TELAS
+   ========================================================= */
+
+@media (max-width: 1024px) {
+  .grid-4-colunas {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .grid-3-colunas {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .cabecalho-pagina {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .grid-3-colunas,
+  .grid-4-colunas,
+  .grid-2-colunas {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .coluna-metrica {
+    padding: 0 6px;
+  }
+
+  .metrica-titulo {
+    font-size: 12px;
+  }
+
+  .metrica-numero {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 1rem 1.15rem;
+  }
+
+  .item-pagamento {
+    font-size: 12.5px;
+  }
+
+  .data-pagamento {
+    margin: 0 8px;
+  }
+}

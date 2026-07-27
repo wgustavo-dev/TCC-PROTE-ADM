@@ -1,0 +1,42 @@
+.prote-alert {
+  border-radius: 20px !important;
+  padding: 24px !important;
+  font-family: inherit !important;
+}
+
+.prote-alert-title {
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  color: #1f2937 !important;
+}
+
+.prote-alert-button {
+  background-color: #2446b8 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 10px 28px !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  cursor: pointer !important;
+}
+
+.prote-alert-button:hover {
+  background-color: #1e3a9b !important;
+}
+
+.prote-alert-cancel-button {
+  background-color: #e5e7eb !important;
+  color: #374151 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 10px 24px !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  cursor: pointer !important;
+  margin-right: 8px !important;
+}
+
+.prote-alert-cancel-button:hover {
+  background-color: #d1d5db !important;
+}

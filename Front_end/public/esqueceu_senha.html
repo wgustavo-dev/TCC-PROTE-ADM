@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PROTE — Esqueceu a Senha</title>
+    <link rel="stylesheet" href="css/login.css" />
+  <link rel="stylesheet" href="core/alerts.css" />
+</head>
+
+<body>
+
+    <div class="pagina-fundo"></div>
+
+    <div class="modal-login" role="dialog" aria-modal="true">
+        <div class="tela">
+
+            <!-- Painel esquerdo: formulário -->
+            <div class="painel-formulario">
+                <!-- Voltar leva de volta para login.html -->
+                <a href="login.html" class="botao-voltar" aria-label="Voltar">←</a>
+                <button class="botao-fechar" id="botaoFechar" aria-label="Fechar">✕</button>
+
+                <h1 class="titulo-modal">Esqueceu sua senha?</h1>
+                <p class="subtitulo-modal">
+                    Sem problemas! Informe seu e-mail abaixo que enviaremos um link para você redefinir sua senha.
+                </p>
+
+                <div class="grupo-campo">
+                    <div class="input-com-icone">
+                        <svg class="icone-input" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="16" rx="2" />
+                            <polyline points="2,4 12,13 22,4" />
+                        </svg>
+                        <input type="email" class="input-login" id="campEmailRecuperacao" placeholder="Seu e-mail"
+                            autocomplete="email" />
+                    </div>
+                    <span class="mensagem-erro" id="erroEmailRecuperacao"></span>
+                </div>
+
+                <div class="aviso-info">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <div>
+                        <p class="aviso-info-titulo">Verifique sua caixa de entrada</p>
+                        <p class="aviso-info-desc">O link de recuperação pode levar alguns minutos para chegar ao seu
+                            e-mail.</p>
+                    </div>
+                </div>
+
+                <button class="botao-primario" id="botaoEnviarLink">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="width:16px;height:16px;margin-right:8px">
+                        <line x1="22" y1="2" x2="11" y2="13" />
+                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                    Enviar link de recuperação
+                </button>
+
+                <div class="divisor-ou"><span>ou</span></div>
+
+                <!-- Botão voltar também leva para login.html -->
+                <a href="login.html" class="botao-contorno-escuro">← Voltar para o Login</a>
+            </div>
+
+            <!-- Painel direito azul: como funciona -->
+            <div class="painel-azul painel-azul-info">
+                <p class="painel-azul-pergunta">Como funciona?</p>
+                <p class="painel-azul-descricao">Siga os passos abaixo para recuperar sua senha:</p>
+                <ol class="lista-passos">
+                    <li><span class="numero-passo">1</span> Digite seu e-mail cadastrado no campo ao lado.</li>
+                    <li><span class="numero-passo">2</span> Clique em "Enviar link de recuperação".</li>
+                    <li><span class="numero-passo">3</span> Verifique seu e-mail e clique no link enviado.</li>
+                    <li><span class="numero-passo">4</span> Crie uma nova senha e acesse sua conta novamente.</li>
+                </ol>
+                <p class="painel-azul-rodape">
+                    🔒 Sua segurança é importante para nós. O link expira em 15 minutos.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="core/api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="core/alerts.js"></script>
+    <script src="js/esqueceu_senha.js"></script>
+</body>
+
+</html>

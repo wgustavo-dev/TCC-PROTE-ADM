@@ -1,0 +1,511 @@
+MEGA-MANUTENÇÃO DO FLUXO DE CADASTRO — SISTEMA PROTE ADM
+Projeto: PROTE — Sistema administrativo de transporte escolar
+Equipe: LIAME
+Arquivo de contexto para retomada futura
+
+1. CONTEXTO GERAL
+
+O sistema PROTE ADM está passando por uma manutenção urgente no fluxo de cadastro originado por orçamentos e também no fluxo manual de cadastro de responsáveis.
+
+O problema central identificado é que o fluxo atual está confuso e quebrado porque mistura criação automática de dados no backend, uso de localStorage no frontend, vínculo por nomes em vez de IDs, ausência de campos adequados na entidade orçamento e falta de controle correto do estado do orçamento durante a conversão.
+
+A regra nova definida para o sistema é:
+
+- Um orçamento convertido deve gerar um novo responsável.
+- Depois do responsável, o sistema deve cadastrar aluno e mensalidade individualmente.
+- O fluxo correto para orçamento com vários alunos é:
+  orçamento -> responsável -> aluno 1 -> mensalidade 1 -> aluno 2 -> mensalidade 2 -> ... -> último aluno -> última mensalidade -> alert de sucesso.
+- A mensalidade é individual por aluno, pois cada aluno pode ter um preço próprio.
+- O valor da mensalidade começa vazio. Quem define o valor é o condutor.
+- O orçamento não terá dados do aluno, apenas dados do responsável e quantidade de alunos.
+- O orçamento só será considerado convertido depois que todo o fluxo terminar.
+- O cadastro manual de responsável continua existindo e deve seguir o mesmo fluxo:
+  responsável -> aluno -> mensalidade.
+- No cadastro manual de responsável, o campo quantidade de alunos existe e deve ser obrigatório.
+- O sistema não deve depender de localStorage para controlar fluxo de cadastro.
+- O sistema deve usar IDs reais do banco e requisições fetch para manter a integridade dos dados.
+- Não pode haver alteração visual no projeto sem autorização.
+- Alterações no frontend devem ser limitadas a arquivos JavaScript necessários para fetch, redirecionamento e funcionamento dos formulários.
+- Não mexer em CSS, layout, estrutura visual, ícones ou design sem permissão explícita.
+
+2. DECISÕES JÁ TOMADAS
+
+2.1 Status do orçamento
+
+O enum de status do orçamento deve ser alterado no backend e no banco de dados.
+
+Status recomendados e aprovados:
+- PENDENTE: orçamento recebido, ainda não iniciado.
+- EM_CADASTRO: orçamento iniciou o processo de conversão, mas ainda não terminou responsável, aluno(s) e mensalidade(s).
+- CONVERTIDO: orçamento concluiu todo o fluxo e virou cliente operacional.
+- RECUSADO: orçamento recusado.
+
+A alteração deve ocorrer no banco MySQL e também no model TypeORM, pois mudar apenas o backend não basta. O MySQL rejeitaria valores novos se o ENUM da tabela continuasse antigo.
+
+2.2 Campo nome_cliente
+
+O campo nome_cliente da entidade orçamento é ambíguo e deve ser substituído por nome_responsavel.
+
+Motivo:
+- O orçamento não deve armazenar nome de aluno.
+- O orçamento representa a solicitação inicial feita por um responsável.
+- O campo nome_cliente gera confusão entre cliente, responsável e aluno.
+- A documentação e o código atual ainda usam nome_cliente, então a manutenção deve corrigir banco, model, service e JavaScript que usam esse campo.
+
+2.3 Quantidade de alunos no orçamento
+
+A tabela orçamento já possui quantidade_alunos, mas a tela de orçamento não exibe esse campo atualmente.
+
+Isso é um problema, porque o fluxo depende desse número para saber quantas vezes repetir aluno -> mensalidade.
+
+Como o frontend precisará ser ajustado, será necessário pedir permissão específica antes de alterar o formulário da tela de orçamento, pois adicionar input em HTML é alteração de frontend. Porém, sem esse campo, orçamento sempre tende a cair no padrão atual de 1 aluno.
+
+2.4 Valor do orçamento
+
+Por enquanto, o campo valor do orçamento será ignorado na manutenção.
+
+Motivo:
+- Existe divergência de opinião na equipe sobre ele.
+- Um parceiro responsável pelo banco considera que orçamento deve ter valor.
+- O fluxo de mensalidade não usará esse valor como sugestão.
+- A mensalidade começará vazia e será definida pelo condutor.
+
+2.5 Rota de orçamento
+
+A rota atual /orcamentos/:id/aprovar deve ser substituída por uma lógica com nome mais claro, preferencialmente /orcamentos/:id/converter.
+
+Motivo:
+- O termo aprovar gera confusão.
+- Quem aprova o orçamento é o cliente via WhatsApp.
+- No sistema administrativo, o condutor converte o orçamento em cadastro operacional.
+- O botão visual pode continuar com o mesmo texto por enquanto para evitar mexer em visual, mas a rota e a lógica do backend devem usar "converter".
+
+2.6 Email e endereço do responsável
+
+Email do responsável:
+- Deve ser opcional no banco.
+- Deve ser opcional no backend.
+- Deve ser opcional no frontend.
+
+Endereço do responsável:
+- Deve ser obrigatório.
+
+2.7 Alert final
+
+Ao finalizar todo o fluxo, tanto vindo de orçamento quanto de cadastro manual, o sistema deve exibir:
+"Novo cliente cadastrado com sucesso!"
+
+Esse alert deve aparecer depois da mensalidade do último aluno.
+
+3. TABELA GERAL DE PRIORIDADES
+Ordem	Categoria	prioridade	problema	decisão 	ação necessária
+1	 Banco de dados	Crítica	Status do orçamento não representa fluxo real	Criar PENDENTE, EM_CADASTRO, CONVERTIDO, RECUSADO	Alterar ENUM no MySQL e sincronizar com backend
+2	 Banco de dados	Crítica	 nome_cliente é ambíguo	Trocar por nome_responsavel	Alterar tabela orçamento, model e código que usa esse campo
+3	 Banco de dados	Alta	Email do responsável pode estar obrigatório	Email deve ser opcional	Alterar coluna no banco se estiver NOT NULL
+4	 Banco de dados	Alta	Endereço do responsável precisa ser obrigatório	Endereço é obrigatório	Confirmar se banco/service exigem endereco
+5	Backend	Crítica	service_orcamento cria responsável, aluno e mensalidade automaticamente	 Não deve criar automaticamente	Converter orçamento só muda status para EM_CADASTRO e retorna dados
+6	Backend	Crítica	Rota "aprovar" gera confusão	Usar rota "converter"	Criar/renomear rota para /orcamentos/:id/converter
+7	Backend	 Alta	Aluno pode estar vinculado por nome do responsável	Deve vincular por id_responsavel	Ajustar service_aluno e controller para usar ID
+8	Backend	 Alta	Mensalidade precisa validar aluno real	Mensalidade por id_aluno	Ajustar service_mensalidade para validar existência do aluno
+9	Backend	 Alta	Finalização do orçamento não é controlada com segurança	Só converter ao final da última mensalidade	 Criar lógica para finalizar conversão depois da última mensalidade
+10	Fluxo	Crítica	Fluxo atual não respeita aluno -> mensalidade individual	Deve alternar aluno e mensalidade	Controlar etapa atual por parâmetros e banco
+11	Fluxo	 Alta	Cadastro manual precisa seguir mesmo padrão	Responsável manual -> aluno -> mensalidade	Usar quantidade_alunos obrigatória no responsável
+12	Frontend JS	 Alta	Fluxo depende de localStorage	Não depender de localStorage	Usar query params com IDs e fetch (type ORM)
+13	Frontend JS	 Alta	Orçamento não redireciona para responsável	 Deve iniciar fluxo guiado	Alterar JS de orçamento para chamar converter e redirecionar
+14	Frontend JS	 Alta	Responsável precisa preencher dados do orçamento	Formulário de revisão	Buscar orçamento por ID e preencher campos existentes
+15	Frontend JS	 Alta	Aluno precisa saber responsável, orçamento e posição	 Usar URL/fetch 	Cadastrar aluno por id_responsavel
+16	Frontend JS	 Alta	Mensalidade precisa saber aluno atual e se há próximos	Usar id_aluno e controle de etapa	Após mensalidade, redirecionar para próximo aluno ou finalizar
+17	Revisão geral	 Crítica	Risco de quebra com 1 ou vários alunos	Testar os dois cenários	Testar orçamento com 1 aluno e com 2 ou mais alunos
+18	Revisão geral	 Alta	 Risco de afetar visual	Não mexer em visual	Revisar diff para garantir que só JS/backend/banco foram alterados
+
+
+
+4. MANUTENÇÕES NO BANCO DE DADOS
+
+4.1 Alterar enum de status do orçamento
+
+A tabela orçamento deve permitir os seguintes status:
+- PENDENTE
+- EM_CADASTRO
+- CONVERTIDO
+- RECUSADO
+
+Motivo:
+O orçamento não deve virar convertido no momento em que o condutor inicia o processo. Ele só vira convertido ao final do cadastro completo.
+
+4.2 Trocar nome_cliente por nome_responsavel
+
+A tabela orçamento deve substituir o campo nome_cliente por nome_responsavel.
+
+Motivo:
+O orçamento guarda dados do responsável e quantidade de alunos, não dados individuais dos alunos.
+
+Atenção:
+- Ajustar script SQL.
+- Ajustar inserts, se existirem.
+- Ajustar model TypeORM.
+- Ajustar service de orçamento.
+- Ajustar frontend JS que envia ou lê nome_cliente.
+
+4.3 Conferir quantidade_alunos
+
+A coluna quantidade_alunos deve continuar existindo e deve ser essencial no fluxo de orçamento.
+
+Motivo:
+O sistema usa esse número para repetir aluno -> mensalidade.
+
+4.4 Conferir email do responsável
+
+Email deve ser opcional. Se a coluna estiver NOT NULL, deve ser alterada para aceitar NULL.
+
+4.5 Conferir endereço do responsável
+
+Endereço deve ser obrigatório. Se a coluna estiver permitindo NULL indevidamente, avaliar correção.
+
+4.6 Não adicionar id_orcamento em responsável por enquanto
+
+Após esclarecimento do usuário, responsável não precisa obrigatoriamente nascer de orçamento, pois também existe cadastro manual.
+
+Portanto:
+- Não adicionar id_orcamento obrigatório em responsável.
+- Se a equipe quiser rastreabilidade futura, poderia ser opcional, mas não é necessário para esta manutenção.
+
+5. MANUTENÇÕES NO BACKEND
+
+5.1 service_orcamento.ts
+
+Problema atual:
+O service de orçamento aprova e já cria responsável, aluno e mensalidade automaticamente.
+
+Nova regra:
+Converter orçamento deve apenas iniciar o processo.
+
+Comportamento esperado:
+- Receber id_orcamento.
+- Buscar orçamento.
+- Validar se existe.
+- Validar se está PENDENTE.
+- Alterar status para EM_CADASTRO.
+- Manter convertido como false.
+- Salvar.
+- Retornar orçamento atualizado para o frontend.
+
+Não deve:
+- Criar responsável.
+- Criar aluno.
+- Criar mensalidade.
+- Usar nome "XXXXX" para aluno.
+- Finalizar orçamento antes da hora.
+
+5.2 Controller e routes de orçamento
+
+renomear rota aprovar para:
+PUT /api/orcamentos/:id/converter
+
+Essa rota deve chamar o service de conversão/início de cadastro.
+
+A rota antiga /aprovar pode ser removida ou mantida temporariamente redirecionando para a nova lógica, dependendo do risco de quebra. Porém, o ideal é migrar o frontend para a rota /converter.
+
+5.3 service_responsavel.ts
+
+Regras:
+- Responsável manual pode ser cadastrado normalmente.
+- Responsável vindo de orçamento deve ser criado a partir dos dados revisados.
+- Email opcional.
+- Endereço obrigatório.
+- Quantidade de alunos obrigatória no fluxo manual e útil no fluxo de orçamento.
+
+Ao salvar responsável:
+- Retornar id_responsavel.
+- O frontend usa esse ID para cadastrar aluno.
+- Não depender de nome para vínculo.
+
+5.4 service_aluno.ts
+
+Regras:
+- Aluno deve ser cadastrado usando id_responsavel.
+- O service deve validar se o responsável existe.
+- Não buscar responsável pelo nome.
+- Ignorar campo de horário/turma neste momento.
+- Retornar id_aluno criado.
+
+5.5 service_mensalidade.ts
+
+Regras:
+- Mensalidade deve ser cadastrada com id_aluno.
+- Validar se o aluno existe.
+- Valor é obrigatório e definido pelo condutor.
+- Mensalidade é individual por aluno.
+- Depois de salvar a mensalidade, o sistema decide se deve ir para o próximo aluno ou finalizar.
+
+5.6 Finalização da conversão
+
+Ao terminar a mensalidade do último aluno de um orçamento:
+- Alterar status do orçamento para CONVERTIDO.
+- Alterar convertido para true.
+- Definir data_conversao, se existir esse campo.
+- Retornar sucesso para o frontend.
+- Frontend exibe alert.
+
+6. CORREÇÕES DE FLUXO DE FORMULÁRIOS
+
+6.1 Fluxo vindo de orçamento
+
+Fluxo obrigatório:
+1. Tela de orçamento: usuário clica para converter.
+2. Backend muda orçamento para EM_CADASTRO.
+3. Frontend redireciona para:
+   responsaveis.html?fluxo=orcamento&id_orcamento=ID
+4. Tela de responsável busca orçamento por ID.
+5. Formulário de responsável é preenchido com os dados do orçamento.
+6. Usuário revisa e salva responsável.
+7. Backend cria responsável e retorna id_responsavel.
+8. Frontend redireciona para:
+   alunos.html?fluxo=orcamento&id_orcamento=ID&id_responsavel=ID&alunoAtual=1&totalAlunos=N
+9. Usuário cadastra aluno 1.
+10. Backend cria aluno e retorna id_aluno.
+11. Frontend redireciona para:
+    mensalidade.html?fluxo=orcamento&id_orcamento=ID&id_responsavel=ID&id_aluno=ID_ALUNO&alunoAtual=1&totalAlunos=N
+12. Usuário cadastra mensalidade 1.
+13. Se alunoAtual < totalAlunos:
+    redirecionar para próximo aluno:
+    alunos.html?fluxo=orcamento&id_orcamento=ID&id_responsavel=ID&alunoAtual=2&totalAlunos=N
+14. Se alunoAtual == totalAlunos:
+    backend finaliza orçamento como CONVERTIDO.
+    frontend exibe alert "Novo cliente cadastrado com sucesso!".
+    redirecionar para uma tela definida pela equipe, provavelmente orçamentos, responsáveis ou dashboard.
+
+6.2 Fluxo manual de responsável
+
+Fluxo obrigatório:
+1. Usuário abre responsaveis.html.
+2. Cadastra responsável manualmente.
+3. quantidade_alunos deve ser obrigatória.
+4. Backend cria responsável e retorna id_responsavel.
+5. Frontend redireciona para:
+   alunos.html?fluxo=manual&id_responsavel=ID&alunoAtual=1&totalAlunos=N
+6. Usuário cadastra aluno 1.
+7. Vai para mensalidade 1.
+8. Repete aluno -> mensalidade até o último aluno.
+9. Ao final, exibe alert "Novo cliente cadastrado com sucesso!".
+
+6.3 Controle por query params
+
+Evitar localStorage no fluxo.
+
+Parâmetros úteis:
+- fluxo=orcamento ou fluxo=manual
+- id_orcamento
+- id_responsavel
+- id_aluno
+- alunoAtual
+- totalAlunos
+
+O frontend deve usar esses parâmetros para buscar dados no backend e decidir o próximo passo.
+
+7. CORREÇÕES NO FRONTEND
+
+Regra geral:
+Não alterar visual sem autorização.
+
+Permitido:
+- Alterar JavaScript para fetch.
+- Alterar JavaScript para redirecionamento.
+- Alterar JavaScript para preenchimento automático de campos já existentes.
+- Alterar JavaScript para remover dependência de localStorage.
+- Alterar HTML apenas se for tecnicamente obrigatório, e antes pedir permissão.
+
+Não permitido sem autorização:
+- CSS.
+- Layout.
+- Ícones.
+- Cores.
+- Design.
+- Reorganização visual.
+- Mudança de texto visível que não seja necessária.
+- Troca visual de botão.
+
+7.1 orcamento.js
+
+Alterações necessárias:
+- Trocar chamada da rota aprovar para converter.
+- Após resposta do backend, redirecionar para responsaveis.html com id_orcamento.
+- Não mostrar sucesso final nesse momento, pois o cliente ainda não foi cadastrado.
+- Não depender de localStorage.
+
+Possível necessidade de HTML:
+- A tela de orçamento atualmente não exibe quantidade_alunos.
+- Será necessário pedir permissão antes de adicionar input no formulário, pois isso mexe em HTML.
+
+7.2 responsaveis.js
+
+Alterações necessárias:
+- Ler query params.
+- Se fluxo=orcamento, buscar orçamento por id_orcamento.
+- Preencher campos existentes com dados do orçamento.
+- Exigir quantidade_alunos.
+- Ao salvar, receber id_responsavel.
+- Redirecionar para alunos.html com fluxo, id_responsavel, alunoAtual e totalAlunos.
+- Email opcional.
+- Endereço obrigatório.
+
+7.3 alunos.js
+
+Alterações necessárias:
+- Ler id_responsavel, fluxo, alunoAtual e totalAlunos.
+- Salvar aluno usando id_responsavel.
+- Não buscar responsável por nome.
+- Ignorar horário/turma.
+- Após salvar aluno, redirecionar para mensalidade do aluno criado.
+- Não depender de localStorage.
+
+7.4 mensalidade.js
+
+Alterações necessárias:
+- Ler id_aluno, fluxo, alunoAtual e totalAlunos.
+- Criar mensalidade para id_aluno.
+- Valor começa vazio e deve ser informado pelo condutor.
+- Após salvar:
+  - Se ainda houver aluno pendente, redirecionar para próximo aluno.
+  - Se for o último aluno e fluxo=orcamento, chamar finalização do orçamento.
+  - Se for o último aluno e fluxo=manual, apenas exibir alert final.
+- Não depender de localStorage.
+
+8. REVISÃO GERAL E TESTES
+
+8.1 Teste de orçamento com 1 aluno
+
+Cenário:
+- Criar orçamento com quantidade_alunos = 1.
+- Converter orçamento.
+- Revisar responsável.
+- Cadastrar aluno 1.
+- Cadastrar mensalidade 1.
+- Verificar alert.
+- Verificar orçamento como CONVERTIDO e convertido=true.
+- Verificar responsável criado.
+- Verificar aluno vinculado ao responsável.
+- Verificar mensalidade vinculada ao aluno.
+
+8.2 Teste de orçamento com 2 ou mais alunos
+
+Cenário:
+- Criar orçamento com quantidade_alunos = 2.
+- Converter orçamento.
+- Revisar responsável.
+- Cadastrar aluno 1.
+- Cadastrar mensalidade 1.
+- Cadastrar aluno 2.
+- Cadastrar mensalidade 2.
+- Verificar alert apenas após mensalidade 2.
+- Verificar orçamento como CONVERTIDO apenas no final.
+- Verificar duas mensalidades individuais.
+
+8.3 Teste de cadastro manual
+
+Cenário:
+- Cadastrar responsável manualmente com quantidade_alunos obrigatória.
+- Cadastrar aluno 1.
+- Cadastrar mensalidade 1.
+- Se houver mais alunos, repetir.
+- Verificar alert final.
+- Verificar vínculos no banco.
+
+8.4 Teste de email opcional
+
+Cenário:
+- Cadastrar responsável sem email.
+- Confirmar que banco, backend e frontend aceitam.
+
+8.5 Teste de endereço obrigatório
+
+Cenário:
+- Tentar cadastrar responsável sem endereço.
+- Confirmar que backend bloqueia.
+
+8.6 Teste de não dependência do localStorage
+
+Cenário:
+- Limpar localStorage antes do fluxo.
+- Executar fluxo inteiro.
+- Confirmar que funciona apenas com IDs e banco.
+
+9. ALERTAS DE RISCO
+
+9.1 Risco ao alterar ENUM
+
+Alterar ENUM no MySQL exige cuidado, pois dados existentes precisam continuar compatíveis.
+
+9.2 Risco ao renomear nome_cliente
+
+Renomear coluna pode quebrar:
+- Model TypeORM.
+- Services.
+- Controllers.
+- Scripts SQL.
+- Inserts.
+- Frontend JS.
+- Busca/listagem de orçamentos.
+
+Antes da alteração, procurar todos os usos de nome_cliente no projeto.
+
+9.3 Risco no frontend
+
+Mesmo sem mexer no visual, alterar JS pode mudar comportamento.
+Fazer backups ou commits antes de cada etapa.
+
+9.4 Risco de fluxo incompleto
+
+Se o usuário abandonar o fluxo no meio, o orçamento ficará EM_CADASTRO.
+Isso não é erro, mas precisa ser entendido. Futuramente pode haver botão "continuar cadastro".
+
+10. ORDEM DE EXECUÇÃO RECOMENDADA
+
+1. Fazer commit/backup do projeto antes da manutenção.
+2. Procurar no projeto todos os usos de nome_cliente, APROVADO, convertido, localStorage, id_responsavel, nome_responsavel.
+3. Alterar banco:
+   - ENUM do status.
+   - nome_cliente -> nome_responsavel.
+   - email opcional em responsavel.
+4. Alterar model Orcamento.
+5. Alterar service_orcamento para usar converter e parar conversão automática.
+6. Alterar rotas/controllers de orçamento.
+7. Alterar service_responsavel:
+   - email opcional.
+   - endereco obrigatório.
+   - retorno do id_responsavel.
+8. Alterar service_aluno:
+   - cadastro por id_responsavel.
+   - validação de responsável.
+9. Alterar service_mensalidade:
+   - validação de id_aluno.
+   - retorno consistente.
+10. Criar lógica de finalização do orçamento.
+11. Solicitar autorização antes de qualquer mudança HTML.
+12. Alterar JS:
+   - orcamento.js.
+   - responsaveis.js.
+   - alunos.js.
+   - mensalidade.js.
+13. Testar fluxo de 1 aluno vindo de orçamento.
+14. Testar fluxo de 2 ou mais alunos vindo de orçamento.
+15. Testar fluxo manual de responsável.
+16. Revisar se nenhum CSS/visual foi alterado.
+17. Revisar console do navegador.
+18. Revisar dados no banco.
+19. Fazer commit final separado.
+
+11. RESUMO EXECUTIVO
+
+A manutenção deve resolver a raiz do problema: o sistema não pode mais tentar converter orçamento automaticamente em responsável, aluno e mensalidade sem revisão.
+
+A partir de agora, orçamento inicia um fluxo guiado. O backend controla os estados e a integridade. O frontend apenas conduz o usuário entre os formulários usando IDs reais do banco.
+
+A prioridade máxima é corrigir banco e backend antes de mexer nos JS. O frontend só será alterado no comportamento necessário para fetch e redirecionamento, sem alterações visuais.
+
+Fluxo final desejado:
+- Orçamento: converter -> responsável -> aluno 1 -> mensalidade 1 -> aluno 2 -> mensalidade 2 -> final.
+- Manual: responsável -> aluno 1 -> mensalidade 1 -> aluno 2 -> mensalidade 2 -> final.
+
+Mensagem final:
+Novo cliente cadastrado com sucesso!
