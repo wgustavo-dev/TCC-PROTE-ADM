@@ -82,14 +82,14 @@
 .grid-3-colunas .card,
 .grid-4-colunas .card,
 .card-centro {
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .grid-3-colunas .card .card-topo,
 .grid-4-colunas .card .card-topo,
 .card-centro .card-topo {
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
 }
 
@@ -99,7 +99,7 @@
 .grid-4-colunas .card .subtexto-card,
 .card-centro .valor-destaque,
 .card-centro .subtexto-card {
-  text-align: center;
+  text-align: left;
   width: 100%;
 }
 
