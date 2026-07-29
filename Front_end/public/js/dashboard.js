@@ -1,19 +1,6 @@
-function initMenu() {
-  const botaoMenu = document.getElementById("botaoMenu");
-  const sidebar = document.getElementById("sidebar");
-  const fundoEscuro = document.getElementById("fundoEscuro");
-  if (!botaoMenu || !sidebar || !fundoEscuro) return;
-  botaoMenu.addEventListener("click", () => {
-    sidebar.classList.toggle("aberta");
-    fundoEscuro.classList.toggle("visivel");
-    botaoMenu.classList.toggle("aberto");
-  });
-  fundoEscuro.addEventListener("click", () => {
-    sidebar.classList.remove("aberta");
-    fundoEscuro.classList.remove("visivel");
-    botaoMenu.classList.remove("aberto");
-  });
-}
+/* ==========================================================================
+   FUNÇÕES UTILITÁRIAS E DE FORMATAÇÃO
+   ========================================================================== */
 
 function formatarBRL(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -42,40 +29,108 @@ function formatarVencimentoRelativo(dataISO) {
   return formatarDataBR(dataISO);
 }
 
+/* ==========================================================================
+   COMPONENTES DA INTERFACE
+   ========================================================================== */
+
+function initMenu() {
+  const botaoMenu = document.getElementById("botaoMenu");
+  const sidebar = document.getElementById("sidebar");
+  const fundoEscuro = document.getElementById("fundoEscuro");
+
+  if (!botaoMenu || !sidebar || !fundoEscuro) return;
+
+  const alternarMenu = () => {
+    sidebar.classList.toggle("aberta");
+    fundoEscuro.classList.toggle("ativo");
+    botaoMenu.classList.toggle("aberto");
+  };
+
+  const fecharMenu = () => {
+    sidebar.classList.remove("aberta");
+    fundoEscuro.classList.remove("ativo");
+    botaoMenu.classList.remove("aberto");
+  };
+
+  botaoMenu.addEventListener("click", alternarMenu);
+  fundoEscuro.addEventListener("click", fecharMenu);
+}
+
+function iniciarMapa() {
+  if (typeof L === "undefined") return;
+  const elementoMapa = document.getElementById("mapa-rotas");
+  if (!elementoMapa) return;
+
+  const mapa = L.map("mapa-rotas", { zoomControl: true, scrollWheelZoom: false }).setView([-23.5489, -46.6388], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  }).addTo(mapa);
+}
+
 function atualizarDashboard(dados) {
-  document.getElementById("kpiReceita").textContent = formatarBRL(dados.receita_mensal);
-  document.getElementById("kpiDespesas").textContent = formatarBRL(dados.despesas_mensais);
-  document.getElementById("kpiLucro").textContent = formatarBRL(dados.lucro_mensal);
-  document.getElementById("kpiAlunos").textContent = String(dados.alunos_ativos || 0);
-  document.getElementById("kpiPresenca").textContent = `${Number(dados.presenca_media || 0).toFixed(1)}%`;
-  document.getElementById("barraPresenca").style.width = `${dados.presenca_media || 0}%`;
+  if (!dados) return;
 
+  // KPIs Superiores
+  const elReceita = document.getElementById("kpiReceita");
+  if (elReceita) elReceita.textContent = formatarBRL(dados.receita_mensal);
+
+  const elDespesas = document.getElementById("kpiDespesas");
+  if (elDespesas) elDespesas.textContent = formatarBRL(dados.despesas_mensais);
+
+  const elLucro = document.getElementById("kpiLucro");
+  if (elLucro) elLucro.textContent = formatarBRL(dados.lucro_mensal);
+
+  const elAlunos = document.getElementById("kpiAlunos");
+  if (elAlunos) elAlunos.textContent = String(dados.alunos_ativos || 0);
+
+  const elPresenca = document.getElementById("kpiPresenca");
+  if (elPresenca) elPresenca.textContent = `${Number(dados.presenca_media || 0).toFixed(1)}%`;
+
+  const barraPresenca = document.getElementById("barraPresenca");
+  if (barraPresenca) barraPresenca.style.width = `${dados.presenca_media || 0}%`;
+
+  // Documentos
   const documentos = dados.documentos || {};
-  document.getElementById("kpiDocsVencidos").textContent = `${Number(documentos.vencidos || 0)} vencidos`;
-  document.getElementById("kpiDocsVencemBreve").textContent = `${Number(documentos.vencem_em_ate_7_dias || 0)} vencem em até 7 dias`;
+  const elDocsVencidos = document.getElementById("kpiDocsVencidos");
+  if (elDocsVencidos) elDocsVencidos.textContent = `${Number(documentos.vencidos || 0)} vencidos`;
 
-  document.getElementById("resumoReceita").textContent = formatarBRL(dados.resumo_financeiro?.receita_total);
-  document.getElementById("resumoDespesas").textContent = formatarBRL(dados.resumo_financeiro?.despesas_total);
-  document.getElementById("resumoSaldo").textContent = formatarBRL(dados.resumo_financeiro?.saldo_mensal);
+  const elDocsBreve = document.getElementById("kpiDocsVencemBreve");
+  if (elDocsBreve) elDocsBreve.textContent = `${Number(documentos.vencem_em_ate_7_dias || 0)} vencem em até 7 dias`;
 
+  // Resumo
+  const elResumoReceita = document.getElementById("resumoReceita");
+  if (elResumoReceita) elResumoReceita.textContent = formatarBRL(dados.resumo_financeiro?.receita_total);
+
+  const elResumoDespesas = document.getElementById("resumoDespesas");
+  if (elResumoDespesas) elResumoDespesas.textContent = formatarBRL(dados.resumo_financeiro?.despesas_total);
+
+  const elResumoSaldo = document.getElementById("resumoSaldo");
+  if (elResumoSaldo) elResumoSaldo.textContent = formatarBRL(dados.resumo_financeiro?.saldo_mensal);
+
+  // Banner
   const saldo = Number(dados.resumo_financeiro?.saldo_mensal || 0);
   const banner = document.getElementById("bannerSaldo");
   const titulo = document.getElementById("tituloBanner");
   const descricao = document.getElementById("descricaoBanner");
 
-  if (saldo >= 0) {
-    banner.classList.remove("negativo");
-    titulo.textContent = "Operacao saudavel este mes!";
-    descricao.textContent = "Continue monitorando as despesas e receitas.";
-  } else {
-    banner.classList.add("negativo");
-    titulo.textContent = "Atencao: saldo negativo!";
-    descricao.textContent = "Suas despesas estao superando a receita.";
+  if (banner && titulo && descricao) {
+    if (saldo >= 0) {
+      banner.classList.remove("negativo");
+      titulo.textContent = "Operação saudável este mês!";
+      descricao.textContent = "Continue monitorando as despesas e receitas.";
+    } else {
+      banner.classList.add("negativo");
+      titulo.textContent = "Atenção: saldo negativo!";
+      descricao.textContent = "Suas despesas estão superando a receita.";
+    }
   }
 }
 
 function renderizarAlertas(alertas) {
   const lista = document.getElementById("listaAlertas");
+  if (!lista) return;
+
   if (!Array.isArray(alertas) || !alertas.length) {
     lista.innerHTML = '<p class="aviso-sem-dados">Nenhum alerta no momento.</p>';
     return;
@@ -101,52 +156,112 @@ function renderizarAlertas(alertas) {
     .join("");
 }
 
-function iniciarMapa() {
-  if (typeof L === "undefined") return;
-  const mapa = L.map("mapa-rotas", { zoomControl: true, scrollWheelZoom: false }).setView([-23.5489, -46.6388], 13);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 19,
-  }).addTo(mapa);
-}
-
 function iniciarGrafico(dados) {
   if (typeof Chart === "undefined") return;
   const canvas = document.getElementById("graficoFinanceiro");
   if (!canvas) return;
 
-  const labels = (dados.grafico_mensal || []).map((item) => item.mes);
-  const receita = (dados.grafico_mensal || []).map((item) => Number(item.receita || 0));
-  const despesa = (dados.grafico_mensal || []).map((item) => Number(item.despesa || 0));
+  // Destrói gráfico antigo se existir
+  const graficoExistente = Chart.getChart(canvas);
+  if (graficoExistente) {
+    graficoExistente.destroy();
+  }
+
+  // Dados vindos da API ou Fallback estático caso a API não traga a propriedade
+  const listaMensal = dados?.grafico_mensal;
+  
+  const labels = listaMensal 
+    ? listaMensal.map((item) => item.mes) 
+    : ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"];
+    
+  const receita = listaMensal 
+    ? listaMensal.map((item) => Number(item.receita || 0)) 
+    : [10000, 12000, 16000, 13000, 16500, 14000];
+    
+  const despesa = listaMensal 
+    ? listaMensal.map((item) => Number(item.despesa || 0)) 
+    : [6000, 7500, 9000, 8000, 11000, 9500];
 
   new Chart(canvas, {
     type: "line",
     data: {
       labels,
       datasets: [
-        { label: "Receita", data: receita, borderColor: "#16a34a", backgroundColor: "rgba(22,163,74,0.08)", borderWidth: 2, fill: true, tension: 0.4 },
-        { label: "Despesa", data: despesa, borderColor: "#dc2626", backgroundColor: "rgba(220,38,38,0.06)", borderWidth: 2, fill: true, tension: 0.4 },
+        {
+          label: "Receita",
+          data: receita,
+          borderColor: "#10B981",
+          backgroundColor: "rgba(16, 185, 129, 0.08)",
+          borderWidth: 2,
+          fill: true,
+          tension: 0.35,
+          pointRadius: 4,
+          pointBackgroundColor: "#10B981"
+        },
+        {
+          label: "Despesa",
+          data: despesa,
+          borderColor: "#EF4444",
+          backgroundColor: "rgba(239, 68, 68, 0.08)",
+          borderWidth: 2,
+          fill: true,
+          tension: 0.35,
+          pointRadius: 4,
+          pointBackgroundColor: "#EF4444"
+        },
       ],
     },
-    options: { responsive: true, maintainAspectRatio: false },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (val) => `R$ ${val}`,
+            color: "#6B7280"
+          },
+          grid: { color: "#F3F4F6" }
+        },
+        x: {
+          ticks: { color: "#6B7280" },
+          grid: { display: false }
+        }
+      }
+    },
   });
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
+/* ==========================================================================
+   INICIALIZAÇÃO ÚNICA DA PÁGINA
+   ========================================================================== */
+
+document.addEventListener("DOMContentLoaded", async () => {
   initMenu();
   iniciarMapa();
 
+  // Tenta carregar dados da API se o endpoint e o elemento raiz existirem
   const dashboardRoot = document.getElementById("kpiReceita");
-  if (!dashboardRoot) return;
-
-  try {
-    const dados = await window.API.get("/dashboard/resumo");
-    atualizarDashboard(dados);
-    renderizarAlertas(dados.alertas);
-    iniciarGrafico(dados);
-  } catch (error) {
-    console.error(error);
-    const lista = document.getElementById("listaAlertas");
-    if (lista) lista.innerHTML = '<p class="aviso-sem-dados">Não foi possível carregar o dashboard.</p>';
+  
+  if (dashboardRoot && window.API) {
+    try {
+      const dados = await window.API.get("/dashboard/resumo");
+      atualizarDashboard(dados);
+      renderizarAlertas(dados.alertas);
+      iniciarGrafico(dados);
+    } catch (error) {
+      console.error("Erro ao carregar dados do dashboard:", error);
+      const lista = document.getElementById("listaAlertas");
+      if (lista) lista.innerHTML = '<p class="aviso-sem-dados">Não foi possível carregar o dashboard.</p>';
+      
+      // Carrega o gráfico com fallback em caso de erro da API
+      iniciarGrafico(null);
+    }
+  } else {
+    // Caso esteja testando localmente sem a API conectada
+    iniciarGrafico(null);
   }
 });

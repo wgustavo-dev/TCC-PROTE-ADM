@@ -1,251 +1,310 @@
-/* =========================================================
-   CSS ACESSOS - padrão visual do painel PROTE
-   ========================================================= */
+/* ==========================================================================
+   PROTE SYSTEM - CONTROLE DE ACESSOS (COMPLETO E CORRIGIDO)
+   ========================================================================== */
 
-.acessos-main {
-  max-width: 920px;
-  margin-left: 0;
-  padding-top: 1.9rem;
+:root {
+  --fundo-pagina: #F8FAFC;
+  --fundo-card: #FFFFFF;
+  --borda: #E2E8F0;
+  --texto-primario: #0F172A;
+  --texto-secundario: #334155;
+  --texto-suave: #475569;
+  --cor-principal: #1A56DB;
+  --cor-principal-escura: #1E40AF;
+  --cor-principal-clara: #EFF6FF;
+  --verde: #16a34a;
+  --vermelho: #ff3131;
+  --vermelho-claro: #fef2f2;
+  --arredondamento-pequeno: 6px;
+  --arredondamento-medio: 8px;
+  --arredondamento-grande: 16px;
+  --sombra-card: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+}
+
+.acessos-main {
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* --- CABEÇALHO --- */
 .acessos-cabecalho {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 26px;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .acessos-cabecalho .page-title {
-  margin: 0;
   font-size: 24px;
-  line-height: 1.05;
-  color: var(--cor-principal);
+  font-weight: 800;
+  color: var(--texto-primario);
+  margin: 0;
+  line-height: 1.2;
 }
 
 .acessos-cabecalho .page-sub {
-  margin-top: 2px;
-  font-size: 12px;
-  color: var(--texto-primario);
+  font-size: 13.5px;
+  color: var(--texto-secundario);
+  margin-top: 4px;
 }
 
-.btn-primary,
-.btn-primary-acesso {
+/* --- BOTÕES --- */
+.btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border: 0;
-  border-radius: 12px;
+  gap: 7px;
   background: var(--cor-principal);
   color: #fff;
-  font-size: 13px;
+  border: none;
+  border-radius: var(--arredondamento-medio);
+  padding: 10px 18px;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(26, 86, 219, 0.22);
+  white-space: nowrap;
   transition: background 0.15s, transform 0.1s;
 }
 
-.btn-primary:hover,
-.btn-primary-acesso:hover {
+.btn-primary:hover {
   background: var(--cor-principal-escura);
 }
 
-.btn-primary:active,
-.btn-primary-acesso:active {
-  transform: scale(0.98);
+.btn-primary:active {
+  transform: scale(0.97);
 }
 
 .btn-novo-acesso {
-  min-width: 150px;
-  height: 34px;
-  padding: 0 18px;
+  height: 42px;
+  padding: 0 20px;
 }
 
+/* --- TOOLBAR (BUSCA E FILTRO ALINHADOS) --- */
 .acessos-toolbar {
-  display: grid;
-  grid-template-columns: minmax(260px, 1fr) 150px;
-  align-items: center;
-  gap: 22px;
-  margin-bottom: 36px;
+  display: grid !important;
+  grid-template-columns: 1fr 220px !important;
+  align-items: center !important;
+  gap: 16px !important;
+  margin-bottom: 20px !important;
+  width: 100% !important;
 }
 
-.campo-busca-acessos {
+.campo-busca-acessos,
+.campo-busca {
   position: relative;
   width: 100%;
 }
 
 .icone-busca {
   position: absolute;
-  top: 50%;
   left: 14px;
-  width: 17px;
-  height: 17px;
+  top: 50%;
   transform: translateY(-50%);
-  stroke: #80858d;
+  width: 18px;
+  height: 18px;
+  stroke: var(--texto-suave);
   pointer-events: none;
 }
 
-.input-busca-acessos {
-  width: 100%;
-  height: 36px;
-  padding: 8px 12px 8px 42px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  border-radius: 10px;
-  color: var(--texto-primario);
-  font-size: 14px;
-  outline: none;
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.03);
-  transition: border-color 0.15s, box-shadow 0.15s;
+.input-busca-acessos,
+.input-busca {
+  width: 100% !important;
+  height: 44px !important;
+  padding: 8px 12px 8px 44px !important;
+  background: var(--fundo-card) !important;
+  border: 1px solid var(--borda) !important;
+  border-radius: var(--arredondamento-medio) !important;
+  color: var(--texto-primario) !important;
+  font-size: 14px !important;
+  outline: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.select-filtro-acessos,
+.input-filtro-acessos {
+  width: 100% !important;
+  height: 44px !important;
+  padding: 0 16px !important;
+  background: var(--fundo-card) !important;
+  border: 1px solid var(--borda) !important;
+  border-radius: var(--arredondamento-medio) !important;
+  color: var(--texto-primario) !important;
+  font-size: 14px !important;
+  outline: none !important;
+  cursor: pointer !important;
 }
 
 .input-busca-acessos:focus,
+.input-busca:focus,
 .select-filtro-acessos:focus,
-.grupo-form-acesso input:focus,
-.grupo-form-acesso select:focus {
-  border-color: var(--cor-principal);
-  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.12);
+.input-filtro-acessos:focus {
+  border-color: var(--cor-principal) !important;
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.12) !important;
 }
 
-.select-filtro-acessos {
-  width: 150px;
-  height: 36px;
-  padding: 0 16px;
-  background: #fff;
-  border: 0;
-  border-radius: 12px;
-  color: var(--texto-primario);
-  font-size: 13px;
-  outline: none;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
-  cursor: pointer;
+/* --- TABELA DE ACESSOS --- */
+.card-acessos,
+.table-card {
+  width: 100% !important;
+  background: var(--fundo-card) !important;
+  border: 1px solid var(--borda) !important;
+  border-radius: var(--arredondamento-grande) !important;
+  box-shadow: var(--sombra-card) !important;
+  overflow: hidden !important;
 }
 
-.card-acessos {
-  padding: 0;
-  overflow: hidden;
-  border-radius: 13px;
-  border-color: rgba(0, 0, 0, 0.18);
-  box-shadow: none;
-}
-
-.table-wrapper-acessos {
-  width: 100%;
-  overflow-x: auto;
+.table-wrapper-acessos,
+.table-wrapper {
+  width: 100% !important;
+  overflow-x: auto !important;
 }
 
 .tabela-acessos {
-  width: 100%;
-  min-width: 700px;
-  border-collapse: collapse;
-  background: #fff;
-  font-size: 12px;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  background: #ffffff !important;
+  font-size: 13.5px !important;
 }
 
 .tabela-acessos thead tr {
-  background: #f0f0f0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-.tabela-acessos th,
-.tabela-acessos td {
-  padding: 12px 14px;
-  text-align: center;
-  vertical-align: middle;
+  background: var(--fundo-pagina) !important;
+  border-bottom: 1px solid var(--borda) !important;
 }
 
 .tabela-acessos th {
-  color: #111827;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.tabela-acessos tbody tr {
-  height: 58px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.tabela-acessos tbody tr:last-child {
-  border-bottom: 0;
+  padding: 14px 16px !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  color: var(--texto-secundario) !important;
+  letter-spacing: 0.04em !important;
+  text-align: center !important;
+  white-space: nowrap !important;
 }
 
 .tabela-acessos td {
-  color: #111827;
-  font-weight: 600;
+  padding: 16px !important;
+  color: var(--texto-primario) !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid var(--borda) !important;
 }
 
-.tabela-acessos td:nth-child(4) {
-  line-height: 1.35;
-  word-break: break-word;
+.tabela-acessos tbody tr {
+  height: 60px !important;
+  transition: background-color 0.15s ease !important;
 }
 
-.acoes-acesso {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+.tabela-acessos tbody tr:hover {
+  background-color: var(--fundo-pagina) !important;
 }
 
-.btn-acao-acesso {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  transition: transform 0.1s, filter 0.15s;
+.tabela-acessos tbody tr:last-child td {
+  border-bottom: 0 !important;
 }
 
-.btn-acao-acesso:hover {
-  filter: brightness(0.92);
-  transform: translateY(-1px);
+/* Ações na Tabela */
+.acoes-acesso,
+.actions {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
 }
 
-.btn-acao-acesso svg {
-  width: 16px;
-  height: 16px;
+.btn-acao-acesso,
+.icon-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border: 0 !important;
+  border-radius: var(--arredondamento-pequeno) !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  transition: background-color 0.15s, transform 0.1s !important;
 }
 
-.btn-acao-acesso.editar {
-  color: var(--cor-principal);
+.btn-acao-acesso:hover,
+.icon-btn:hover {
+  background-color: var(--cor-principal-clara) !important;
+  transform: translateY(-1px) !important;
 }
 
-.btn-acao-acesso.excluir {
-  color: var(--vermelho);
+.btn-acao-acesso svg,
+.icon-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.btn-acao-acesso.editar,
+.icon-btn.edit svg {
+  stroke: var(--cor-principal) !important;
+  color: var(--cor-principal) !important;
+}
+
+.btn-acao-acesso.excluir,
+.icon-btn.delete svg {
+  stroke: var(--vermelho) !important;
+  color: var(--vermelho) !important;
 }
 
 .empty-state {
-  padding: 18px;
-  text-align: center;
-  color: var(--texto-secundario);
-  font-size: 13px;
+  padding: 30px !important;
+  text-align: center !important;
+  color: var(--texto-suave) !important;
+  font-size: 14px !important;
 }
 
 .hidden {
   display: none !important;
 }
 
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-  background: rgba(0, 0, 0, 0.34);
+/* =========================================================
+   MODAL E FORMULÁRIO DE CADASTRO DE ACESSOS
+   ========================================================= */
+
+.modal-overlay,
+.fundo-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.45) !important;
+  z-index: 9999 !important;
+  padding: 22px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-.modal-card-acesso {
-  width: min(96vw, 430px);
-  background: #fff;
-  border-radius: 13px;
-  overflow: hidden;
-  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.18);
+.modal-overlay.hidden {
+  display: none !important;
+}
+
+.modal-card,
+.modal-card-acesso,
+.caixa-modal {
+  width: min(520px, calc(100vw - 32px)) !important;
+  max-width: 520px !important;
+  max-height: calc(100vh - 44px) !important;
+  background: #ffffff !important;
+  border-radius: var(--arredondamento-grande) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22) !important;
+  border: none !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
   animation: abrirModalAcesso 0.18s ease-out;
 }
 
@@ -260,174 +319,12 @@
   }
 }
 
-.modal-header-acesso {
-  padding: 26px 28px 22px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-.modal-header-acesso h2 {
-  margin: 0;
-  color: #111827;
-  font-size: 25px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-}
-
-.form-acesso {
-  padding: 24px 28px 32px;
-}
-
-.grupo-form-acesso {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
-}
-
-.grupo-form-acesso label {
-  color: #111827;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.grupo-form-acesso input,
-.grupo-form-acesso select {
-  width: 100%;
-  height: 40px;
-  padding: 0 11px;
-  border: 1px solid rgba(0, 0, 0, 0.22);
-  border-radius: 5px;
-  background: #fff;
-  color: #111827;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.grupo-form-acesso input::placeholder {
-  color: #5f6368;
-}
-
-.modal-actions-acesso {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 86px;
-}
-
-.btn-secondary-acesso,
-.btn-primary-acesso {
-  height: 48px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.btn-secondary-acesso {
-  border: 1px solid rgba(0, 0, 0, 0.13);
-  background: #fff;
-  color: #111827;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, transform 0.1s;
-}
-
-.btn-secondary-acesso:hover {
-  background: #f9fafb;
-  border-color: rgba(0, 0, 0, 0.22);
-}
-
-.btn-secondary-acesso:active {
-  transform: scale(0.98);
-}
-
-@media (max-width: 900px) {
-  .acessos-main {
-    max-width: none;
-    margin-left: auto;
-  }
-
-  .acessos-toolbar {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin-bottom: 18px;
-  }
-
-  .select-filtro-acessos {
-    width: 100%;
-  }
-}
-
-@media (max-width: 700px) {
-  .acessos-cabecalho {
-    flex-direction: column;
-    margin-top: var(--altura-barra-topo);
-  }
-
-  .btn-novo-acesso {
-    width: 100%;
-  }
-
-  .modal-actions-acesso {
-    margin-top: 32px;
-    grid-template-columns: 1fr;
-  }
-}
-
-
-/* =========================================================
-   PADRÃO DE FORMULÁRIOS/MODAIS - integrado no CSS da página
-   ========================================================= */
-/* Overlay dos modais */
-.modal-overlay,
-.fundo-modal {
-  position: fixed !important;
-  inset: 0 !important;
-  background: rgba(0, 0, 0, 0.45) !important;
-  z-index: 9999 !important;
-  padding: 22px 16px !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.modal-overlay:not(.hidden),
-.fundo-modal.ativo {
-  display: flex !important;
-}
-
-/* Caixa branca do modal */
-.modal-card,
-.modal-card-acesso,
-.caixa-modal {
-  width: min(520px, calc(100vw - 32px)) !important;
-  max-width: 520px !important;
-  max-height: calc(100vh - 44px) !important;
-  background: #ffffff !important;
-  border-radius: 16px !important;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22) !important;
-  border: none !important;
-  overflow: hidden !important;
-  padding: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-.modal-card-aluno,
-.modal-card-mensalidade {
-  width: min(520px, calc(100vw - 32px)) !important;
-  max-width: 520px !important;
-}
-
-.caixa-modal-pequena {
-  max-width: 430px !important;
-}
-
-/* Cabeçalho */
+/* Cabeçalho do Modal */
 .modal-header,
-.modal-header-acesso,
-.caixa-modal > .titulo-modal {
+.modal-header-acesso {
   min-height: 82px !important;
   padding: 24px 28px !important;
-  border-bottom: 1px solid #e5e7eb !important;
+  border-bottom: 1px solid var(--borda) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
@@ -436,14 +333,12 @@
 }
 
 .modal-header h2,
-.modal-header-acesso h2,
-.titulo-modal {
+.modal-header-acesso h2 {
   margin: 0 !important;
-  font-size: 24px !important;
+  font-size: 22px !important;
   line-height: 1.2 !important;
   font-weight: 800 !important;
-  color: #111827 !important;
-  letter-spacing: 0 !important;
+  color: var(--texto-primario) !important;
 }
 
 .btn-close,
@@ -454,9 +349,8 @@
   border-radius: 50% !important;
   border: none !important;
   background: #f3f4f6 !important;
-  color: #111827 !important;
-  font-size: 22px !important;
-  line-height: 1 !important;
+  color: var(--texto-primario) !important;
+  font-size: 20px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -468,632 +362,132 @@
   background: #e5e7eb !important;
 }
 
-/* Corpo rolável do formulário */
-#formAluno,
-#formResponsavel,
-#formDocumento,
-.form-acesso,
-.caixa-modal > .grupo-campo,
-.modal-body-scroll {
+/* Corpo do Formulário do Modal */
+.form-acesso {
+  padding: 24px 28px !important;
+  overflow-y: auto !important;
+  max-height: calc(100vh - 160px) !important;
   scrollbar-width: thin;
 }
 
-#formAluno,
-#formResponsavel,
-#formDocumento,
-.form-acesso,
-.modal-body-scroll,
-.caixa-modal {
-  overflow-y: auto !important;
-}
-
-#formAluno,
-#formResponsavel,
-#formDocumento,
-.form-acesso,
-.modal-body-scroll {
-  padding: 24px 28px !important;
-  max-height: calc(100vh - 126px) !important;
-}
-
-.caixa-modal > .grupo-campo:first-of-type {
-  margin-top: 24px !important;
-}
-
-.caixa-modal > .grupo-campo,
-.caixa-modal > .acoes-modal {
-  margin-left: 28px !important;
-  margin-right: 28px !important;
-}
-
-.caixa-modal > .acoes-modal {
-  margin-bottom: 24px !important;
-}
-
-/* Espaçamento dos grupos */
-.grupo-filtro,
-.grupo-form-acesso,
-.grupo-campo {
+.grupo-form-acesso {
   width: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-  align-items: stretch !important;
-  gap: 7px !important;
+  gap: 6px !important;
   margin-bottom: 16px !important;
 }
 
-/* Labels padronizadas */
-.label-filtro,
-.label-campo,
 .grupo-form-acesso label {
   display: block !important;
-  margin: 0 !important;
-  font-size: 15px !important;
-  line-height: 1.25 !important;
-  color: #111827 !important;
-  font-weight: 500 !important;
+  font-size: 14px !important;
+  color: var(--texto-primario) !important;
+  font-weight: 600 !important;
 }
 
-/* Campos padronizados */
-.input-filtro,
-.input-campo,
-.select-campo,
-.textarea-campo,
 .grupo-form-acesso input,
 .grupo-form-acesso select,
-.grupo-form-acesso textarea,
-.modal-card input[type="text"],
-.modal-card input[type="email"],
-.modal-card input[type="tel"],
-.modal-card input[type="number"],
-.modal-card input[type="date"],
-.modal-card select,
-.modal-card textarea,
-.caixa-modal input[type="text"],
-.caixa-modal input[type="email"],
-.caixa-modal input[type="tel"],
-.caixa-modal input[type="number"],
-.caixa-modal input[type="date"],
-.caixa-modal select,
-.caixa-modal textarea {
+.grupo-form-acesso textarea {
   width: 100% !important;
-  min-height: 46px !important;
-  border: 1px solid #d1d5db !important;
-  border-radius: 7px !important;
+  min-height: 44px !important;
+  border: 1px solid #D1D5DB !important;
+  border-radius: var(--arredondamento-medio) !important;
   background: #ffffff !important;
-  color: #111827 !important;
-  padding: 0 12px !important;
-  font-size: 16px !important;
-  font-weight: 400 !important;
+  color: var(--texto-primario) !important;
+  padding: 0 14px !important;
+  font-size: 14px !important;
   outline: none !important;
-  box-shadow: none !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
-.textarea-campo,
-.modal-card textarea,
-.caixa-modal textarea {
-  min-height: 96px !important;
-  padding-top: 10px !important;
-  resize: vertical !important;
-}
-
-.input-filtro::placeholder,
-.input-campo::placeholder,
-.textarea-campo::placeholder,
-.grupo-form-acesso input::placeholder,
-.grupo-form-acesso textarea::placeholder {
-  color: #6b7280 !important;
-  opacity: 0.85 !important;
-}
-
-.input-filtro:focus,
-.input-campo:focus,
-.select-campo:focus,
-.textarea-campo:focus,
 .grupo-form-acesso input:focus,
 .grupo-form-acesso select:focus,
-.grupo-form-acesso textarea:focus,
-.modal-card input:focus,
-.modal-card select:focus,
-.modal-card textarea:focus,
-.caixa-modal input:focus,
-.caixa-modal select:focus,
-.caixa-modal textarea:focus {
-  border-color: #1a56db !important;
+.grupo-form-acesso textarea:focus {
+  border-color: var(--cor-principal) !important;
   box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.12) !important;
 }
 
-/* Input de arquivo e foto do aluno */
-.foto-primeiro-bloco,
-.info-topo-mensalidade {
-  padding-top: 0 !important;
-  margin: 0 0 18px !important;
-}
-
-.foto-primeiro-bloco {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  gap: 12px !important;
-}
-
-.info-topo-mensalidade {
-  display: flex !important;
-  align-items: center !important;
-  gap: 18px !important;
-}
-
-.avatar-modal-aluno,
-#avatarModalMensalidade {
-  width: 120px !important;
-  height: 120px !important;
-  min-width: 120px !important;
-  border-radius: 50% !important;
-  margin: 0 !important;
-  background: #b8babf !important;
-  color: #7a7d81 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  overflow: hidden !important;
-}
-
-.foto-primeiro-bloco .avatar-modal-aluno {
-  margin: 0 auto 4px !important;
-}
-
-.input-arquivo {
-  width: 100% !important;
-  min-height: 40px !important;
-  padding: 0 !important;
-  border: none !important;
-  background: transparent !important;
-  font-size: 14px !important;
-  color: #111827 !important;
-}
-
-.input-arquivo::file-selector-button {
-  height: 38px !important;
-  margin-right: 10px !important;
-  padding: 0 14px !important;
-  border: 1px solid #d1d5db !important;
-  border-radius: 7px !important;
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-}
-
-.input-arquivo::file-selector-button:hover {
-  background: #f9fafb !important;
-}
-
-/* Mensagens e info */
-.info-box {
-  width: 100% !important;
-  margin: 4px 0 18px !important;
-  padding: 12px !important;
-  border-radius: 8px !important;
-  background: #eff6ff !important;
-  border: 1px solid #bfdbfe !important;
-  color: #1d4ed8 !important;
-  font-size: 13px !important;
-  line-height: 1.45 !important;
-}
-
-.mensagem-erro {
-  min-height: 14px !important;
-  color: #dc2626 !important;
-  font-size: 12px !important;
-}
-
-.contador-caracteres {
-  align-self: flex-end !important;
-  color: #6b7280 !important;
-  font-size: 12px !important;
-}
-
-/* Botões do rodapé */
-.modal-actions,
+/* Rodapé do Modal (Botões lado a lado) */
 .modal-actions-acesso,
-.acoes-modal {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 16px !important;
+.modal-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
   margin-top: 24px !important;
-  padding-top: 0 !important;
-  border-top: none !important;
+  width: 100% !important;
   flex-shrink: 0 !important;
 }
 
-.btn-secondary,
-.btn-primary.solid,
-.botao-cancelar,
-.botao-cadastrar,
+.btn-secondary-acesso,
+.btn-salvar-acesso,
+.btn-cancelar-acesso,
 .modal-actions-acesso button,
-.modal-actions-acesso .btn-cancelar-acesso,
-.modal-actions-acesso .btn-salvar-acesso {
-  width: 180px !important;
-  max-width: 100% !important;
-  height: 52px !important;
-  border-radius: 12px !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
+.modal-actions button {
+  width: 100% !important;
+  height: 46px !important;
+  border-radius: var(--arredondamento-medio) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
   cursor: pointer !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 0 18px !important;
+  padding: 0 16px !important;
+  box-sizing: border-box !important;
 }
 
-.btn-secondary,
-.botao-cancelar,
+.btn-secondary-acesso,
 .btn-cancelar-acesso {
   background: #ffffff !important;
-  color: #111827 !important;
-  border: 1px solid #d1d5db !important;
+  color: var(--texto-primario) !important;
+  border: 1px solid #D1D5DB !important;
 }
 
-.btn-secondary:hover,
-.botao-cancelar:hover,
+.btn-secondary-acesso:hover,
 .btn-cancelar-acesso:hover {
-  background: #f9fafb !important;
+  background: #F9FAFB !important;
 }
 
-.btn-primary.solid,
-.botao-cadastrar,
-.btn-salvar-acesso {
-  background: #1a56db !important;
+.btn-salvar-acesso,
+.btn-primary-acesso {
+  background: var(--cor-principal) !important;
   color: #ffffff !important;
-  border: 1px solid #1a56db !important;
+  border: none !important;
 }
 
-.btn-primary.solid:hover,
-.botao-cadastrar:hover,
-.btn-salvar-acesso:hover {
-  background: #1e40af !important;
-  border-color: #1e40af !important;
+.btn-salvar-acesso:hover,
+.btn-primary-acesso:hover {
+  background: var(--cor-principal-escura) !important;
 }
 
-/* Ajuste para modais muito longos */
-#formAluno .modal-actions,
-#formResponsavel .modal-actions,
-.modal-body-scroll .acoes-modal,
-.caixa-modal > .acoes-modal {
-  position: sticky !important;
-  bottom: -24px !important;
-  background: #ffffff !important;
-  padding: 18px 0 0 !important;
-}
-
-/* Evita que botões antigos fiquem pequenos/sem estilo */
-.caixa-modal button,
-.modal-card button {
-  font-family: inherit !important;
-}
-
-/* Mobile */
-@media (max-width: 560px) {
-  .modal-overlay,
-  .fundo-modal {
-    padding: 12px !important;
-    align-items: flex-start !important;
-  }
-
-  .modal-card,
-  .modal-card-acesso,
-  .caixa-modal {
-    width: calc(100vw - 24px) !important;
-    max-height: calc(100vh - 24px) !important;
-  }
-
-  .modal-header,
-  .modal-header-acesso,
-  .caixa-modal > .titulo-modal {
-    padding: 20px !important;
-    min-height: 72px !important;
-  }
-
-  #formAluno,
-  #formResponsavel,
-  #formDocumento,
-  .form-acesso,
-  .modal-body-scroll {
-    padding: 20px !important;
-    max-height: calc(100vh - 100px) !important;
-  }
-
-  .caixa-modal > .grupo-campo,
-  .caixa-modal > .acoes-modal {
-    margin-left: 20px !important;
-    margin-right: 20px !important;
-  }
-
-  .modal-actions,
-  .modal-actions-acesso,
-  .acoes-modal {
-    flex-direction: column !important;
-    gap: 10px !important;
-  }
-
-  .btn-secondary,
-  .btn-primary.solid,
-  .botao-cancelar,
-  .botao-cadastrar,
-  .modal-actions-acesso button {
-    width: 100% !important;
-  }
-
-  .info-topo-mensalidade {
-    flex-direction: column !important;
-    align-items: center !important;
-    text-align: center !important;
-  }
-}
-
-/* =========================================================
-   AJUSTE FINAL - TELA DE ACESSOS NO TAMANHO DO MODELO
-   ========================================================= */
-
-.acessos-main {
-  width: 100% !important;
-  max-width: 980px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  padding-top: 2rem !important;
-  padding-left: 2rem !important;
-  padding-right: 2rem !important;
-}
-
-/* Cabeçalho */
-.acessos-cabecalho {
-  width: 100% !important;
-  max-width: 980px !important;
-  display: flex !important;
-  align-items: flex-start !important;
-  justify-content: space-between !important;
-  gap: 24px !important;
-  margin-bottom: 46px !important;
-}
-
-.acessos-cabecalho .page-title {
-  font-size: 34px !important;
-  line-height: 1 !important;
-  font-weight: 800 !important;
-  color: #0f56c7 !important;
-  margin: 0 !important;
-}
-
-.acessos-cabecalho .page-sub {
-  font-size: 14px !important;
-  color: #111827 !important;
-  margin-top: 4px !important;
-}
-
-/* Botão novo acesso */
-.btn-novo-acesso {
-  width: 190px !important;
-  height: 44px !important;
-  border-radius: 14px !important;
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  box-shadow: 0 10px 22px rgba(26, 86, 219, 0.25) !important;
-}
-
-/* Busca e filtro */
-.acessos-toolbar {
-  width: 100% !important;
-  max-width: 980px !important;
-  display: grid !important;
-  grid-template-columns: 1fr 190px !important;
-  gap: 32px !important;
-  align-items: center !important;
-  margin-bottom: 60px !important;
-}
-
-.campo-busca-acessos {
-  width: 100% !important;
-}
-
-.input-busca-acessos {
-  width: 100% !important;
-  height: 52px !important;
-  border-radius: 12px !important;
-  border: 1px solid rgba(0, 0, 0, 0.28) !important;
-  background: #ffffff !important;
-  font-size: 16px !important;
-  padding-left: 48px !important;
-}
-
-.icone-busca {
-  width: 22px !important;
-  height: 22px !important;
-  left: 18px !important;
-  stroke: #8b8f97 !important;
-}
-
-.select-filtro-acessos {
-  width: 190px !important;
-  height: 52px !important;
-  border-radius: 14px !important;
-  background: #ffffff !important;
-  font-size: 15px !important;
-  padding: 0 18px !important;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.07) !important;
-}
-
-/* Card da tabela */
-.card-acessos {
-  width: 100% !important;
-  max-width: 980px !important;
-  border-radius: 16px !important;
-  overflow: hidden !important;
-  border: 1px solid rgba(0, 0, 0, 0.22) !important;
-  box-shadow: none !important;
-}
-
-/* Tabela */
-.table-wrapper-acessos {
-  width: 100% !important;
-  overflow-x: hidden !important;
-}
-
-.tabela-acessos {
-  width: 100% !important;
-  min-width: 0 !important;
-  border-collapse: collapse !important;
-  font-size: 15px !important;
-}
-
-.tabela-acessos thead tr {
-  background: #eeeeee !important;
-}
-
-.tabela-acessos th {
-  padding: 16px 18px !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  color: #111827 !important;
-  text-align: center !important;
-}
-
-.tabela-acessos td {
-  padding: 20px 18px !important;
-  font-size: 15px !important;
-  color: #111827 !important;
-  text-align: center !important;
-  vertical-align: middle !important;
-}
-
-.tabela-acessos tbody tr {
-  height: 72px !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
-}
-
-.tabela-acessos tbody tr:last-child {
-  border-bottom: none !important;
-}
-
-/* Largura das colunas igual ao modelo */
-.tabela-acessos th:nth-child(1),
-.tabela-acessos td:nth-child(1) {
-  width: 90px !important;
-}
-
-.tabela-acessos th:nth-child(2),
-.tabela-acessos td:nth-child(2) {
-  width: 210px !important;
-}
-
-.tabela-acessos th:nth-child(3),
-.tabela-acessos td:nth-child(3) {
-  width: 170px !important;
-}
-
-.tabela-acessos th:nth-child(4),
-.tabela-acessos td:nth-child(4) {
-  width: 300px !important;
-}
-
-.tabela-acessos th:nth-child(5),
-.tabela-acessos td:nth-child(5) {
-  width: 150px !important;
-}
-
-/* Ícones de ação */
-.acoes-acesso {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 18px !important;
-}
-
-.btn-acao-acesso {
-  width: 28px !important;
-  height: 28px !important;
-}
-
-.btn-acao-acesso svg {
-  width: 19px !important;
-  height: 19px !important;
-}
-
-/* Responsivo */
-@media (max-width: 900px) {
-  .acessos-main {
-    max-width: none !important;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-
-  .acessos-cabecalho {
-    flex-direction: column !important;
-    gap: 16px !important;
-    margin-bottom: 24px !important;
-  }
-
-  .btn-novo-acesso {
-    width: 100% !important;
-  }
-
-  .acessos-toolbar {
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
-    margin-bottom: 24px !important;
-  }
-
-  .select-filtro-acessos {
-    width: 100% !important;
-  }
-
-  .table-wrapper-acessos {
-    overflow-x: auto !important;
-  }
-
-  .tabela-acessos {
-    min-width: 760px !important;
-  }
-}
-
-
-
-/* =========================================================
-   AJUSTE FINAL - CENTRALIZAR ACESSOS IGUAL ÀS OUTRAS TELAS
-   ========================================================= */
-.acessos-main {
-  width: min(100%, 980px) !important;
-  max-width: 980px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-
-.acessos-cabecalho,
-.acessos-toolbar,
-.card-acessos,
-.table-wrapper-acessos {
-  width: 100% !important;
-  max-width: 980px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-@media (max-width: 1100px) {
-  .acessos-main {
-    width: calc(100% - 32px) !important;
-    max-width: none !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-}
+/* SweetAlert fix */
 .swal2-container {
   z-index: 999999 !important;
 }
 
 .swal2-backdrop-show {
   z-index: 999998 !important;
+}
+
+/* --- RESPONSIVIDADE --- */
+@media (max-width: 900px) {
+  .acessos-toolbar {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .acessos-cabecalho {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-novo-acesso {
+    width: 100%;
+  }
+
+  .modal-actions-acesso,
+  .modal-actions {
+    grid-template-columns: 1fr !important;
+  }
 }
