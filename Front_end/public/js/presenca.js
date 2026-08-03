@@ -144,10 +144,10 @@ botaoSalvar.addEventListener("click", async () => {
 
     await Promise.all(operacoes);
     await atualizarDadosTela();
-    alert("Registro da chamada salvo com sucesso!");
+    showSuccess("Registro da chamada salvo com sucesso!");
   } catch (error) {
     console.error(error);
-    alert("Nao foi possivel salvar a chamada.");
+    showError("Não foi possível salvar a chamada.");
   }
 });
 

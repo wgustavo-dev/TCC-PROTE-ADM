@@ -1,3 +1,7 @@
+/* =========================================================
+   CSS UNIFICADO - TELA DE MENSALIDADES
+   ========================================================= */
+
 .cabecalho-mensalidades {
   display: flex;
   justify-content: space-between;
@@ -5,11 +9,12 @@
   gap: 16px;
   margin-bottom: 16px;
 }
-/* */
+
 .titulo-mensalidades {
   color: var(--cor-principal);
 }
 
+/* BOTÃO PRINCIPAL */
 .botao-primario-mensalidade {
   display: flex;
   align-items: center;
@@ -39,6 +44,7 @@
   height: 16px;
 }
 
+/* CARDS DE RESUMO */
 .resumo-mensalidades {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -104,6 +110,7 @@
   color: var(--texto-suave);
 }
 
+/* BARRA DE BUSCA */
 .caixa-busca-mensalidade {
   padding: 10px 12px;
   margin-bottom: 14px;
@@ -139,6 +146,114 @@
   border-color: var(--cor-principal);
 }
 
+/* FILTROS */
+.barra-filtro {
+  margin-bottom: 8px;
+}
+
+.botao-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  padding: 7px 14px;
+  font-size: 13px;
+  color: var(--cor-principal);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.botao-filtro svg {
+  width: 14px;
+  height: 14px;
+  stroke: var(--cor-principal);
+}
+
+.botao-filtro:hover {
+  background: var(--cor-principal-clara);
+}
+
+.botao-filtro.aberto {
+  background: var(--cor-principal-clara);
+  border-color: var(--cor-principal);
+}
+
+.painel-filtros {
+  display: block;
+  background: var(--fundo-card);
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-grande);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--sombra-card);
+}
+
+.painel-filtros.hidden {
+  display: none !important;
+}
+
+.campos-filtro {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.grupo-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 130px;
+}
+
+.grupo-botao-limpar {
+  flex: 0 0 auto;
+}
+
+.label-filtro {
+  font-size: 12px;
+  color: var(--cor-principal);
+  font-weight: 500;
+}
+
+.input-filtro {
+  padding: 8px 10px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+  color: var(--texto-primario);
+  background: var(--fundo-card);
+  outline: none;
+  transition: border-color 0.15s;
+  height: 40px;
+}
+
+.input-filtro:focus {
+  border-color: var(--cor-principal);
+}
+
+.botao-limpar-filtros {
+  padding: 8px 16px;
+  background: var(--cor-principal);
+  color: #fff;
+  border: none;
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  height: 40px;
+}
+
+.botao-limpar-filtros:hover {
+  background: var(--cor-principal-escura);
+}
+
+/* TABELA */
 .tabela-mensalidades-card {
   padding: 0;
   overflow: hidden;
@@ -189,12 +304,26 @@
   border-radius: 50%;
   background: #b6b6b6;
   flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-tabela img,
+.foto-tabela {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .nome-aluno {
   font-weight: 600;
 }
 
+/* STATUS BADGES */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -222,6 +351,7 @@
   color: #d97706;
 }
 
+/* CONTATOS E AÇÕES */
 .lista-contatos {
   display: flex;
   flex-direction: column;
@@ -278,6 +408,7 @@
   font-size: 13px;
 }
 
+/* MODAL MENSALIDADE - ESTILO MODERNO */
 .fundo-modal {
   display: none;
   position: fixed;
@@ -293,61 +424,126 @@
   display: flex;
 }
 
-.caixa-modal {
-  width: 100%;
-  max-width: 460px;
-  background: var(--fundo-card);
-  border-radius: var(--arredondamento-grande);
-  overflow: hidden;
+.modal-card-mensalidade {
+  width: min(460px, 92vw);
   max-height: calc(100vh - 44px);
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--fundo-card);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
 }
 
-.titulo-modal {
-  font-size: 20px;
-  font-weight: 700;
-  padding: 1.75rem 1.75rem 1.25rem;
+.modal-card-mensalidade .modal-header {
+  padding: 24px 28px 18px;
   border-bottom: 1px solid var(--borda);
-}
-
-.conteudo-modal-mensalidade {
-  max-height: calc(100vh - 220px);
-  overflow-y: auto;
-  padding-right: 1rem;
-  margin-right: 0.25rem;
-}
-
-.bloco-aluno-modal {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 1rem 1.75rem 0;
+  justify-content: space-between;
 }
 
-.avatar-aluno {
-  width: 96px;
-  height: 96px;
+.modal-card-mensalidade .modal-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--texto-primario);
+  margin: 0;
+}
+
+.modal-card-mensalidade .btn-close {
+  width: 36px;
+  height: 36px;
+  border: none;
   border-radius: 50%;
-  background: #b6b6b6;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.modal-card-mensalidade .btn-close:hover {
+  background: #e5e7eb;
+}
+
+.modal-body-scroll {
+  padding: 22px 28px 12px;
+  max-height: calc(100vh - 190px);
+  overflow-y: auto;
+}
+
+.modal-body-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modal-body-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-body-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.modal-body-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* INFO TOPO DO MODAL */
+.info-topo-mensalidade {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+#avatarModalMensalidade {
+  width: 120px;
+  height: 120px;
+  min-width: 120px;
+  border-radius: 50%;
+  background: #b8babf;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34px;
+  overflow: hidden;
 }
 
-.dados-aluno-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  color: var(--texto-secundario);
+#previewFotoMensalidade {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+  border-radius: 50%;
 }
 
-.grupo-campo {
-  padding: 0 1.75rem;
-  margin-top: 16px;
+.info-textos-mensalidade {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
 }
 
-.label-campo {
+.info-textos-mensalidade strong {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+.info-textos-mensalidade span {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* CAMPOS DO MODAL */
+.modal-card-mensalidade .grupo-filtro {
+  margin-bottom: 16px;
+}
+
+.modal-card-mensalidade .label-filtro {
   display: block;
   margin-bottom: 8px;
   font-size: 12px;
@@ -355,7 +551,7 @@
   font-weight: 600;
 }
 
-.input-campo {
+.modal-card-mensalidade .input-filtro {
   width: 100%;
   height: 40px;
   border: 1px solid var(--borda);
@@ -363,106 +559,85 @@
   padding: 0 12px;
   font-size: 13.5px;
   outline: none;
+  background: var(--fundo-card);
+  color: var(--texto-primario);
 }
 
-.input-campo:focus {
+.modal-card-mensalidade .input-filtro:focus {
   border-color: var(--cor-principal);
+  box-shadow: 0 0 0 3px rgba(36, 70, 184, 0.12);
 }
 
-.mensagem-erro {
-  display: block;
-  min-height: 16px;
+.modal-card-mensalidade .input-arquivo {
+  width: 100%;
+  font-size: 13px;
+  color: #374151;
   margin-top: 4px;
-  font-size: 12px;
-  color: var(--vermelho);
 }
 
-.acoes-modal {
+.modal-card-mensalidade .input-arquivo::file-selector-button {
+  border: 1px solid #dfe3ea;
+  background: var(--fundo-card);
+  color: #111827;
+  border-radius: 9px;
+  padding: 8px 12px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.modal-card-mensalidade .input-arquivo::file-selector-button:hover {
+  background: #f3f4f6;
+}
+
+/* INFO BOX */
+.modal-card-mensalidade .info-box {
+  background: #eef4ff;
+  border: 1px solid #bcd3ff;
+  color: #1d4ed8;
+  border-radius: var(--arredondamento-medio);
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-top: 8px;
+}
+
+/* AÇÕES DO MODAL */
+.modal-card-mensalidade .modal-actions {
+  padding: 18px 28px 24px;
+  border-top: 1px solid var(--borda);
   display: flex;
   justify-content: center;
   gap: 12px;
-  padding: 1.25rem 1.75rem 1.75rem;
 }
 
-.botao-cancelar,
-.botao-cadastrar {
+.modal-card-mensalidade .btn-secondary,
+.modal-card-mensalidade .btn-primary {
   min-width: 140px;
   height: 40px;
   border-radius: var(--arredondamento-medio);
   font-size: 13.5px;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.botao-cancelar {
+.modal-card-mensalidade .btn-secondary {
   background: var(--fundo-card);
   color: var(--texto-primario);
   border: 1px solid var(--borda);
 }
 
-.botao-cadastrar {
+.modal-card-mensalidade .btn-primary {
   background: var(--cor-principal);
-  color: #fff;
+  color: #ffffff;
   border: none;
 }
 
-.botao-cadastrar:hover {
+.modal-card-mensalidade .btn-primary:hover {
   background: var(--cor-principal-escura);
 }
 
-.conteudo-modal-mensalidade::-webkit-scrollbar {
-  width: 10px;
-}
-
-.conteudo-modal-mensalidade::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.conteudo-modal-mensalidade::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 999px;
-}
-
-.conteudo-modal-mensalidade::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-.preview-foto {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  margin-top: 8px;
-  object-fit: cover;
-  display: none;
-}
-
-.foto-tabela {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.avatar-modal {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: #b6b6b6;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.avatar-modal img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  display: none; 
-}
-.avatar-modal.com-foto img {
-  display: block;
-}
-
+/* RESPONSIVIDADE */
 @media (max-width: 900px) {
   .resumo-mensalidades {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -484,17 +659,645 @@
     grid-template-columns: 1fr;
   }
 
-  .acoes-modal {
+  .campos-filtro {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .grupo-botao-limpar {
+    margin-top: 8px;
+  }
+
+  .modal-card-mensalidade .modal-actions {
     flex-direction: column;
   }
 
-  .botao-cancelar,
-  .botao-cadastrar {
+  .modal-card-mensalidade .btn-secondary,
+  .modal-card-mensalidade .btn-primary {
     width: 100%;
   }
 
-  .bloco-aluno-modal {
+  .info-topo-mensalidade {
     flex-direction: column;
-    align-items: flex-start;
+    text-align: center;
   }
+}
+/* SWEETALERT2 PERSONALIZADO */
+.prote-alert {
+  border-radius: 20px;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+}
+
+.prote-alert-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.prote-alert-button {
+  background-color: #2446b8 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 12px 26px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.prote-alert-button:hover {
+  background-color: #1d3691 !important;
+  transform: translateY(-1px);
+}
+
+.prote-alert-cancel-button {
+  background-color: #e5e7eb !important;
+  color: #374151 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 12px 26px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: 0.2s ease;
+}
+
+/* Garante que alertas fiquem acima do modal da mensalidade */
+.swal2-container {
+  z-index: 11000 !important;
+}
+
+/* CORREÇÃO DO MODAL DE MENSALIDADE */
+.modal-card-mensalidade .grupo-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.modal-card-mensalidade .label-campo {
+  display: block;
+  font-size: 12px;
+  color: var(--texto-secundario);
+  font-weight: 600;
+}
+
+.modal-card-mensalidade .input-campo,
+.modal-card-mensalidade input[type="text"],
+.modal-card-mensalidade input[type="number"],
+.modal-card-mensalidade input[type="date"] {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  padding: 0 12px;
+  font-size: 13.5px;
+  outline: none;
+  background: var(--fundo-card);
+  color: var(--texto-primario);
+  box-sizing: border-box;
+}
+
+.modal-card-mensalidade .input-campo:focus,
+.modal-card-mensalidade input[type="text"]:focus,
+.modal-card-mensalidade input[type="number"]:focus,
+.modal-card-mensalidade input[type="date"]:focus {
+  border-color: var(--cor-principal);
+  box-shadow: 0 0 0 3px rgba(36, 70, 184, 0.12);
+}
+
+.modal-card-mensalidade .acoes-modal {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 18px 0 8px;
+  margin-top: 8px;
+}
+
+.modal-card-mensalidade .botao-cancelar,
+.modal-card-mensalidade .botao-cadastrar {
+  min-width: 140px;
+  height: 42px;
+  border-radius: var(--arredondamento-medio);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.modal-card-mensalidade .botao-cancelar {
+  background: var(--fundo-card);
+  color: var(--texto-primario);
+  border: 1px solid var(--borda);
+}
+
+.modal-card-mensalidade .botao-cadastrar {
+  background: var(--cor-principal);
+  color: #fff;
+  border: none;
+}
+
+.modal-card-mensalidade .botao-cadastrar:hover {
+  background: var(--cor-principal-escura);
+}
+
+@media (max-width: 520px) {
+  .modal-card-mensalidade .acoes-modal {
+    flex-direction: column;
+  }
+
+  .modal-card-mensalidade .botao-cancelar,
+  .modal-card-mensalidade .botao-cadastrar {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   PADRÃO DE FORMULÁRIOS/MODAIS - integrado no CSS da página
+   ========================================================= */
+/* Overlay dos modais */
+.modal-overlay,
+.fundo-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.45) !important;
+  z-index: 9999 !important;
+  padding: 22px 16px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.modal-overlay:not(.hidden),
+.fundo-modal.ativo {
+  display: flex !important;
+}
+
+/* Caixa branca do modal */
+.modal-card,
+.modal-card-acesso,
+.caixa-modal {
+  width: min(520px, calc(100vw - 32px)) !important;
+  max-width: 520px !important;
+  max-height: calc(100vh - 44px) !important;
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22) !important;
+  border: none !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.modal-card-aluno,
+.modal-card-mensalidade {
+  width: min(520px, calc(100vw - 32px)) !important;
+  max-width: 520px !important;
+}
+
+.caixa-modal-pequena {
+  max-width: 430px !important;
+}
+
+/* Cabeçalho */
+.modal-header,
+.modal-header-acesso,
+.caixa-modal > .titulo-modal {
+  min-height: 82px !important;
+  padding: 24px 28px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.modal-header h2,
+.modal-header-acesso h2,
+.titulo-modal {
+  margin: 0 !important;
+  font-size: 24px !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+  color: #111827 !important;
+  letter-spacing: 0 !important;
+}
+
+.btn-close,
+.btn-fechar-acesso {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+.btn-close:hover,
+.btn-fechar-acesso:hover {
+  background: #e5e7eb !important;
+}
+
+/* Corpo rolável do formulário */
+#formAluno,
+#formResponsavel,
+#formDocumento,
+.form-acesso,
+.caixa-modal > .grupo-campo,
+.modal-body-scroll {
+  scrollbar-width: thin;
+}
+
+#formAluno,
+#formResponsavel,
+#formDocumento,
+.form-acesso,
+.modal-body-scroll,
+.caixa-modal {
+  overflow-y: auto !important;
+}
+
+#formAluno,
+#formResponsavel,
+#formDocumento,
+.form-acesso,
+.modal-body-scroll {
+  padding: 24px 28px !important;
+  max-height: calc(100vh - 126px) !important;
+}
+
+.caixa-modal > .grupo-campo:first-of-type {
+  margin-top: 24px !important;
+}
+
+.caixa-modal > .grupo-campo,
+.caixa-modal > .acoes-modal {
+  margin-left: 28px !important;
+  margin-right: 28px !important;
+}
+
+.caixa-modal > .acoes-modal {
+  margin-bottom: 24px !important;
+}
+
+/* Espaçamento dos grupos */
+.grupo-filtro,
+.grupo-form-acesso,
+.grupo-campo {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 7px !important;
+  margin-bottom: 16px !important;
+}
+
+/* Labels padronizadas */
+.label-filtro,
+.label-campo,
+.grupo-form-acesso label {
+  display: block !important;
+  margin: 0 !important;
+  font-size: 15px !important;
+  line-height: 1.25 !important;
+  color: #111827 !important;
+  font-weight: 500 !important;
+}
+
+/* Campos padronizados */
+.input-filtro,
+.input-campo,
+.select-campo,
+.textarea-campo,
+.grupo-form-acesso input,
+.grupo-form-acesso select,
+.grupo-form-acesso textarea,
+.modal-card input[type="text"],
+.modal-card input[type="email"],
+.modal-card input[type="tel"],
+.modal-card input[type="number"],
+.modal-card input[type="date"],
+.modal-card select,
+.modal-card textarea,
+.caixa-modal input[type="text"],
+.caixa-modal input[type="email"],
+.caixa-modal input[type="tel"],
+.caixa-modal input[type="number"],
+.caixa-modal input[type="date"],
+.caixa-modal select,
+.caixa-modal textarea {
+  width: 100% !important;
+  min-height: 46px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 7px !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  padding: 0 12px !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.textarea-campo,
+.modal-card textarea,
+.caixa-modal textarea {
+  min-height: 96px !important;
+  padding-top: 10px !important;
+  resize: vertical !important;
+}
+
+.input-filtro::placeholder,
+.input-campo::placeholder,
+.textarea-campo::placeholder,
+.grupo-form-acesso input::placeholder,
+.grupo-form-acesso textarea::placeholder {
+  color: #6b7280 !important;
+  opacity: 0.85 !important;
+}
+
+.input-filtro:focus,
+.input-campo:focus,
+.select-campo:focus,
+.textarea-campo:focus,
+.grupo-form-acesso input:focus,
+.grupo-form-acesso select:focus,
+.grupo-form-acesso textarea:focus,
+.modal-card input:focus,
+.modal-card select:focus,
+.modal-card textarea:focus,
+.caixa-modal input:focus,
+.caixa-modal select:focus,
+.caixa-modal textarea:focus {
+  border-color: #1a56db !important;
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.12) !important;
+}
+
+/* Input de arquivo e foto do aluno */
+.foto-primeiro-bloco,
+.info-topo-mensalidade {
+  padding-top: 0 !important;
+  margin: 0 0 18px !important;
+}
+
+.foto-primeiro-bloco {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+}
+
+.info-topo-mensalidade {
+  display: flex !important;
+  align-items: center !important;
+  gap: 18px !important;
+}
+
+.avatar-modal-aluno,
+#avatarModalMensalidade {
+  width: 120px !important;
+  height: 120px !important;
+  min-width: 120px !important;
+  border-radius: 50% !important;
+  margin: 0 !important;
+  background: #b8babf !important;
+  color: #7a7d81 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.foto-primeiro-bloco .avatar-modal-aluno {
+  margin: 0 auto 4px !important;
+}
+
+.input-arquivo {
+  width: 100% !important;
+  min-height: 40px !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 14px !important;
+  color: #111827 !important;
+}
+
+.input-arquivo::file-selector-button {
+  height: 38px !important;
+  margin-right: 10px !important;
+  padding: 0 14px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 7px !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+
+.input-arquivo::file-selector-button:hover {
+  background: #f9fafb !important;
+}
+
+/* Mensagens e info */
+.info-box {
+  width: 100% !important;
+  margin: 4px 0 18px !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  background: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
+  color: #1d4ed8 !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+
+.mensagem-erro {
+  min-height: 14px !important;
+  color: #dc2626 !important;
+  font-size: 12px !important;
+}
+
+.contador-caracteres {
+  align-self: flex-end !important;
+  color: #6b7280 !important;
+  font-size: 12px !important;
+}
+
+/* Botões do rodapé */
+.modal-actions,
+.modal-actions-acesso,
+.acoes-modal {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  margin-top: 24px !important;
+  padding-top: 0 !important;
+  border-top: none !important;
+  flex-shrink: 0 !important;
+}
+
+.btn-secondary,
+.btn-primary.solid,
+.botao-cancelar,
+.botao-cadastrar,
+.modal-actions-acesso button,
+.modal-actions-acesso .btn-cancelar-acesso,
+.modal-actions-acesso .btn-salvar-acesso {
+  width: 180px !important;
+  max-width: 100% !important;
+  height: 52px !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 18px !important;
+}
+
+.btn-secondary,
+.botao-cancelar,
+.btn-cancelar-acesso {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+.btn-secondary:hover,
+.botao-cancelar:hover,
+.btn-cancelar-acesso:hover {
+  background: #f9fafb !important;
+}
+
+.btn-primary.solid,
+.botao-cadastrar,
+.btn-salvar-acesso {
+  background: #1a56db !important;
+  color: #ffffff !important;
+  border: 1px solid #1a56db !important;
+}
+
+.btn-primary.solid:hover,
+.botao-cadastrar:hover,
+.btn-salvar-acesso:hover {
+  background: #1e40af !important;
+  border-color: #1e40af !important;
+}
+
+/* Ajuste para modais muito longos */
+#formAluno .modal-actions,
+#formResponsavel .modal-actions,
+.modal-body-scroll .acoes-modal,
+.caixa-modal > .acoes-modal {
+  position: sticky !important;
+  bottom: -24px !important;
+  background: #ffffff !important;
+  padding: 18px 0 0 !important;
+}
+
+/* Evita que botões antigos fiquem pequenos/sem estilo */
+.caixa-modal button,
+.modal-card button {
+  font-family: inherit !important;
+}
+
+/* Mobile */
+@media (max-width: 560px) {
+  .modal-overlay,
+  .fundo-modal {
+    padding: 12px !important;
+    align-items: flex-start !important;
+  }
+
+  .modal-card,
+  .modal-card-acesso,
+  .caixa-modal {
+    width: calc(100vw - 24px) !important;
+    max-height: calc(100vh - 24px) !important;
+  }
+
+  .modal-header,
+  .modal-header-acesso,
+  .caixa-modal > .titulo-modal {
+    padding: 20px !important;
+    min-height: 72px !important;
+  }
+
+  #formAluno,
+  #formResponsavel,
+  #formDocumento,
+  .form-acesso,
+  .modal-body-scroll {
+    padding: 20px !important;
+    max-height: calc(100vh - 100px) !important;
+  }
+
+  .caixa-modal > .grupo-campo,
+  .caixa-modal > .acoes-modal {
+    margin-left: 20px !important;
+    margin-right: 20px !important;
+  }
+
+  .modal-actions,
+  .modal-actions-acesso,
+  .acoes-modal {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .btn-secondary,
+  .btn-primary.solid,
+  .botao-cancelar,
+  .botao-cadastrar,
+  .modal-actions-acesso button {
+    width: 100% !important;
+  }
+
+  .info-topo-mensalidade {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+.avatar-modal-aluno,
+#avatarModalMensalidade {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #b8babf;
+}
+
+#avatarModalMensalidade img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+}
+.swal2-container {
+  z-index: 999999 !important;
+}
+
+.swal2-backdrop-show {
+  z-index: 999998 !important;
 }

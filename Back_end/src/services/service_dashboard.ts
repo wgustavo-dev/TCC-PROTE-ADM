@@ -4,6 +4,8 @@ import { Presenca } from "../models/model_presenca";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Despesa } from "../models/model_despesa";
 import { ServiceMensalidade } from "./service_mensalidade"
+import { Documento } from "../models/model_documento";
+import { calcularDiasRestantes } from "./service_documento";
 
 export class ServiceDashboard {
   async resumo() {
@@ -14,6 +16,7 @@ export class ServiceDashboard {
     const repoPresenca = AppDataSource.getRepository(Presenca);
     const repoMensalidade = AppDataSource.getRepository(Mensalidade);
     const repoDespesa = AppDataSource.getRepository(Despesa);
+    const repoDocumento = AppDataSource.getRepository(Documento);
     
 
 
@@ -90,6 +93,16 @@ export class ServiceDashboard {
     const presencaMedia =
       totalPresencas > 0 ? (presencasPresentes / totalPresencas) * 100 : 0;
 
+    const documentos = await repoDocumento.find();
+    const documentosVencidos = documentos.filter((documento) => {
+      const diasRestantes = calcularDiasRestantes(documento.data_validade);
+      return diasRestantes !== null && diasRestantes < 0;
+    }).length;
+    const documentosVencemEmBreve = documentos.filter((documento) => {
+      const diasRestantes = calcularDiasRestantes(documento.data_validade);
+      return diasRestantes !== null && diasRestantes >= 0 && diasRestantes <= 7;
+    }).length;
+
     const meses = [
       "Jan",
       "Fev",
@@ -132,14 +145,36 @@ export class ServiceDashboard {
 
     const alertas = [];
 
-    const mensalidadesAtrasadas = await repoMensalidade.count({
-      where: {
-        status: "ATRASADO",
-      },
-    });
+    const mensalidadesAlerta = await repoMensalidade
+      .createQueryBuilder("mensalidade")
+      .leftJoinAndSelect("mensalidade.aluno", "aluno")
+      .where("mensalidade.status = :atrasado", { atrasado: "ATRASADO" })
+      .orWhere(
+        "mensalidade.status = :pendente AND mensalidade.data_vencimento = CURDATE()",
+        { pendente: "PENDENTE" }
+      )
+      .orderBy("mensalidade.data_vencimento", "ASC")
+      .addOrderBy("aluno.nome", "ASC")
+      .getMany();
 
-    if (mensalidadesAtrasadas > 0) {
-      alertas.push(`${mensalidadesAtrasadas} mensalidade(s) atrasada(s).`);
+    const hojeLocal = new Date();
+    hojeLocal.setHours(0, 0, 0, 0);
+
+    for (const mensalidade of mensalidadesAlerta) {
+      const nomeAluno = mensalidade.aluno?.nome || `Aluno #${mensalidade.id_aluno}`;
+      const dataVencimento = String(mensalidade.data_vencimento || "").slice(0, 10);
+      const [ano, mes, dia] = dataVencimento.split("-").map(Number);
+      const vencimentoLocal = new Date(ano, mes - 1, dia);
+      vencimentoLocal.setHours(0, 0, 0, 0);
+      const diasAtraso = Math.round((hojeLocal.getTime() - vencimentoLocal.getTime()) / (1000 * 60 * 60 * 24));
+      const tipo = diasAtraso === 0 ? "vence_hoje" : "atrasada";
+
+      alertas.push({
+        nome_aluno: nomeAluno,
+        data_vencimento: dataVencimento,
+        tipo,
+        dias_atraso: diasAtraso,
+      });
     }
 
     return {
@@ -150,6 +185,10 @@ export class ServiceDashboard {
       presenca_media: Number(presencaMedia.toFixed(1)),
       grafico_mensal: graficoMensal,
       alertas,
+      documentos: {
+        vencidos: documentosVencidos,
+        vencem_em_ate_7_dias: documentosVencemEmBreve,
+      },
       resumo_financeiro: {
         receita_total: receitaMensal,
         despesas_total: despesasMensais,

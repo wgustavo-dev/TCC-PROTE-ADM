@@ -71,12 +71,12 @@ function configurarMenuMobile() {
 
 function configurarModal() {
   btnAbrirModal.addEventListener('click', abrirModalNovo);
-  btnFecharModal.addEventListener('click', fecharModal);
-  btnCancelar.addEventListener('click', fecharModal);
+  btnFecharModal.addEventListener('click', fecharModalSeguroDocumento);
+  btnCancelar.addEventListener('click', fecharModalSeguroDocumento);
 
   modalOverlay.addEventListener('click', (event) => {
     if (event.target === modalOverlay) {
-      fecharModal();
+      fecharModalSeguroDocumento();
     }
   });
 
@@ -91,6 +91,7 @@ function abrirModalNovo() {
   dataValidade.value = '';
   statusPreview.value = '';
   modalOverlay.classList.remove('hidden');
+  registrarEstadoInicialFormulario(formDocumento);
 }
 
 function abrirModalEditar(documento) {
@@ -101,10 +102,15 @@ function abrirModalEditar(documento) {
   dataValidade.value = documento.dataValidade || '';
   statusPreview.value = formatarStatusTexto(documento.status || '');
   modalOverlay.classList.remove('hidden');
+  registrarEstadoInicialFormulario(formDocumento);
 }
 
 function fecharModal() {
   modalOverlay.classList.add('hidden');
+}
+
+function fecharModalSeguroDocumento() {
+  return fecharModalSeguro(formDocumento, fecharModal);
 }
 
 function configurarFiltros() {
@@ -134,29 +140,26 @@ function configurarFormulario() {
     const payload = montarPayloadFormulario();
 
     if (!payload.tipo_documento || !payload.data_emissao) {
-      alert('Preencha os campos obrigatórios.');
+  showWarning("Preencha os campos obrigatórios.");
       return;
     }
 
     try {
       const id = documentoId.value;
-      const method = id ? 'PUT' : 'POST';
-      const url = id ? `/api/documentos/${id}` : '/api/documentos';
 
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error('Erro ao salvar');
+      if (id) {
+        await window.API.put(`/documentos/${id}`, payload);
+      } else {
+        await window.API.post('/documentos', payload);
+      }
 
       await carregarDocumentosDoBackend();
       renderizarTudo();
       fecharModal();
+      await showSuccess(id ? 'Documento atualizado com sucesso!' : 'Documento cadastrado com sucesso!');
     } catch (error) {
       console.error(error);
-      alert('Não foi possível salvar o documento.');
+      showError(error.message || 'Não foi possível salvar o documento.');
     }
   });
 }
@@ -171,7 +174,7 @@ function montarPayloadFormulario() {
     tipo_documento: tipo,
     data_emissao: realizacao,
     data_validade: validade,
-    status: status === 'vencido' ? 'VENCIDO' : 'VALIDO'
+    status: status === 'Vencido' ? 'VENCIDO' : 'VALIDO'
   };
 }
 
@@ -194,20 +197,20 @@ function atualizarPreviewDocumento() {
 
 async function carregarDocumentosDoBackend() {
   try {
-    const response = await fetch('/api/documentos');
-    if (!response.ok) throw new Error('Erro ao buscar documentos');
-    const dados = await response.json();
+    const dados = await window.API.get('/documentos');
 
-    documentos = dados.map((doc) => ({
+    documentos = (dados || []).map((doc) => ({
       id: doc.id_documento,
       tipo: doc.tipo_documento,
       dataRealizacao: doc.data_emissao ? doc.data_emissao.split('T')[0] : '',
       dataValidade: doc.data_validade ? doc.data_validade.split('T')[0] : '',
-      status: calcularStatus(doc.data_validade ? doc.data_validade.split('T')[0] : '')
+      status: doc.status || calcularStatusDocumento(doc.data_validade ? doc.data_validade.split('T')[0] : ''),
+      diasRestantes: doc.diasRestantes ?? calcularDiasRestantes(doc.data_validade ? doc.data_validade.split('T')[0] : '')
     }));
   } catch (error) {
     console.error('Erro ao carregar documentos:', error);
     documentos = [];
+    showError('Não foi possível carregar os documentos. Verifique se você está logado como condutor.');
   }
 }
 
@@ -228,19 +231,30 @@ function calcularValidade(tipo, dataBase) {
   return data.toISOString().split('T')[0];
 }
 
-function calcularStatus(dataValidadeFinal) {
+function calcularDiasRestantes(dataValidadeFinal) {
+  if (!dataValidadeFinal) return null;
+
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
   const validade = new Date(`${dataValidadeFinal}T00:00:00`);
   validade.setHours(0, 0, 0, 0);
 
-  const diferencaMs = validade - hoje;
-  const diferencaDias = Math.ceil(diferencaMs / (1000 * 60 * 60 * 24));
+  return Math.round((validade - hoje) / (1000 * 60 * 60 * 24));
+}
 
-  if (diferencaDias < 0) return 'vencido';
-  if (diferencaDias <= 30) return 'proximo';
-  return 'valido';
+function calcularStatusDocumento(dataValidadeFinal) {
+  const diasRestantes = calcularDiasRestantes(dataValidadeFinal);
+
+  if (diasRestantes === null) return 'Em dia';
+  if (diasRestantes < 0) return 'Vencido';
+  if (diasRestantes === 0) return 'Vence hoje';
+  if (diasRestantes <= 7) return 'Vence em breve';
+  return 'Em dia';
+}
+
+function calcularStatus(dataValidadeFinal) {
+  return calcularStatusDocumento(dataValidadeFinal);
 }
 
 function formatarData(dataIso) {
@@ -249,11 +263,37 @@ function formatarData(dataIso) {
   return `${dia}/${mes}/${ano}`;
 }
 
+function normalizarStatusClasse(status) {
+  const mapa = {
+    'Em dia': 'em-dia',
+    'Vence em breve': 'vence-em-breve',
+    'Vence hoje': 'vence-hoje',
+    Vencido: 'vencido',
+    valido: 'em-dia',
+    proximo: 'vence-em-breve',
+    vencido: 'vencido'
+  };
+
+  return mapa[status] || 'em-dia';
+}
+
 function formatarStatusTexto(status) {
-  if (status === 'valido') return 'Válido';
-  if (status === 'proximo') return 'Próximo do vencimento';
+  if (status === 'valido') return 'Em dia';
+  if (status === 'proximo') return 'Vence em breve';
   if (status === 'vencido') return 'Vencido';
-  return '-';
+  return status || '-';
+}
+
+function renderizarStatus(status) {
+  const classe = normalizarStatusClasse(status);
+  const icones = {
+    'em-dia': '',
+    'vence-em-breve': '',
+    'vence-hoje': '',
+    vencido: ''
+  };
+
+  return `<span class="badge-status ${classe}">${icones[classe]} ${formatarStatusTexto(status)}</span>`;
 }
 
 function renderizarTudo() {
@@ -264,8 +304,8 @@ function renderizarTudo() {
 
 function renderizarCards() {
   const total = documentos.length;
-  const validos = documentos.filter(doc => doc.status === 'valido').length;
-  const vencidos = documentos.filter(doc => doc.status === 'vencido').length;
+  const validos = documentos.filter(doc => normalizarStatusClasse(doc.status) === 'em-dia').length;
+  const vencidos = documentos.filter(doc => normalizarStatusClasse(doc.status) === 'vencido').length;
 
   totalDocs.textContent = total;
   validosDocs.textContent = validos;
@@ -274,7 +314,7 @@ function renderizarCards() {
 
 function renderizarAlertas() {
   const alertas = documentos.filter(
-    doc => doc.status === 'proximo' || doc.status === 'vencido'
+    doc => ['vence-em-breve', 'vence-hoje', 'vencido'].includes(normalizarStatusClasse(doc.status))
   );
 
   if (!alertas.length) {
@@ -285,10 +325,10 @@ function renderizarAlertas() {
   alertasContainer.innerHTML = `
     <div class="alert-list">
       ${alertas.map(doc => `
-        <div class="alert-card ${doc.status}">
+        <div class="alert-card ${normalizarStatusClasse(doc.status)}">
           <strong>${doc.tipo}</strong>
           <span>
-            ${doc.status === 'vencido'
+            ${normalizarStatusClasse(doc.status) === 'vencido'
               ? `Documento vencido em ${formatarData(doc.dataValidade)}.`
               : `Documento próximo do vencimento em ${formatarData(doc.dataValidade)}.`}
           </span>
@@ -306,7 +346,7 @@ function obterDocumentosFiltrados() {
 
   return documentos.filter((doc) => {
     const matchBusca = !busca || (doc.tipo || '').toLowerCase().includes(busca);
-    const matchStatus = !status || doc.status === status;
+    const matchStatus = !status || normalizarStatusClasse(doc.status) === status;
     const matchRealizacao = !realizacao || doc.dataRealizacao === realizacao;
     const matchValidade = !validade || doc.dataValidade === validade;
 
@@ -326,14 +366,12 @@ function renderizarTabela() {
   emptyState.style.display = 'none';
 
   tbodyDocumentos.innerHTML = lista.map((doc) => `
-    <tr>
+    <tr class="${normalizarStatusClasse(doc.status)}">
       <td>${doc.tipo || '-'}</td>
       <td>${formatarData(doc.dataRealizacao)}</td>
       <td>${formatarData(doc.dataValidade)}</td>
       <td>
-        <span class="badge-status ${doc.status}">
-          ${formatarStatusTexto(doc.status)}
-        </span>
+        ${renderizarStatus(doc.status)}
       </td>
       <td>
         <div class="actions">
@@ -375,17 +413,23 @@ tbodyDocumentos.addEventListener('click', async (event) => {
   }
 
   if (action === 'excluir') {
-    const confirmar = confirm('Tem certeza que deseja excluir este documento?');
-    if (!confirmar) return;
+    const confirmar = await showConfirm('Tem certeza que deseja excluir este documento?');
+    if (!confirmar.isConfirmed) return;
 
     try {
-      const response = await fetch(`/api/documentos/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Erro ao excluir');
+      await window.API.del(`/documentos/${id}`);
       await carregarDocumentosDoBackend();
       renderizarTudo();
+      await showSuccess('Documento excluído com sucesso!');
     } catch (error) {
       console.error(error);
-      alert('Não foi possível excluir o documento.');
+      showError(error.message || 'Não foi possível excluir o documento.');
     }
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !modalOverlay.classList.contains('hidden')) {
+    fecharModalSeguroDocumento();
   }
 });

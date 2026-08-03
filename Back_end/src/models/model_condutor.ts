@@ -2,11 +2,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
-  JoinColumn,
 } from "typeorm";
-
-import { Monitor } from "./model_monitor";
 
 @Entity("condutor")
 export class Condutor {
@@ -19,22 +15,26 @@ export class Condutor {
   @Column({ type: "varchar", length: 100, nullable: true })
   email!: string;
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  senha!: string;
+
   @Column({ type: "varchar", length: 20, nullable: true })
   telefone!: string;
 
   @Column({ type: "text", nullable: true })
   escolas!: string;
 
-  @Column({ type: "boolean", default: false })
-  possui_monitor!: boolean;
-
   @Column({ type: "varchar", length: 255, nullable: true })
   foto!: string;
 
-  @Column({ type: "int", nullable: true })
-  id_monitor!: number;
+  @Column({ type: "varchar", length: 255, nullable: true })
+  token_recuperacao!: string;
 
-  @ManyToOne(() => Monitor, { nullable: true })
-  @JoinColumn({ name: "id_monitor" })
-  monitor!: Monitor;
+  @Column({ type: "datetime", nullable: true })
+  expiracao_recuperacao!: Date;
+
+  // NOVO (Controle de Acessos): exclusão lógica.
+  // DELETE não remove a linha, apenas define ativo = false.
+  @Column({ type: "boolean", default: true })
+  ativo!: boolean;
 }

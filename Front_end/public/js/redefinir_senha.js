@@ -132,7 +132,7 @@ botaoSalvarSenha.addEventListener('click', async function () {
             novaSenha: campNovaSenha.value
         });
 
-        alert('Senha redefinida com sucesso! Faça login com sua nova senha.');
+        await showSuccess('Senha redefinida com sucesso! Faça login com sua nova senha.');
         window.location.href = 'login.html';
 
     } catch (erro) {

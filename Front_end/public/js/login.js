@@ -97,7 +97,11 @@ botaoEntrar.addEventListener('click', async function () {
             localStorage.setItem('prote_token', resposta.token);
         }
 
-        window.location.href = 'index.html';
+        if (resposta && resposta.usuario) {
+            localStorage.setItem('prote_user', JSON.stringify(resposta.usuario));
+        }
+
+        window.location.replace('index.html');
 
     } catch (erro) {
         erroLogin.textContent = erro.message || 'E-mail ou senha incorretos.';
