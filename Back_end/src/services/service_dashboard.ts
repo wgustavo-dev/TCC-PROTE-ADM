@@ -3,28 +3,43 @@ import { Aluno } from "../models/model_aluno";
 import { Presenca } from "../models/model_presenca";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Despesa } from "../models/model_despesa";
-import { ServiceMensalidade } from "./service_mensalidade"
 import { Documento } from "../models/model_documento";
+import { Monitor } from "../models/model_monitor";
+import { Orcamento } from "../models/model_orcamento";
+import { ServiceMensalidade } from "./service_mensalidade";
 import { calcularDiasRestantes } from "./service_documento";
+
+/*
+  O TypeORM, para colunas type: "date", normalmente devolve uma string
+  no formato "YYYY-MM-DD" (não um objeto Date). Essa função trata os
+  dois casos com segurança, sem chamar .toISOString() em algo que
+  pode não ser um Date de fato.
+*/
+function formatarDataISO(valor: unknown): string {
+  if (!valor) return "";
+  if (valor instanceof Date) return valor.toISOString().slice(0, 10);
+  return String(valor).slice(0, 10);
+}
 
 export class ServiceDashboard {
   async resumo() {
     const serviceMensalidade = new ServiceMensalidade();
     await serviceMensalidade.atualizarMensalidadesAtrasadas();
-    
+
     const repoAluno = AppDataSource.getRepository(Aluno);
     const repoPresenca = AppDataSource.getRepository(Presenca);
     const repoMensalidade = AppDataSource.getRepository(Mensalidade);
     const repoDespesa = AppDataSource.getRepository(Despesa);
     const repoDocumento = AppDataSource.getRepository(Documento);
-    
-
+    const repoMonitor = AppDataSource.getRepository(Monitor);
+    const repoOrcamento = AppDataSource.getRepository(Orcamento);
 
     const hoje = new Date();
     let anoAtual = hoje.getFullYear();
     let mesAtual = hoje.getMonth() + 1;
 
     const alunosAtivos = await repoAluno.count();
+    const monitoresAtivos = await repoMonitor.count({ where: { ativo: true } });
 
     const currentYearDespesaCount = await repoDespesa
       .createQueryBuilder("despesa")
@@ -78,20 +93,25 @@ export class ServiceDashboard {
       .andWhere("YEAR(despesa.data) = :ano", { ano: anoAtual })
       .getRawOne();
 
-    const totalPresencas = await repoPresenca.count();
+    const totalPresencasMes = await repoPresenca
+      .createQueryBuilder("presenca")
+      .where("MONTH(presenca.data) = :mes", { mes: mesAtual })
+      .andWhere("YEAR(presenca.data) = :ano", { ano: anoAtual })
+      .getCount();
 
-    const presencasPresentes = await repoPresenca.count({
-      where: {
-        status: "PRESENTE",
-      },
-    });
+    const presencasPresentesMes = await repoPresenca
+      .createQueryBuilder("presenca")
+      .where("MONTH(presenca.data) = :mes", { mes: mesAtual })
+      .andWhere("YEAR(presenca.data) = :ano", { ano: anoAtual })
+      .andWhere("presenca.status = :status", { status: "PRESENTE" })
+      .getCount();
 
     const receitaMensal = Number(receitaMensalResult.total) || 0;
     const despesasMensais = Number(despesasMensaisResult.total) || 0;
     const lucroMensal = receitaMensal - despesasMensais;
 
     const presencaMedia =
-      totalPresencas > 0 ? (presencasPresentes / totalPresencas) * 100 : 0;
+      totalPresencasMes > 0 ? (presencasPresentesMes / totalPresencasMes) * 100 : 0;
 
     const documentos = await repoDocumento.find();
     const documentosVencidos = documentos.filter((documento) => {
@@ -102,6 +122,61 @@ export class ServiceDashboard {
       const diasRestantes = calcularDiasRestantes(documento.data_validade);
       return diasRestantes !== null && diasRestantes >= 0 && diasRestantes <= 7;
     }).length;
+
+    const orcamentoStatusCounts = await repoOrcamento
+      .createQueryBuilder("orcamento")
+      .select("orcamento.status", "status")
+      .addSelect("COUNT(*)", "count")
+      .groupBy("orcamento.status")
+      .getRawMany();
+
+    const orcamentoMap = orcamentoStatusCounts.reduce(
+      (acc, item) => ({
+        ...acc,
+        [item.status]: Number(item.count) || 0,
+      }),
+      {
+        PENDENTE: 0,
+        CONVERTIDO: 0,
+        RECUSADO: 0,
+        EM_CADASTRO: 0,
+      }
+    );
+
+    const escolas = await repoAluno
+      .createQueryBuilder("aluno")
+      .leftJoin("aluno.escola", "escola")
+      .select("escola.nome", "nome")
+      .addSelect("COUNT(aluno.id_aluno)", "total")
+      .groupBy("escola.id_escola")
+      .orderBy("total", "DESC")
+      .getRawMany();
+
+    const escolasComContagem = escolas.map((item) => ({
+      nome: item.nome || "Sem escola",
+      total: Number(item.total) || 0,
+    }));
+
+    const proximosPagamentos = await repoMensalidade
+      .createQueryBuilder("mensalidade")
+      .leftJoinAndSelect("mensalidade.aluno", "aluno")
+      .where("mensalidade.status = :status", { status: "PENDENTE" })
+      .andWhere("DATE(mensalidade.data_vencimento) >= CURDATE()")
+      .andWhere("DATE(mensalidade.data_vencimento) <= DATE_ADD(CURDATE(), INTERVAL 5 DAY)")
+      .orderBy("mensalidade.data_vencimento", "ASC")
+      .addOrderBy("aluno.nome", "ASC")
+      .limit(5)
+      .getMany();
+
+    const ultimosPagamentos = await repoMensalidade
+      .createQueryBuilder("mensalidade")
+      .leftJoinAndSelect("mensalidade.aluno", "aluno")
+      .where("mensalidade.status = :status", { status: "PAGO" })
+      .andWhere("mensalidade.data_pagamento IS NOT NULL")
+      .andWhere("DATE(mensalidade.data_pagamento) >= DATE_SUB(CURDATE(), INTERVAL 5 DAY)")
+      .orderBy("mensalidade.data_pagamento", "DESC")
+      .limit(5)
+      .getMany();
 
     const meses = [
       "Jan",
@@ -143,52 +218,34 @@ export class ServiceDashboard {
       });
     }
 
-    const alertas = [];
-
-    const mensalidadesAlerta = await repoMensalidade
-      .createQueryBuilder("mensalidade")
-      .leftJoinAndSelect("mensalidade.aluno", "aluno")
-      .where("mensalidade.status = :atrasado", { atrasado: "ATRASADO" })
-      .orWhere(
-        "mensalidade.status = :pendente AND mensalidade.data_vencimento = CURDATE()",
-        { pendente: "PENDENTE" }
-      )
-      .orderBy("mensalidade.data_vencimento", "ASC")
-      .addOrderBy("aluno.nome", "ASC")
-      .getMany();
-
-    const hojeLocal = new Date();
-    hojeLocal.setHours(0, 0, 0, 0);
-
-    for (const mensalidade of mensalidadesAlerta) {
-      const nomeAluno = mensalidade.aluno?.nome || `Aluno #${mensalidade.id_aluno}`;
-      const dataVencimento = String(mensalidade.data_vencimento || "").slice(0, 10);
-      const [ano, mes, dia] = dataVencimento.split("-").map(Number);
-      const vencimentoLocal = new Date(ano, mes - 1, dia);
-      vencimentoLocal.setHours(0, 0, 0, 0);
-      const diasAtraso = Math.round((hojeLocal.getTime() - vencimentoLocal.getTime()) / (1000 * 60 * 60 * 24));
-      const tipo = diasAtraso === 0 ? "vence_hoje" : "atrasada";
-
-      alertas.push({
-        nome_aluno: nomeAluno,
-        data_vencimento: dataVencimento,
-        tipo,
-        dias_atraso: diasAtraso,
-      });
-    }
-
     return {
       receita_mensal: receitaMensal,
       despesas_mensais: despesasMensais,
       lucro_mensal: lucroMensal,
       alunos_ativos: alunosAtivos,
       presenca_media: Number(presencaMedia.toFixed(1)),
+      monitores_ativos: monitoresAtivos,
       grafico_mensal: graficoMensal,
-      alertas,
       documentos: {
         vencidos: documentosVencidos,
         vencem_em_ate_7_dias: documentosVencemEmBreve,
       },
+      orcamentos: {
+        pendentes: orcamentoMap.PENDENTE,
+        aprovados: orcamentoMap.CONVERTIDO,
+        negados: orcamentoMap.RECUSADO,
+      },
+      escolas: escolasComContagem,
+      proximos_pagamentos: proximosPagamentos.map((item) => ({
+        nome_aluno: item.aluno?.nome || `Aluno #${item.id_aluno}`,
+        data_vencimento: formatarDataISO(item.data_vencimento),
+        valor: Number(item.valor) || 0,
+      })),
+      ultimos_pagamentos: ultimosPagamentos.map((item) => ({
+        nome_aluno: item.aluno?.nome || `Aluno #${item.id_aluno}`,
+        data_pagamento: formatarDataISO(item.data_pagamento),
+        valor: Number(item.valor) || 0,
+      })),
       resumo_financeiro: {
         receita_total: receitaMensal,
         despesas_total: despesasMensais,
