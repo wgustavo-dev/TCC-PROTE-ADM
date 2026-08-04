@@ -6,8 +6,11 @@ import { roleMiddleware } from "../middleware/roleMiddleware";
 const router = Router();
 const controlDashboard = new ControlDashboard();
 
-router.get("/dashboard/resumo", authMiddleware, roleMiddleware(["CONDUTOR"]), (req, res) =>
-  controlDashboard.resumo(req, res)
+router.get(
+  "/dashboard/resumo",
+  authMiddleware,
+  roleMiddleware(["CONDUTOR"]),
+  (req, res) => controlDashboard.resumo(req, res)
 );
 
 export default router;

@@ -252,7 +252,7 @@ INSERT INTO condutor (nome, email, senha, telefone, escolas, foto)
 VALUES (
     'Carlos Souza',
     'liametechnologies@gmail.com',
-    '$2a$10$7fAHxESMFev.n3JnpJDcI.3CqrxRSj9.d/4sxMDDM/9KI7QSnpUGG',
+    '123456',
     '11988888888',
     'Escola Estadual São Paulo',
     'carlos.jpg'
