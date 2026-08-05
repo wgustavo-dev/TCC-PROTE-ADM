@@ -353,6 +353,35 @@ function obterDocumentosFiltrados() {
     return matchBusca && matchStatus && matchRealizacao && matchValidade;
   });
 }
+  
+async function renovarDocumento(documento) {
+  const confirmar = await showConfirm(
+    'Confirma que este documento já foi renovado?'
+  );
+
+  if (!confirmar.isConfirmed) return;
+
+  const hoje = new Date().toISOString().split('T')[0];
+
+  const payload = {
+    tipo_documento: documento.tipo,
+    data_emissao: hoje,
+    data_validade: calcularValidade(documento.tipo, hoje),
+    status: 'VALIDO'
+  };
+
+  try {
+    await window.API.put(`/documentos/${documento.id}`, payload);
+
+    await carregarDocumentosDoBackend();
+    renderizarTudo();
+
+    showSuccess('Documento renovado com sucesso!');
+  } catch (error) {
+    console.error(error);
+    showError(error.message || 'Não foi possível renovar o documento.');
+  }
+}
 
 function renderizarTabela() {
   const lista = obterDocumentosFiltrados();
@@ -375,20 +404,51 @@ function renderizarTabela() {
       </td>
       <td>
         <div class="actions">
-          <button class="icon-btn edit" data-id="${doc.id || ''}" data-action="editar" aria-label="Editar">
-            Editar
-          </button>
 
-          <button class="icon-btn delete" data-id="${doc.id || ''}" data-action="excluir" aria-label="Excluir">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6l-1 14H6L5 6"/>
-              <path d="M10 11v6"/>
-              <path d="M14 11v6"/>
-              <path d="M9 6V4h6v2"/>
-            </svg>
-          </button>
-        </div>
+    <button
+        class="icon-btn edit"
+        data-id="${doc.id}"
+        data-action="editar">
+        Editar
+    </button>
+
+    ${
+      ['vence-em-breve','vence-hoje','vencido']
+      .includes(normalizarStatusClasse(doc.status))
+      ?
+      `
+      <button
+          class="icon-btn renovar"
+          data-id="${doc.id}"
+          data-action="renovar">
+          Já renovei
+      </button>
+      `
+      :
+      ''
+    }
+
+    <button
+        class="icon-btn delete"
+        data-id="${doc.id}"
+        data-action="excluir">
+
+        <svg viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2">
+
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v6"/>
+            <path d="M14 11v6"/>
+            <path d="M9 6V4h6v2"/>
+
+        </svg>
+
+    </button>
+
+</div>
       </td>
     </tr>
   `).join('');
@@ -408,6 +468,11 @@ tbodyDocumentos.addEventListener('click', async (event) => {
     abrirModalEditar(documento);
     return;
   }
+  
+  if (action === 'renovar') {
+    await renovarDocumento(documento);
+    return;
+}
 
   if (action === 'excluir') {
     const confirmar = await showConfirm('Tem certeza que deseja excluir este documento?');

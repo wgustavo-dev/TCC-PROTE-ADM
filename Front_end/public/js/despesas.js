@@ -46,7 +46,7 @@ var quantidadeDespesas = document.getElementById('quantidadeDespesas');
 var mediaDespesas      = document.getElementById('mediaDespesas');
 
 var campoBusca         = document.getElementById('campoBusca');
-var filtroData         = document.getElementById('filtroData');
+var filtroMesAno        = document.getElementById('filtroMesAno');
 var filtroMin          = document.getElementById('filtroMin');
 var filtroMax          = document.getElementById('filtroMax');
 var painelFiltros      = document.getElementById('painelFiltros');
@@ -108,25 +108,30 @@ function escaparHTML(texto) {
    o usuário digitou na busca e nos campos de filtro.
 */
 function obterDespesasFiltradas() {
-  var busca  = campoBusca.value.trim().toLowerCase();
-  var porData = filtroData.value;
-  var minVal  = parseFloat(filtroMin.value) || 0;
-  var maxVal  = parseFloat(filtroMax.value) || Infinity;
+  var busca = campoBusca.value.trim().toLowerCase();
+  var porMesAno = filtroMesAno.value;
+  var minVal = parseFloat(filtroMin.value) || 0;
+  var maxVal = parseFloat(filtroMax.value) || Infinity;
 
   return despesas.filter(function(d) {
-    var bateBusca = !busca ||
+
+    var bateBusca =
+      !busca ||
       d.tipo.toLowerCase().includes(busca) ||
       (d.descricao && d.descricao.toLowerCase().includes(busca));
 
-    var bateData = !porData || d.data === porData;
-    var bateMin  = d.valor >= minVal;
-    var bateMax  = maxVal === Infinity || d.valor <= maxVal;
+    var bateData = true;
+
+    if (porMesAno) {
+      bateData = d.data.startsWith(porMesAno);
+    }
+
+    var bateMin = d.valor >= minVal;
+    var bateMax = maxVal === Infinity || d.valor <= maxVal;
 
     return bateBusca && bateData && bateMin && bateMax;
   });
 }
-
-
 /*
    RENDERIZAÇÃO
    Atualiza os cards de resumo e a tabela com os dados
@@ -197,16 +202,19 @@ botaoFiltro.addEventListener('click', function() {
   botaoFiltro.classList.toggle('aberto');
 });
 
-/* Limpa os três campos de filtro e re-renderiza */
 botaoLimparFiltros.addEventListener('click', function() {
-  filtroData.value = '';
-  filtroMin.value  = '';
-  filtroMax.value  = '';
+  filtroMesAno.value = '';
+  filtroMin.value = '';
+  filtroMax.value = '';
   renderizar();
 });
 
+[campoBusca, filtroMesAno, filtroMin, filtroMax].forEach(function(campo) {
+  campo.addEventListener('input', renderizar);
+});
+
 /* Qualquer alteração nos campos atualiza a tabela imediatamente */
-[campoBusca, filtroData, filtroMin, filtroMax].forEach(function(campo) {
+[campoBusca, filtroMesAno, filtroMin, filtroMax].forEach(function(campo) {
   campo.addEventListener('input', renderizar);
 });
 

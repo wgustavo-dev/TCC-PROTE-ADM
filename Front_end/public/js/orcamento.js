@@ -395,3 +395,11 @@ document.addEventListener('keydown', (event) => {
     fecharModalOrcamentoSeguro();
   }
 });
+
+const botaoFecharModal = document.getElementById("botaoFecharModal");
+
+if (botaoFecharModal) {
+  botaoFecharModal.addEventListener("click", () => {
+    fecharModalOrcamentoSeguro();
+  });
+}
