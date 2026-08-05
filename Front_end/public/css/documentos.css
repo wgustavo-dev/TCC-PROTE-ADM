@@ -353,8 +353,12 @@
   height: 16px;
 }
 
+.icon-btn.edit {
+  color: var(--cor-principal);
+}
+
 .icon-btn.edit svg {
-  stroke: var(--cor-principal);
+  stroke: currentColor;
 }
 
 .icon-btn.edit:hover {

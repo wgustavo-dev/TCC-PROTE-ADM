@@ -236,7 +236,7 @@
   transition: background-color 0.15s, transform 0.1s !important;
 }
 
-.btn-acao-acesso:hover,
+..btn-acao-acesso:hover,
 .icon-btn:hover {
   background-color: var(--cor-principal-clara) !important;
   transform: translateY(-1px) !important;
@@ -249,9 +249,12 @@
 }
 
 .btn-acao-acesso.editar,
-.icon-btn.edit svg {
-  stroke: var(--cor-principal) !important;
+.icon-btn.edit {
   color: var(--cor-principal) !important;
+}
+
+.icon-btn.edit svg {
+  stroke: currentColor !important;
 }
 
 .btn-acao-acesso.excluir,

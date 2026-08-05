@@ -208,7 +208,8 @@
 }
 
 /* Editar — azul */
-.botao-acao.editar svg    { stroke: var(--cor-principal); }
+.botao-acao.editar,
+.botao-acao.editar svg    { color: var(--cor-principal); stroke: currentColor; }
 .botao-acao.editar:hover  { background: var(--cor-principal-clara); }
 
 /* Aprovar — verde */

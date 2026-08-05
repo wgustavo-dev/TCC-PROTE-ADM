@@ -171,12 +171,7 @@ function renderizar() {
         '<td>' + formatarDataBR(d.data) + '</td>' +
         '<td>' +
           '<div class="coluna-acoes">' +
-            '<button class="botao-acao editar" data-id="' + d.id + '" title="Editar">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>' +
-                '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>' +
-              '</svg>' +
-            '</button>' +
+            '<button class="botao-acao editar" data-id="' + d.id + '" title="Editar">Editar</button>' +
             '<button class="botao-acao excluir" data-id="' + d.id + '" title="Excluir">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
                 '<polyline points="3 6 5 6 21 6"/>' +

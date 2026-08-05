@@ -525,10 +525,7 @@ function renderizarTabela(lista) {
         ${usuarioEhMonitor() ? `<span class="texto-somente-leitura">Somente visualização</span>` : `
         <div class="actions">
           <button class="icon-btn edit" data-id="${aluno.id}" data-action="editar" aria-label="Editar aluno">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-              <path d="M12 20h9"></path>
-              <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
-            </svg>
+            Editar
           </button>
           <button class="icon-btn delete" data-id="${aluno.id}" data-action="excluir" aria-label="Excluir aluno">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
