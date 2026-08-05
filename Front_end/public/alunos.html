@@ -223,13 +223,8 @@
         </div>
 
         <div class="grupo-filtro">
-          <label class="label-filtro" for="nomeResponsavel2">Nome do responsável 2</label>
-          <input type="text" id="nomeResponsavel2" class="input-filtro" placeholder="Digite..." />
-        </div>
-
-        <div class="grupo-filtro">
-          <label class="label-filtro" for="telefoneResponsavel2">Contato 2</label>
-          <input type="text" id="telefoneResponsavel2" class="input-filtro" placeholder="(00) 00000-0000" />
+          <label class="label-filtro" for="bairroAluno">Bairro</label>
+          <input type="text" id="bairroAluno" class="input-filtro" placeholder="Digite o bairro..." />
         </div>
 
         <div class="grupo-filtro" id="grupoEnderecoEmbarque">
@@ -244,7 +239,9 @@
 
         <div class="grupo-filtro">
           <label class="label-filtro" for="escolaAluno">Escola</label>
-          <input type="text" id="escolaAluno" class="input-filtro" placeholder="Digite a escola" required />
+          <select id="escolaAluno" class="input-filtro" required>
+            <option value="">Selecione uma escola</option>
+          </select>
         </div>
 
         <div class="grupo-filtro campo-data-vencimento-aluno" id="grupoDataVencimentoAluno">

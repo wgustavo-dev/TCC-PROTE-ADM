@@ -10,6 +10,7 @@ const campoTelefone = document.getElementById("campoTelefone");
 const campoQuantidadeAlunos = document.getElementById("campoQuantidadeAlunos");
 const campoBairro = document.getElementById("campoBairro");
 const campoEscola = document.getElementById("campoEscola");
+const campoValor = document.getElementById("campoValor");
 const campoTurno = document.getElementById("campoTurno");
 const campoTrajeto = document.getElementById("campoTrajeto");
 const campoEmbarque = document.getElementById("campoEmbarque");
@@ -70,6 +71,7 @@ function limparFormularioOrcamento() {
   if (campoQuantidadeAlunos) campoQuantidadeAlunos.value = "";
   if (campoBairro) campoBairro.value = "";
   if (campoEscola) campoEscola.value = "";
+  if (campoValor) campoValor.value = "";
   if (campoTurno) campoTurno.value = "";
   if (campoTrajeto) campoTrajeto.value = "";
   if (campoEmbarque) campoEmbarque.value = "";
@@ -247,11 +249,7 @@ async function handleTabelaClick(event) {
       if (campoQuantidadeAlunos) campoQuantidadeAlunos.value = orcamento.quantidade_alunos || 1;
       if (campoBairro) campoBairro.value = orcamento.bairro || "";
       if (campoEscola) campoEscola.value = orcamento.escola || "";
-      if (campoTurno) campoTurno.value = orcamento.turno || "";
-      if (campoTrajeto) campoTrajeto.value = orcamento.tipo_trajeto || "";
-      if (campoEmbarque) campoEmbarque.value = orcamento.endereco_embarque || "";
-      if (campoDesembarque) campoDesembarque.value = orcamento.endereco_desembarque || "";
-
+  if (campoValor) campoValor.value = orcamento.valor !== undefined && orcamento.valor !== null ? orcamento.valor : "";
       modal.classList.add("ativo");
       registrarEstadoInicialFormulario(modal);
     }
@@ -281,12 +279,14 @@ async function salvarOrcamento() {
     return;
   }
 
+  const valor = campoValor && campoValor.value.trim() ? Number(campoValor.value) : null;
   const payload = {
     nome_responsavel: campoResponsavel.value.trim(),
     telefone: campoTelefone.value.trim(),
     quantidade_alunos: quantidadeAlunos,
     bairro: campoBairro ? campoBairro.value.trim() : "",
     escola: campoEscola ? campoEscola.value.trim() : "",
+    valor,
     turno: campoTurno && campoTurno.value ? campoTurno.value : null,
     tipo_trajeto: campoTrajeto && campoTrajeto.value ? campoTrajeto.value : null,
     endereco_embarque: campoEmbarque ? campoEmbarque.value.trim() : "",
