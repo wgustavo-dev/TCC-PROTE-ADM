@@ -1,0 +1,384 @@
+/* =========================================================
+   WIDGET DE PERFIL — ESTILOS
+   =========================================================
+   Tudo fica dentro de #perfil-widget-root para não vazar nem
+   colidir com o CSS do resto do site.
+
+/* box-sizing previsível + variáveis de cor, em qualquer elemento
+   com a classe .pw-scope (o botão-gatilho E o painel — o painel
+   leva essa classe mesmo depois de ser "portado" pro <body> no
+   modo embutido, pra nunca perder o acesso às variáveis abaixo,
+   não importa em que parte do HTML ele esteja). */
+.pw-scope,
+.pw-scope * {
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   1) VARIÁVEIS DE COR / TAMANHO
+--------------------------------------------------------- */
+.pw-scope {
+  --pw-primary: #4361ee;       /* azul principal (cabeçalho, links, foco) */
+  --pw-primary-dark: #3a4fd1;  /* azul mais escuro, usado no degradê do cabeçalho */
+  --pw-danger: #e63950;        /* vermelho do botão "Sair da Conta" */
+  --pw-text: #1f2937;          /* cor do texto principal (nome, valores) */
+  --pw-text-muted: #6b7280;    /* cor do texto secundário (rótulos "Email", "Senha"...) */
+  --pw-border: #e5e7eb;        /* cor das bordas sutis */
+  --pw-bg: #ffffff;            /* fundo branco dos cartões */
+  --pw-shadow: 0 10px 15px -3px rgba(17, 24, 39, 0.08), 0 4px 6px -4px rgba(17, 24, 39, 0.05);
+  --pw-shadow-lg: 0 20px 25px -5px rgba(17, 24, 39, 0.14), 0 8px 10px -6px rgba(17, 24, 39, 0.06);
+  --pw-radius: 16px;           /* arredondado do cartão do painel */
+  --pw-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+  font-family: var(--pw-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------------------------------------------------
+   2) POSICIONAMENTO PADRÃO DO BOTÃO-GATILHO
+   Fixo, flutuando no canto INFERIOR ESQUERDO da tela.
+   (No modo embutido — ver ".pw-embedded" abaixo — isto é
+   substituído; o botão passa a ocupar o espaço normal dentro
+   da sidebar.)
+--------------------------------------------------------- */
+#perfil-widget-root {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 2147483000; /* garante que fique acima de quase tudo */
+}
+
+/* ---------------------------------------------------------
+   2.1) MODO "EMBUTIDO" — usado quando você passa `container`
+   na configuração (ex.: pra encaixar dentro da sua sidebar).
+   Nesse modo o widget deixa de ser "fixed" e passa a ocupar
+   o espaço normal dentro do elemento onde foi inserido.
+--------------------------------------------------------- */
+#perfil-widget-root.pw-embedded {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  z-index: 1000; /* garante que o painel apareça por cima do conteúdo principal ao ultrapassar a sidebar */
+  width: 100%;
+}
+
+#perfil-widget-root.pw-embedded .pw-trigger {
+  width: 100%;
+  max-width: none;
+}
+
+#perfil-widget-root.pw-embedded .pw-trigger-name,
+#perfil-widget-root.pw-embedded .pw-trigger-role {
+  max-width: none;
+}
+
+/* O painel não fica limitado à largura da sidebar: mantém a
+   largura própria (300px, definida em .pw-panel mais abaixo).
+   Como sidebars costumam ter "overflow" (pra rolar o menu), o
+   que cortaria o painel se ele ficasse preso lá dentro, o
+   JavaScript move o painel pro <body> no momento de abrir e o
+   posiciona com "position: fixed" ancorado no botão — assim ele
+   nunca é cortado, independente do overflow/scroll da sidebar.
+   (Isso é feito em perfil-widget.js, função "build" e
+   "posicionarPainelEmbutido") */
+
+/* ---------------------------------------------------------
+   3) BOTÃO FLUTUANTE (o "gatilho" fechado, com avatar + nome)
+--------------------------------------------------------- */
+.pw-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 260px;
+  padding: 6px 14px 6px 6px;
+  background: var(--pw-bg);
+  border: 1px solid var(--pw-border);
+  border-radius: 999px; /* pílula */
+  box-shadow: var(--pw-shadow);
+  color: var(--pw-text);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.pw-trigger:hover {
+  box-shadow: var(--pw-shadow-lg);
+  transform: translateY(-1px);
+  border-color: #d8dce5;
+}
+
+.pw-trigger:focus-visible {
+  outline: 2px solid var(--pw-primary);
+  outline-offset: 2px;
+}
+
+.pw-trigger-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.25;
+  overflow: hidden;
+}
+
+.pw-trigger-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* corta com "..." se o nome for grande */
+}
+
+.pw-trigger-role {
+  font-size: 11.5px;
+  color: var(--pw-text-muted);
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* seta que gira 90° quando o painel abre */
+.pw-chevron {
+  color: var(--pw-text-muted);
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.pw-trigger[aria-expanded="true"] .pw-chevron {
+  transform: rotate(90deg);
+}
+
+/* ---------------------------------------------------------
+   4) AVATAR (foto do usuário, ou ícone genérico se não tiver)
+--------------------------------------------------------- */
+.pw-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--pw-primary);
+  color: #ffffff;
+}
+
+/* versão maior, usada dentro do cabeçalho azul do painel aberto */
+.pw-avatar.pw-avatar-lg {
+  width: 52px;
+  height: 52px;
+}
+
+/* dentro do cabeçalho azul, o avatar fica "translúcido" com
+   um anel branco, pra se destacar sobre o fundo colorido */
+.pw-panel-header .pw-avatar {
+  background: rgba(255, 255, 255, 0.16);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+}
+
+.pw-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* preenche o círculo sem distorcer a foto */
+  display: block;
+}
+
+/* ---------------------------------------------------------
+   5) PAINEL (o cartão que abre ao clicar no botão)
+--------------------------------------------------------- */
+.pw-panel {
+  position: absolute;
+  left: 0;                      /* alinhado à esquerda do gatilho */
+  bottom: calc(100% + 12px);    /* abre PRA CIMA, colado no gatilho */
+  width: 300px;
+  background: var(--pw-bg);
+  border: 1px solid var(--pw-border);
+  border-radius: var(--pw-radius);
+  box-shadow: var(--pw-shadow-lg);
+  overflow: hidden; /* faz o cabeçalho azul respeitar as bordas arredondadas do cartão */
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  transform-origin: bottom left;
+  pointer-events: none; /* painel fechado não recebe cliques */
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+/* estado aberto: some a classe abaixo é adicionada via JS */
+.pw-panel.pw-panel-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* ---------------------------------------------------------
+   5.1) Cabeçalho azul do painel (foto/ícone + nome + cargo)
+--------------------------------------------------------- */
+.pw-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 18px 16px;
+  background: linear-gradient(135deg, var(--pw-primary), var(--pw-primary-dark));
+}
+
+.pw-panel-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pw-panel-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pw-panel-role {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------------------------------------------------------
+   5.2) Corpo branco: linhas de Email / Senha / Permissão
+--------------------------------------------------------- */
+.pw-panel-body {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 18px 4px;
+}
+
+.pw-info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+}
+
+.pw-info-icon {
+  color: var(--pw-primary); /* ícones sempre na cor de destaque azul */
+  flex-shrink: 0;
+}
+
+.pw-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1; /* ocupa o espaço entre o ícone e os botões da direita */
+}
+
+.pw-info-label {
+  font-size: 11.5px;
+  color: var(--pw-text-muted);
+  font-weight: 600;
+}
+
+.pw-info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pw-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* botão de texto "Alterar senha" */
+.pw-link-btn {
+  border: none;
+  background: none;
+  color: var(--pw-primary);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.pw-link-btn:hover {
+  background: rgba(67, 97, 238, 0.08);
+}
+
+.pw-link-btn:focus-visible {
+  outline: 2px solid var(--pw-primary);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------
+   5.3) Rodapé do painel: botão "Sair da Conta"
+--------------------------------------------------------- */
+.pw-panel-footer {
+  padding: 12px 18px 18px;
+}
+
+.pw-logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 999px; /* pílula, igual ao mockup */
+  border: 2px solid var(--pw-danger);
+  background: #ffffff;
+  color: var(--pw-danger);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pw-logout-btn:hover {
+  background: rgba(230, 57, 80, 0.08);
+}
+
+.pw-logout-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.pw-logout-btn:focus-visible {
+  outline: 2px solid var(--pw-danger);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------
+   6) RESPONSIVO — telas pequenas (celular)
+   Só se aplica no modo flutuante; no modo embutido (sidebar)
+   o widget já acompanha a largura do container.
+--------------------------------------------------------- */
+@media (max-width: 480px) {
+  #perfil-widget-root:not(.pw-embedded) {
+    left: 12px;
+    bottom: 12px;
+  }
+
+  #perfil-widget-root:not(.pw-embedded) .pw-panel {
+    width: min(320px, calc(100vw - 24px));
+  }
+
+  #perfil-widget-root:not(.pw-embedded) .pw-trigger-name,
+  #perfil-widget-root:not(.pw-embedded) .pw-trigger-role {
+    max-width: 92px;
+  }
+}
+
+/* ---------------------------------------------------------
+   7) ACESSIBILIDADE — respeita quem prefere menos animação
+--------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .pw-panel,
+  .pw-trigger,
+  .pw-chevron {
+    transition: none !important;
+  }
+}

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -20,7 +21,7 @@
             ".nav-item[data-page=\"presenca\"], .nav-item[data-page=\"alunos\"] { display: flex !important; }";
           document.head.appendChild(estilo);
         }
-      } catch (erro) {}
+      } catch (erro) { }
     })();
   </script>
   <title>PROTE — Mensalidades</title>
@@ -28,11 +29,13 @@
   <link rel="stylesheet" href="css/globalcss.css" />
   <link rel="stylesheet" href="css/mensalidade.css" />
   <link rel="stylesheet" href="core/alerts.css" />
+  <link rel="stylesheet" href="../css/perfil-widget.css">
 </head>
+
 <body>
 
   <div class="fundo-escuro" id="fundoEscuro"></div>
-    <div class="layout">
+  <div class="layout">
     <header class="barra-topo">
       <button class="botao-menu" id="botaoMenu" aria-label="Abrir menu">
         <span></span>
@@ -51,42 +54,88 @@
 
       <nav class="nav">
         <a href="index.html" class="nav-item" data-page="dashboard">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+          </svg>
           Dashboard
         </a>
         <a href="despesas.html" class="nav-item" data-page="despesas">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="2" x2="12" y2="22"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
           Despesas
         </a>
         <a href="documentos.html" class="nav-item" data-page="documentos">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8"></path><path d="M8 17h5"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <path d="M14 2v6h6"></path>
+            <path d="M8 13h8"></path>
+            <path d="M8 17h5"></path>
+          </svg>
           Documentos
         </a>
         <a href="responsaveis.html" class="nav-item" data-page="responsaveis">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
           Responsáveis
         </a>
         <a href="alunos.html" class="nav-item" data-page="alunos">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
           Alunos
         </a>
         <a href="orcamento.html" class="nav-item" data-page="orcamento">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <path d="M14 2v6h6"></path>
+            <path d="M12 18v-6"></path>
+            <path d="M9 15h6"></path>
+          </svg>
           Orçamento
         </a>
         <a href="mensalidade.html" class="nav-item active" data-page="mensalidades">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path><path d="M6 15h4"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <path d="M2 10h20"></path>
+            <path d="M6 15h4"></path>
+          </svg>
           Mensalidades
         </a>
         <a href="presenca.html" class="nav-item" data-page="presenca">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
           Presença
         </a>
         <a href="acessos.html" class="nav-item" data-page="acessos">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path><circle cx="12" cy="16" r="1"></circle></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            <circle cx="12" cy="16" r="1"></circle>
+          </svg>
           Acessos
         </a>
       </nav>
+
+      <!-- PERFIL -->
+
+      <div class="sidebar-footer">
+
+        <div id="perfil-widget-root"></div>
+
+      </div>
+
     </aside>
 
     <main class="main">
@@ -141,17 +190,19 @@
       <div class="card caixa-busca-mensalidade">
         <div class="campo-busca-com-icone">
           <svg class="icone-busca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
-          <input type="text" id="campoBuscaMensalidade" class="input-busca-mensalidade" placeholder="Buscar por aluno..." />
+          <input type="text" id="campoBuscaMensalidade" class="input-busca-mensalidade"
+            placeholder="Buscar por aluno..." />
         </div>
       </div>
 
       <!-- Filtros -->
       <div class="barra-filtro">
-        <button type="button" class="botao-filtro" id="botaoFiltroMensalidade"> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        <button type="button" class="botao-filtro" id="botaoFiltroMensalidade"> <svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
           </svg>Filtro</button>
       </div>
 
@@ -227,11 +278,12 @@
           </div>
         </div>
 
- 
+
 
         <div class="grupo-filtro">
           <label class="label-filtro" for="campoAlunoMensalidade">Nome do aluno</label>
-          <input type="text" id="campoAlunoMensalidade" class="input-filtro" list="listaAlunosMensalidade" placeholder="Digite ou selecione..." autocomplete="off" required />
+          <input type="text" id="campoAlunoMensalidade" class="input-filtro" list="listaAlunosMensalidade"
+            placeholder="Digite ou selecione..." autocomplete="off" required />
           <datalist id="listaAlunosMensalidade"></datalist>
         </div>
 
@@ -276,6 +328,9 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="core/alerts.js"></script>
   <script src="js/mensalidade.js"></script>
+  <script src="js/perfil-widget.js"></script>
+  <script src="js/perfil-init.js"></script>
 
 </body>
+
 </html>
