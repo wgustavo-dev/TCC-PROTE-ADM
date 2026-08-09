@@ -351,6 +351,9 @@
   outline-offset: 2px;
 }
 
+.pw-logout-icon{
+   color: var(--pw-danger); 
+  }
 /* ---------------------------------------------------------
    6) RESPONSIVO — telas pequenas (celular)
    Só se aplica no modo flutuante; no modo embutido (sidebar)

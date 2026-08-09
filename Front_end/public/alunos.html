@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="core/alerts.css" />
   <link rel="stylesheet" href="css/formularios.css">
   <link rel="stylesheet" href="../css/perfil-widget.css">
+   <link rel="stylesheet" href="css/itinerarios.css">
 </head>
 
 <body>
@@ -228,6 +229,99 @@
           Nenhum aluno cadastrado ainda.
         </div>
       </div>
+
+<!--Itinerário-->
+<section class="itinerarios-card">
+  <div class="itinerarios-topo">
+    <div>
+      <div class="itinerarios-titulo-grupo">
+        <p class="itinerarios-titulo">Itinerários</p>
+        <span class="modo-indicador" id="modoIndicador">🔒 Somente visualização</span>
+      </div>
+      <p class="itinerarios-subtitulo" id="itinerariosSubtitulo">Ordem atual dos alunos por período</p>
+    </div>
+    <div class="filtro-grupo">
+      <span class="filtro-label">Período:</span>
+      <button class="filtro-btn filtro-ativo" data-filtro="todos">Todos</button>
+      <button class="filtro-btn" data-filtro="manha">☀️ Manhã <small>6h-8h30</small></button>
+      <button class="filtro-btn" data-filtro="tarde">🌤️ Tarde <small>11h-14h30</small></button>
+      <button class="filtro-btn" data-filtro="noite">🌙 Noite <small>16h-20h</small></button>
+    </div>
+  </div>
+
+  <div class="periodos-grid" id="periodosGrid">
+
+    <div class="periodo-coluna" data-periodo="manha">
+      <div class="periodo-header">
+        <span class="periodo-icone">☀️</span>
+        <div class="periodo-titulo-grupo">
+          <span class="periodo-titulo">Manhã</span>
+          <span class="periodo-horario">6h - 8h30</span>
+        </div>
+        <span class="periodo-contagem" data-contagem="manha">0 alunos</span>
+        <button class="periodo-toggle" data-toggle="manha" aria-label="Recolher período">⌄</button>
+      </div>
+      <div class="aluno-lista-cabecalho">
+        <span class="cabecalho-espaco-handle" aria-hidden="true"></span>
+        <span class="cabecalho-ordem">Ordem</span>
+        <span class="cabecalho-espaco-avatar" aria-hidden="true"></span>
+        <span class="cabecalho-aluno">Aluno</span>
+        <span class="cabecalho-tipo">Tipo</span>
+      </div>
+      <ul class="aluno-lista" data-periodo="manha"></ul>
+    </div>
+
+    <div class="periodo-coluna recolhido" data-periodo="tarde">
+      <div class="periodo-header">
+        <span class="periodo-icone">🌤️</span>
+        <div class="periodo-titulo-grupo">
+          <span class="periodo-titulo">Tarde</span>
+          <span class="periodo-horario">11h - 14h30</span>
+        </div>
+        <span class="periodo-contagem" data-contagem="tarde">0 alunos</span>
+        <button class="periodo-toggle" data-toggle="tarde" aria-label="Expandir período">⌄</button>
+      </div>
+      <div class="aluno-lista-cabecalho">
+        <span class="cabecalho-espaco-handle" aria-hidden="true"></span>
+        <span class="cabecalho-ordem">Ordem</span>
+        <span class="cabecalho-espaco-avatar" aria-hidden="true"></span>
+        <span class="cabecalho-aluno">Aluno</span>
+        <span class="cabecalho-tipo">Tipo</span>
+      </div>
+      <ul class="aluno-lista" data-periodo="tarde"></ul>
+    </div>
+
+    <div class="periodo-coluna recolhido" data-periodo="noite">
+      <div class="periodo-header">
+        <span class="periodo-icone">🌙</span>
+        <div class="periodo-titulo-grupo">
+          <span class="periodo-titulo">Noite</span>
+          <span class="periodo-horario">16h - 20h</span>
+        </div>
+        <span class="periodo-contagem" data-contagem="noite">0 alunos</span>
+        <button class="periodo-toggle" data-toggle="noite" aria-label="Expandir período">⌄</button>
+      </div>
+      <div class="aluno-lista-cabecalho">
+        <span class="cabecalho-espaco-handle" aria-hidden="true"></span>
+        <span class="cabecalho-ordem">Ordem</span>
+        <span class="cabecalho-espaco-avatar" aria-hidden="true"></span>
+        <span class="cabecalho-aluno">Aluno</span>
+        <span class="cabecalho-tipo">Tipo</span>
+      </div>
+      <ul class="aluno-lista" data-periodo="noite"></ul>
+    </div>
+
+  </div>
+
+  <div class="itinerarios-rodape">
+    <button class="btn-secundario" id="btnCancelarOrdem" hidden>Cancelar</button>
+    <button class="btn-editar" id="btnEditarOrdem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Editar ordem</button>
+    <button class="btn-salvar" id="btnSalvarOrdem" hidden>Salvar ordem</button>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
     </main>
   </div>
 
@@ -340,7 +434,8 @@
   <script src="js/alunos.js"></script>
   <script src="js/perfil-widget.js"></script>
   <script src="js/perfil-init.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<script src="js/itinerarios.js"></script>
 </body>
 
 </html>
