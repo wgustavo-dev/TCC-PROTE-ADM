@@ -4,7 +4,7 @@ import { Responsavel } from "../models/model_responsavel";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Presenca } from "../models/model_presenca";
 import { Escola } from "../models/model_escola";
-import { criarItensItinerario, sincronizarItensItinerario } from "./itinerarioService"; // NOVO
+import { criarItensItinerario, sincronizarItensItinerario } from "./service_itinerario"; // NOVO
 
 export class ServiceAluno {
   private get alunoRepository() {
