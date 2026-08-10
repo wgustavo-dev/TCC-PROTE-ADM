@@ -200,10 +200,7 @@ function renderTabela() {
           </button>
 
           <button class="acao-btn" data-ac="editar" data-id="${r.id}" title="Editar" aria-label="Editar responsável">
-            <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 20h9"></path>
-              <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
-            </svg>
+            Editar
           </button>
 
           <button class="acao-btn excluir" data-ac="excluir" data-id="${r.id}" title="Excluir" aria-label="Excluir responsável">

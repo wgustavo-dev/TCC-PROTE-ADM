@@ -152,7 +152,11 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" id="inputBusca" class="input-busca" placeholder="Buscar por aluno..." />
+       <input
+         type="text"
+         id="inputBusca"
+         class="input-busca"
+          placeholder="Buscar por aluno..." />
       </div>
       <div class="barra-filtro">
         <button type="button" class="botao-filtro" id="botaoFiltroAluno">
@@ -369,13 +373,8 @@
         </div>
 
         <div class="grupo-filtro">
-          <label class="label-filtro" for="nomeResponsavel2">Nome do responsável 2</label>
-          <input type="text" id="nomeResponsavel2" class="input-filtro" placeholder="Digite..." />
-        </div>
-
-        <div class="grupo-filtro">
-          <label class="label-filtro" for="telefoneResponsavel2">Contato 2</label>
-          <input type="text" id="telefoneResponsavel2" class="input-filtro" placeholder="(00) 00000-0000" />
+          <label class="label-filtro" for="bairroAluno">Bairro</label>
+          <input type="text" id="bairroAluno" class="input-filtro" placeholder="Digite o bairro..." />
         </div>
 
         <div class="grupo-filtro" id="grupoEnderecoEmbarque">
@@ -390,7 +389,9 @@
 
         <div class="grupo-filtro">
           <label class="label-filtro" for="escolaAluno">Escola</label>
-          <input type="text" id="escolaAluno" class="input-filtro" placeholder="Digite a escola" required />
+          <select id="escolaAluno" class="input-filtro" required>
+            <option value="">Selecione uma escola</option>
+          </select>
         </div>
 
         <div class="grupo-filtro campo-data-vencimento-aluno" id="grupoDataVencimentoAluno">

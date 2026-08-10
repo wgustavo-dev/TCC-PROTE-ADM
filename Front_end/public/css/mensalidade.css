@@ -379,6 +379,10 @@
   color: var(--cor-principal-escura);
 }
 
+.botao-acao[data-acao="editar"] {
+  color: var(--cor-principal);
+}
+
 .botao-acao[data-acao="pagar"] {
   color: #16a34a;
 }

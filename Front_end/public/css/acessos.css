@@ -249,9 +249,12 @@
 }
 
 .btn-acao-acesso.editar,
-.icon-btn.edit svg {
-  stroke: var(--cor-principal) !important;
+.icon-btn.edit {
   color: var(--cor-principal) !important;
+}
+
+.icon-btn.edit svg {
+  stroke: currentColor !important;
 }
 
 .btn-acao-acesso.excluir,

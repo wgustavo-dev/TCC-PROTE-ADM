@@ -174,6 +174,7 @@ export class ServiceAluno {
     const aluno = this.alunoRepository.create({
       nome: dados.nome.trim(),
       bairro: dados.bairro?.trim() || null,
+      vencimento: dados.vencimento || null,
       id_escola: escola.id_escola,
       turno: dados.turno || null,
       endereco_embarque: dados.endereco_embarque?.trim() || null,
@@ -237,6 +238,10 @@ export class ServiceAluno {
 
     if (dados.bairro !== undefined) {
       aluno.bairro = dados.bairro?.trim() || null;
+    }
+
+    if (dados.vencimento !== undefined) {
+      aluno.vencimento = dados.vencimento || null;
     }
 
     if (dados.turno !== undefined) {

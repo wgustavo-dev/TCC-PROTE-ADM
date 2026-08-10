@@ -353,8 +353,12 @@
   height: 16px;
 }
 
+.icon-btn.edit {
+  color: var(--cor-principal);
+}
+
 .icon-btn.edit svg {
-  stroke: var(--cor-principal);
+  stroke: currentColor;
 }
 
 .icon-btn.edit:hover {
@@ -1062,3 +1066,10 @@
 .swal2-backdrop-show {
   z-index: 999998 !important;
 }
+
+.icon-btn.renovar {
+  color: #1a56db;
+}
+
+
+
