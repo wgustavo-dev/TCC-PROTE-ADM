@@ -300,7 +300,7 @@ function renderizarTabela() {
 
   let listaFiltrada = mensalidades.filter((item) => {
     const matchBusca = item.aluno.toLowerCase().includes(busca);
-    const matchVenc = !venc || item.vencimento === venc;
+    const matchVenc = !venc || item.vencimento.startsWith(venc);
     const matchEscola = !escola || item.escola === escola;
     return matchBusca && matchVenc && matchEscola;
   });
