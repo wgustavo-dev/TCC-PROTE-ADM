@@ -87,7 +87,7 @@ async function iniciarFluxoCadastro() {
   definirValorCampo("campoAlunoMensalidade", aluno.nome || "", true);
   definirValorCampo("campoResponsavelMensalidade", aluno.responsavel?.nome || "", true);
   definirValorCampo("campoContatoMensalidade", aluno.responsavel?.telefone || "", true);
-  definirValorCampo("campoEscolaMensalidade", aluno.escola || "", true);
+  definirValorCampo("campoEscolaMensalidade", aluno.escola?.nome || "", true);
   definirValorCampo("campoPagamentoMensalidade", "");
   definirValorCampo("campoVencimentoMensalidade", vencimentoFluxo, false);
   definirValorCampo("campoStatusMensalidade", "PENDENTE", true);
@@ -230,7 +230,7 @@ function mapearMensalidade(item) {
     pagamento: item.data_pagamento ? String(item.data_pagamento).slice(0, 10) : "",
     status: (item.status || "PENDENTE").toLowerCase(),
     contato: [item.aluno?.responsavel?.telefone].filter(Boolean),
-    escola: item.aluno?.escola || "",
+    escola: item.aluno?.escola?.nome || "",
     foto: item.aluno?.foto ? `http://localhost:3000${item.aluno.foto}` : "",
   };
 }

@@ -4,6 +4,7 @@
 
 let alunos = [];
 let responsaveis = [];
+let escolasDisponiveis = [];
 let el = null;
 
 /* =========================================================
@@ -110,7 +111,7 @@ async function iniciarFluxoCadastro() {
     try {
       const orcamento = await window.API.get(`/orcamentos/${idOrcamentoFluxo}`);
 
-      if (el.escolaAluno) el.escolaAluno.value = orcamento.escola || "";
+      if (el.escolaAluno) el.escolaAluno.value = encontrarEscolaPorNome(orcamento.escola) || "";
       if (el.enderecoEmbarque) el.enderecoEmbarque.value = orcamento.endereco_embarque || "";
       if (el.enderecoDesembarque) el.enderecoDesembarque.value = orcamento.endereco_desembarque || "";
       if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = mapTrajetoOrcamento(orcamento.tipo_trajeto);
@@ -164,7 +165,8 @@ function mapearAlunoApi(item) {
     embarque: item.endereco_embarque || "",
     desembarque: item.endereco_desembarque || "",
     foto: toUrlFoto(item.foto),
-    escola: item.escola || "",
+    idEscola: item.escola ? item.escola.id_escola : null,
+    escola: item.escola ? item.escola.nome : "",
     vencimento: item.vencimento || "",
     tipoTrajeto: item.tipo_trajeto === "IDA" ? "ir" : item.tipo_trajeto === "VOLTA" ? "voltar" : "ambos",
     periodo: item.turno ? item.turno.toLowerCase() : "manha"
@@ -227,10 +229,28 @@ async function carregarResponsaveis() {
   }
 }
 
+async function carregarEscolas() {
+  try {
+    const data = await window.API.get("/escolas");
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error(error);
+    showError("Não foi possível carregar as escolas.");
+    return [];
+  }
+}
+
 function encontrarResponsavelPorNome(nome) {
   const nomeNormalizado = (nome || "").trim().toLowerCase();
   if (!nomeNormalizado) return null;
   return responsaveis.find((item) => (item.nome || "").trim().toLowerCase() === nomeNormalizado) || null;
+}
+
+function encontrarEscolaPorNome(nome) {
+  const nomeNormalizado = (nome || "").trim().toLowerCase();
+  if (!nomeNormalizado) return null;
+  const escola = escolasDisponiveis.find((item) => (item.nome || "").trim().toLowerCase() === nomeNormalizado);
+  return escola ? escola.id_escola : null;
 }
 
 function aplicarMascaraNome(valor) {
@@ -304,7 +324,11 @@ function montarPayloadAluno() {
   const tipoTrajeto = el.tipoTrajetoAluno ? el.tipoTrajetoAluno.value : "ambos";
   const embarque = el.enderecoEmbarque.value.trim();
   const desembarque = el.enderecoDesembarque.value.trim();
-  const rota = normalizarRotaPorTrajeto({ tipoTrajeto, embarque, desembarque, escola: el.escolaAluno ? el.escolaAluno.value.trim() : "" });
+  const idEscola = el.escolaAluno && el.escolaAluno.value ? Number(el.escolaAluno.value) : null;
+  const escolaNome = el.escolaAluno && el.escolaAluno.selectedOptions.length
+    ? el.escolaAluno.selectedOptions[0].textContent.trim()
+    : "";
+  const rota = normalizarRotaPorTrajeto({ tipoTrajeto, embarque, desembarque, escola: escolaNome });
 
   return {
     id: el.alunoId.value || null,
@@ -315,7 +339,8 @@ function montarPayloadAluno() {
     telefone2: el.telefoneResponsavel2 ? el.telefoneResponsavel2.value.trim() : "",
     embarque: rota.embarque,
     desembarque: rota.desembarque,
-    escola: el.escolaAluno ? el.escolaAluno.value.trim() : "",
+    idEscola,
+    escola: escolaNome,
     vencimento: el.vencimentoAluno ? el.vencimentoAluno.value : "",
     tipoTrajeto,
     periodo: el.periodoAluno ? el.periodoAluno.value : "manha"
@@ -333,7 +358,7 @@ async function salvarAluno(payload, idResponsavel) {
     form.append("responsavel_nome", payload.responsavel1);
     form.append("responsavel_telefone", payload.telefone1);
   }
-  form.append("escola", payload.escola);
+  form.append("id_escola", String(payload.idEscola));
   const tipoTrajetoApi = payload.tipoTrajeto === "ir" ? "IDA" : payload.tipoTrajeto === "voltar" ? "VOLTA" : "AMBOS";
   const turnoApi = payload.periodo ? payload.periodo.toUpperCase() : "MANHA";
 
@@ -398,16 +423,19 @@ function configurarBuscaEFiltros() {
 }
 
 function atualizarOpcoesEscola() {
-  if (!el.filtroEscola) return;
-  
-  const escolas = [...new Set(alunos.map((aluno) => aluno.escola).filter(Boolean))].sort((a, b) =>
-    a.localeCompare(b, "pt-BR")
-  );
+  const opcoes = escolasDisponiveis
+    .slice()
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+    .map((escola) => `<option value="${escola.id_escola}">${escola.nome}</option>`)
+    .join("");
 
-  el.filtroEscola.innerHTML = `
-    <option value="">Todas as escolas</option>
-    ${escolas.map((escola) => `<option value="${escola}">${escola}</option>`).join("")}
-  `;
+  if (el.filtroEscola) {
+    el.filtroEscola.innerHTML = `<option value="">Todas as escolas</option>${opcoes}`;
+  }
+
+  if (el.escolaAluno) {
+    el.escolaAluno.innerHTML = `<option value="">Selecione...</option>${opcoes}`;
+  }
 }
 
 function atualizarOpcoesTurma() {
@@ -471,7 +499,7 @@ function obterAlunosFiltrados() {
 
     return (
       (!busca || textoBusca.includes(busca)) &&
-      (!escola || aluno.escola === escola) &&
+      (!escola || aluno.idEscola === Number(escola)) &&
       (!trajeto || aluno.tipoTrajeto === trajeto) &&
       (!listaSelecionada || alunoPertenceALista(aluno, listaSelecionada)) &&
       (!venc || aluno.vencimento === venc)
@@ -632,12 +660,12 @@ function configurarFormulario() {
     }
 
     // Validação dos campos obrigatórios do aluno
-    if (!payload.nome || !payload.embarque || !payload.desembarque || !payload.escola || !payload.vencimento) {
+    if (!payload.nome || !payload.embarque || !payload.desembarque || !payload.idEscola || !payload.vencimento) {
       console.warn('Validação falhou. Campos vazios:', {
         nome: !!payload.nome,
         embarque: !!payload.embarque,
         desembarque: !!payload.desembarque,
-        escola: !!payload.escola,
+        idEscola: !!payload.idEscola,
         vencimento: !!payload.vencimento
       });
       showWarning("Preencha todos os campos obrigatórios do aluno.");
@@ -807,7 +835,7 @@ function abrirModalEditar(aluno) {
   if (el.telefoneResponsavel1) el.telefoneResponsavel1.value = aplicarMascaraTelefone(aluno.telefone1 || "");
   if (el.enderecoEmbarque) el.enderecoEmbarque.value = aplicarMascaraEndereco(aluno.embarque || "");
   if (el.enderecoDesembarque) el.enderecoDesembarque.value = aplicarMascaraEndereco(aluno.desembarque || "");
-  if (el.escolaAluno) el.escolaAluno.value = aluno.escola || "";
+  if (el.escolaAluno) el.escolaAluno.value = aluno.idEscola || "";
   if (el.vencimentoAluno) el.vencimentoAluno.value = aluno.vencimento || "";
   if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = aluno.tipoTrajeto || "ambos";
   if (el.periodoAluno) el.periodoAluno.value = aluno.periodo || "manha";
@@ -901,7 +929,11 @@ async function processarRetornoResponsavel() {
         if (el.nomeAluno) el.nomeAluno.value = dados.alunoData.nome || "";
         if (el.enderecoEmbarque) el.enderecoEmbarque.value = dados.alunoData.embarque || "";
         if (el.enderecoDesembarque) el.enderecoDesembarque.value = dados.alunoData.desembarque || "";
-        if (el.escolaAluno) el.escolaAluno.value = dados.alunoData.escola || "";
+        if (el.escolaAluno) {
+          el.escolaAluno.value = dados.alunoData.idEscola
+            || encontrarEscolaPorNome(dados.alunoData.escola)
+            || "";
+        }
         if (el.vencimentoAluno) el.vencimentoAluno.value = dados.alunoData.vencimento || "";
         if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = dados.alunoData.tipoTrajeto || "ambos";
         if (el.periodoAluno) el.periodoAluno.value = dados.alunoData.periodo || "manha";
@@ -932,6 +964,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   alunos = await carregarAlunos();
   responsaveis = monitor ? [] : await carregarResponsaveis();
+  escolasDisponiveis = await carregarEscolas();
 
   configurarModal();
   configurarBuscaEFiltros();

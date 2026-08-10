@@ -23,14 +23,15 @@
       } catch (erro) {}
     })();
   </script>
-  <title>PROTE — Presença</title>
+
+  <title>PROTE — Escolas</title>
 
   <link rel="stylesheet" href="css/globalcss.css" />
-  <link rel="stylesheet" href="css/presenca.css" />
+  <link rel="stylesheet" href="css/escolas.css" />
   <link rel="stylesheet" href="core/alerts.css" />
 </head>
-<body>
 
+<body>
   <div class="fundo-escuro" id="fundoEscuro"></div>
 
     <div class="layout">
@@ -79,7 +80,7 @@
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path><path d="M6 15h4"></path></svg>
           Mensalidades
         </a>
-        <a href="presenca.html" class="nav-item active" data-page="presenca">
+        <a href="presenca.html" class="nav-item" data-page="presenca">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
           Presença
         </a>
@@ -87,7 +88,7 @@
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path><circle cx="12" cy="16" r="1"></circle></svg>
           Acessos
         </a>
-        <a href="escolas.html" class="nav-item" data-page="escolas">
+        <a href="escolas.html" class="nav-item active" data-page="escolas">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V9l7-5 7 5v12"></path><path d="M9 21v-6h6v6"></path><path d="M9 9h.01"></path><path d="M15 9h.01"></path></svg>
           Escolas
         </a>
@@ -95,73 +96,170 @@
     </aside>
 
     <main class="main">
+      <div class="cabecalho-pagina escolas-cabecalho">
+        <div class="alunos-titulos">
+          <h1 class="page-title">Escolas</h1>
+          <p class="page-sub">
+            Tenha acesso às escolas cadastradas
+          </p>
+        </div>
 
-      <div class="cabecalho-pagina">
-        <h1 class="page-title titulo-presenca">Presença</h1>
-        <p class="page-sub">Registre a presença diária dos alunos</p>
+        <button class="btn-primary" id="btnNovaEscola" type="button">
+          <span>+</span>
+          Nova escola
+        </button>
       </div>
 
-      <section class="card barra-data">
-        <div>
-          <label class="label-data" for="campoData">Data de registro</label>
-          <input type="date" id="campoData" class="input-data" />
-        </div>
+      <div class="campo-busca">
+        <svg class="icone-busca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
 
-        <div class="acoes-topo">
-          <button class="botao-verde" id="botaoMarcarTodos">Marcar todos</button>
-          <button class="botao-vermelho" id="botaoDesmarcarTodos">Desmarcar todos</button>
-        </div>
-      </section>
+        <input
+          id="inputBusca"
+          class="input-busca"
+          type="text"
+          placeholder="Buscar por escola..."
+        />
+      </div>
 
-      <section class="cards-presenca">
-        <div class="card card-indicador-presenca">
-          <div class="linha-card">
-            <span class="quadrado verde">✓</span>
-            <span>Presentes</span>
-          </div>
-          <strong id="totalPresentes">0</strong>
-          <small>de alunos</small>
-        </div>
-
-        <div class="card card-indicador-presenca">
-          <div class="linha-card">
-            <span class="quadrado vermelho">!</span>>
-            <span>Ausentes</span>
-          </div>
-          <strong id="totalAusentes">0</strong>
-          <small>de alunos</small>
-        </div>
-
-        <div class="card card-indicador-presenca">
-          <div class="linha-card">
-            <span class="quadrado azul">%</span>
-            <span>Taxa de presença</span>
-          </div>
-          <strong id="taxaPresenca">0%</strong>
-          <div class="barra-taxa">
-            <div id="barraTaxaPreenchimento"></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="card lista-chamada">
-        <h2>Lista de chamada</h2>
-        <p class="sub-lista" id="textoDataLista">Selecione uma data para registrar a presença</p>
-
-        <div id="listaAlunosPresenca"></div>
-
-        <button class="botao-salvar" id="botaoSalvarChamada">
-          Salvar registro da chamada
+      <div class="barra-filtro">
+        <button type="button" class="botao-filtro" id="botaoFiltro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+          Filtrar por...
         </button>
-      </section>
+      </div>
 
+      <div class="painel-filtros hidden" id="painelFiltros">
+        <div class="campos-filtro">
+          <div class="grupo-filtro">
+            <label class="label-filtro" for="filtroOrdem">Ordem</label>
+
+            <select id="filtroOrdem" class="input-filtro">
+              <option value="alfabetica">Ordem alfabética</option>
+              <option value="alunos_desc">Mais alunos</option>
+              <option value="alunos_asc">Menos alunos</option>
+            </select>
+          </div>
+
+          <div class="grupo-filtro grupo-botao-limpar">
+            <button
+              type="button"
+              id="btnLimparFiltros"
+              class="botao-limpar-filtros"
+            >
+              Limpar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card table-card tabela-alunos-wrapper">
+        <div class="table-wrapper">
+          <table class="tabela tabela-alunos">
+            <thead>
+              <tr>
+                <th>NOME</th>
+                <th>ENDEREÇO</th>
+                <th>ALUNOS</th>
+                <th>AÇÕES</th>
+              </tr>
+            </thead>
+
+            <tbody id="tbodyEscolas"></tbody>
+          </table>
+        </div>
+
+        <div class="empty-state hidden" id="emptyState">
+          Nenhuma escola encontrada.
+        </div>
+      </div>
     </main>
+  </div>
+
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modalTitulo">Nova escola</h2>
+
+        <button
+          class="btn-close"
+          id="btnCancelarModal"
+          type="button"
+          aria-label="Fechar"
+        >
+          ×
+        </button>
+      </div>
+
+      <form id="formEscola">
+        <input type="hidden" id="escolaId" />
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="nome">Nome</label>
+
+          <input
+            type="text"
+            id="nome"
+            class="input-filtro"
+            placeholder="Digite..."
+            required
+          />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="endereco">Endereço</label>
+
+          <input
+            type="text"
+            id="endereco"
+            class="input-filtro"
+            placeholder="Digite..."
+            required
+          />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="alunosCampo">Alunos</label>
+
+          <input
+            type="text"
+            id="alunosCampo"
+            class="input-filtro"
+            disabled
+          />
+        </div>
+
+        <div class="info-box">
+          A quantidade de alunos é calculada automaticamente pelos alunos vinculados a esta escola no módulo Alunos.
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancelar">
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="btn-primary solid"
+            id="btnSalvar"
+          >
+            Cadastrar
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="core/api.js"></script>
   <script src="core/permissoes.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="core/alerts.js"></script>
-  <script src="js/presenca.js"></script>
+
+  <script type="module" src="js/escolas.js"></script>
 </body>
 </html>

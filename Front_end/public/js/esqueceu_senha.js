@@ -9,15 +9,7 @@
 var campEmailRecuperacao = document.getElementById('campEmailRecuperacao');
 var erroEmailRecuperacao = document.getElementById('erroEmailRecuperacao');
 var botaoEnviarLink = document.getElementById('botaoEnviarLink');
-var botaoFechar = document.getElementById('botaoFechar');
 
-
-/* -------------------------------------------------------
-   FECHAR — volta para o login
-------------------------------------------------------- */
-botaoFechar.addEventListener('click', function () {
-    window.location.href = 'login.html';
-});
 
 
 /* -------------------------------------------------------
