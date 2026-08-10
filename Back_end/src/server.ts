@@ -76,7 +76,7 @@ AppDataSource.initialize()
   .then(async () => {
     console.log("Banco de dados conectado com sucesso");
 
-    await AppDataSource.query(
+   /* await AppDataSource.query(
       `ALTER TABLE condutor ADD COLUMN IF NOT EXISTS senha VARCHAR(255)`
     );
     await AppDataSource.query(
@@ -94,7 +94,7 @@ AppDataSource.initialize()
     await AppDataSource.query(
       `ALTER TABLE monitor ADD COLUMN IF NOT EXISTS expiracao_recuperacao DATETIME`
     );
-
+*/
     // ===== Módulo Controle de Acessos =====
     // 1) Remove a antiga FK condutor -> monitor (id_monitor), pois o
     //    relacionamento passou a ser monitor -> condutor (id_condutor).
@@ -114,15 +114,15 @@ AppDataSource.initialize()
       );
     }
 
-    await AppDataSource.query(
+   /* await AppDataSource.query(
       `ALTER TABLE condutor DROP COLUMN IF EXISTS id_monitor`
     );
     await AppDataSource.query(
       `ALTER TABLE condutor DROP COLUMN IF EXISTS possui_monitor`
     );
-
+*/
     // 2) Coluna "ativo" (exclusão lógica) em condutor e monitor
-    await AppDataSource.query(
+   /* await AppDataSource.query(
       `ALTER TABLE condutor ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE`
     );
     await AppDataSource.query(
@@ -133,7 +133,7 @@ AppDataSource.initialize()
     await AppDataSource.query(
       `ALTER TABLE monitor ADD COLUMN IF NOT EXISTS id_condutor INT NULL`
     );
-
+*/
     const [condutorCountRow]: any[] = await AppDataSource.query(
       `SELECT COUNT(*) AS total FROM condutor`
     );
@@ -156,11 +156,11 @@ AppDataSource.initialize()
       )
     `);
 
-    await AppDataSource.query(`
+    /*await AppDataSource.query(`
       ALTER TABLE aluno
       ADD COLUMN IF NOT EXISTS id_escola INT NULL
     `);
-
+*/
     const [escolaCountRow]: any[] = await AppDataSource.query(
       `SELECT COUNT(*) AS total FROM escola`
     );
