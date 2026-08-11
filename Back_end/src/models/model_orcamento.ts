@@ -27,10 +27,10 @@ export class Orcamento {
 
   @Column({
     type: "enum",
-    enum: ["MANHA", "TARDE", "NOITE"],
+    enum: ["MANHA", "TARDE"],
     nullable: true,
   })
-  turno!: "MANHA" | "TARDE" | "NOITE";
+  turno!: "MANHA" | "TARDE";
 
   @Column({ type: "int", default: 1 })
   quantidade_alunos!: number;

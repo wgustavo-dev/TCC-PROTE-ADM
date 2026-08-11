@@ -45,6 +45,15 @@ function limparMascaraTelefone(valor) {
   return String(valor || '').replace(/\D/g, '');
 }
 
+function normalizarEmail(valor) {
+  return String(valor || '').trim().toLowerCase().replace(/\s+/g, '');
+}
+
+function validarEmail(valor) {
+  const email = normalizarEmail(valor);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 function escaparHTML(valor) {
   return String(valor || '')
     .replace(/&/g, '&amp;')
@@ -172,7 +181,7 @@ function montarPayload() {
   const payload = {
     nome: campos.nome.value.trim(),
     acesso: campos.acesso.value,
-    email: campos.email.value.trim(),
+    email: normalizarEmail(campos.email.value),
     telefone: limparMascaraTelefone(campos.telefone.value)
   };
 
@@ -189,6 +198,7 @@ function validarPayload(payload) {
   if (!payload.nome) return 'Preencha o nome.';
   if (!payload.acesso) return 'Selecione o tipo de acesso.';
   if (!payload.email) return 'Preencha o email.';
+  if (!validarEmail(payload.email)) return 'Informe um e-mail válido.';
   if (!payload.telefone || payload.telefone.length < 10) return 'Preencha um telefone válido.';
 
   const precisaSenha = !idEditando;
@@ -290,6 +300,10 @@ filtroAcesso.addEventListener('change', (event) => {
 
 campos.telefone.addEventListener('input', (event) => {
   event.target.value = aplicarMascaraTelefone(event.target.value);
+});
+
+campos.email.addEventListener('input', (event) => {
+  event.target.value = normalizarEmail(event.target.value);
 });
 
 tbody.addEventListener('click', (event) => {

@@ -34,18 +34,46 @@ const camposForm = {
   endereco: document.getElementById('endereco')
 };
 
+function aplicarMascaraNome(valor) {
+  return String(valor || '')
+    .replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s'-]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .slice(0, 100);
+}
+
 function aplicarMascaraTelefone(valor) {
   const numeros = String(valor || '').replace(/\D/g, '').slice(0, 11);
 
-  if (numeros.length <= 2) return numeros;
+  if (numeros.length <= 2) return `(${numeros}`;
   if (numeros.length <= 6) return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
   if (numeros.length <= 10) return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
 
   return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
 }
 
+function validarTelefone(valor) {
+  const telefone = limparMascaraTelefone(valor);
+  return /^\d{10,11}$/.test(telefone);
+}
+
+function aplicarMascaraEndereco(valor) {
+  return String(valor || '')
+    .replace(/[^0-9A-Za-zÀ-ÖØ-öø-ÿ.,º°ª\-/\s]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .slice(0, 255);
+}
+
 function limparMascaraTelefone(valor) {
   return String(valor || '').replace(/\D/g, '');
+}
+
+function normalizarEmail(valor) {
+  return String(valor || '').trim().toLowerCase().replace(/\s+/g, '');
+}
+
+function validarEmail(valor) {
+  const email = normalizarEmail(valor);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function formatarMoeda(valor) {
@@ -130,9 +158,6 @@ async function carregarOrcamentoDoFluxo() {
       O usuário pode revisar e alterar antes de salvar.
     */
     camposForm.endereco.value = orcamento.endereco_embarque || '';
-
-    document.getElementById('avatarModal').textContent =
-      iniciais(camposForm.nome.value);
   } catch (error) {
     showError(error.message || 'Não foi possível carregar o orçamento para revisão.');
   }
@@ -283,10 +308,8 @@ function abrirModal(edicao = false, item = null, vindoDeOrcamento = false) {
     camposForm.email.value = item.email;
     camposForm.telefone.value = item.telefone;
     camposForm.endereco.value = item.endereco || '';
-    document.getElementById('avatarModal').textContent = iniciais(item.nome);
   } else {
     camposForm.quantidade.value = vindoDeOrcamento ? '' : 1;
-    document.getElementById('avatarModal').textContent = 'SN';
   }
 
   modalOverlay.classList.remove('hidden');
@@ -305,10 +328,10 @@ function obterQuantidadeAlunos() {
 
 function montarPayload() {
   return {
-    nome: camposForm.nome.value.trim(),
-    email: camposForm.email.value.trim() || null,
+    nome: aplicarMascaraNome(camposForm.nome.value).trim(),
+    email: normalizarEmail(camposForm.email.value) || null,
     telefone: limparMascaraTelefone(camposForm.telefone.value),
-    endereco: camposForm.endereco.value.trim(),
+    endereco: aplicarMascaraEndereco(camposForm.endereco.value).trim(),
     quantidade_alunos: obterQuantidadeAlunos()
   };
 }
@@ -340,12 +363,27 @@ async function salvarFormulario(e) {
 
   const payload = montarPayload();
 
-  if (!payload.nome || !payload.telefone || !payload.endereco) {
-    showError('Preencha nome, telefone e endereço.');
+  if (!payload.nome || payload.nome.length < 2) {
+    showError('Informe um nome válido para o responsável.');
     return;
   }
 
-  if (!payload.quantidade_alunos) {
+  if (!payload.telefone || !validarTelefone(payload.telefone)) {
+    showError('Informe um telefone válido com DDD e 10 ou 11 dígitos.');
+    return;
+  }
+
+  if (!payload.endereco || payload.endereco.length < 5) {
+    showError('Informe um endereço válido.');
+    return;
+  }
+
+  if (payload.email && !validarEmail(payload.email)) {
+    showError('Informe um e-mail válido.');
+    return;
+  }
+
+  if (!payload.quantidade_alunos || payload.quantidade_alunos < 1) {
     showError('Informe a quantidade de alunos.');
     return;
   }
@@ -457,12 +495,19 @@ document.getElementById('btnFecharDetalhes').addEventListener('click', () => {
 });
 
 camposForm.nome.addEventListener('input', () => {
-  document.getElementById('avatarModal').textContent =
-    iniciais(camposForm.nome.value);
+  camposForm.nome.value = aplicarMascaraNome(camposForm.nome.value);
 });
 
 camposForm.telefone.addEventListener('input', () => {
   camposForm.telefone.value = aplicarMascaraTelefone(camposForm.telefone.value);
+});
+
+camposForm.email.addEventListener('input', () => {
+  camposForm.email.value = normalizarEmail(camposForm.email.value);
+});
+
+camposForm.endereco.addEventListener('input', () => {
+  camposForm.endereco.value = aplicarMascaraEndereco(camposForm.endereco.value);
 });
 
 form.addEventListener('submit', salvarFormulario);

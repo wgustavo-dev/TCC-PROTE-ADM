@@ -34,6 +34,56 @@ export class ServiceResponsavel {
     return AppDataSource.getRepository(Presenca);
   }
 
+  private normalizarNome(nome: any): string {
+    const valor = String(nome ?? "").trim();
+
+    if (!valor || valor.length < 2 || valor.length > 100) {
+      throw new Error("Nome do responsável deve ter entre 2 e 100 caracteres.");
+    }
+
+    return valor.replace(/\s+/g, " ");
+  }
+
+  private normalizarTelefone(telefone: any): string {
+    const valor = String(telefone ?? "").replace(/\D/g, "");
+
+    if (!/^\d{10,11}$/.test(valor)) {
+      throw new Error("Telefone inválido. Use DDD + 8 ou 9 dígitos.");
+    }
+
+    return valor;
+  }
+
+  private normalizarEmail(email: any): string | null {
+    if (email === undefined || email === null) {
+      return null;
+    }
+
+    const valor = String(email).trim();
+
+    if (!valor) {
+      return null;
+    }
+
+    const emailNormalizado = valor.toLowerCase();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalizado)) {
+      throw new Error("E-mail informado é inválido.");
+    }
+
+    return emailNormalizado;
+  }
+
+  private normalizarEndereco(endereco: any): string {
+    const valor = String(endereco ?? "").trim();
+
+    if (!valor || valor.length < 5 || valor.length > 255) {
+      throw new Error("Endereço do responsável é obrigatório e deve ter entre 5 e 255 caracteres.");
+    }
+
+    return valor.replace(/\s+/g, " ");
+  }
+
   private normalizarQuantidadeAlunos(quantidade: any) {
     const quantidadeNumerica = Number(quantidade);
 
@@ -124,40 +174,19 @@ export class ServiceResponsavel {
   }
 
   async criar(dados: Partial<Responsavel>) {
-    if (!dados.nome?.trim()) {
-      throw new Error("Nome do responsável é obrigatório");
-    }
-
-    if (!dados.telefone?.trim()) {
-      throw new Error("Telefone do responsável é obrigatório");
-    }
-
-    /*
-      ALTERADO:
-      Email deixou de ser obrigatório.
-      Se vier vazio, será salvo como null.
-    */
-    const email =
-      dados.email && dados.email.trim() !== "" ? dados.email.trim() : null;
-
-    if (!dados.endereco?.trim()) {
-      throw new Error("Endereço do responsável é obrigatório");
-    }
-
-    /*
-      ALTERADO:
-      quantidade_alunos agora é obrigatória e representa
-      a quantidade planejada para o fluxo responsável -> aluno -> mensalidade.
-    */
+    const nome = this.normalizarNome(dados.nome);
+    const telefone = this.normalizarTelefone(dados.telefone);
+    const email = this.normalizarEmail(dados.email);
+    const endereco = this.normalizarEndereco(dados.endereco);
     const quantidadeAlunos = this.normalizarQuantidadeAlunos(
       dados.quantidade_alunos
     );
 
     const responsavel = this.responsavelRepository.create({
-      nome: dados.nome.trim(),
-      telefone: dados.telefone.trim(),
+      nome,
+      telefone,
       email,
-      endereco: dados.endereco.trim(),
+      endereco,
       quantidade_alunos: quantidadeAlunos,
     });
 
@@ -175,29 +204,23 @@ export class ServiceResponsavel {
       throw new Error("Responsável não encontrado");
     }
 
-    if (dados.nome !== undefined && !dados.nome.trim()) {
-      throw new Error("Nome do responsável é obrigatório");
-    }
+    const nomeAtualizado = dados.nome !== undefined
+      ? this.normalizarNome(dados.nome)
+      : responsavel.nome;
 
-    if (dados.telefone !== undefined && !dados.telefone.trim()) {
-      throw new Error("Telefone do responsável é obrigatório");
-    }
+    const telefoneAtualizado = dados.telefone !== undefined
+      ? this.normalizarTelefone(dados.telefone)
+      : responsavel.telefone;
 
-    /*
-      ALTERADO:
-      Email pode ser vazio.
-      Se vier string vazia, salva como null.
-    */
     let emailAtualizado = responsavel.email;
 
     if (dados.email !== undefined) {
-      emailAtualizado =
-        dados.email && dados.email.trim() !== "" ? dados.email.trim() : null;
+      emailAtualizado = this.normalizarEmail(dados.email);
     }
 
-    if (dados.endereco !== undefined && !dados.endereco.trim()) {
-      throw new Error("Endereço do responsável é obrigatório");
-    }
+    const enderecoAtualizado = dados.endereco !== undefined
+      ? this.normalizarEndereco(dados.endereco)
+      : responsavel.endereco;
 
     let quantidadeAtualizada = responsavel.quantidade_alunos;
 
@@ -208,10 +231,10 @@ export class ServiceResponsavel {
     }
 
     this.responsavelRepository.merge(responsavel, {
-      nome: dados.nome?.trim() ?? responsavel.nome,
-      telefone: dados.telefone?.trim() ?? responsavel.telefone,
+      nome: nomeAtualizado,
+      telefone: telefoneAtualizado,
       email: emailAtualizado,
-      endereco: dados.endereco?.trim() ?? responsavel.endereco,
+      endereco: enderecoAtualizado,
       quantidade_alunos: quantidadeAtualizada,
     });
 

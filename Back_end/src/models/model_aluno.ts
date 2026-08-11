@@ -35,10 +35,10 @@ export class Aluno {
 
   @Column({
     type: "enum",
-    enum: ["MANHA", "TARDE", "NOITE"],
+    enum: ["MANHA", "TARDE"],
     nullable: true,
   })
-  turno!: "MANHA" | "TARDE" | "NOITE";
+  turno!: "MANHA" | "TARDE";
 
   @Column({ type: "varchar", length: 255, nullable: true })
   endereco_embarque!: string;

@@ -161,6 +161,30 @@ export class ServiceAluno {
     return aluno;
   }
 
+  private normalizarTurno(turno: any): "MANHA" | "TARDE" | null {
+    const valor = String(turno ?? "").trim().toUpperCase();
+
+    if (!valor) return null;
+
+    if (valor === "MANHA" || valor === "TARDE") {
+      return valor;
+    }
+
+    throw new Error("Turno inválido. Use MANHA ou TARDE.");
+  }
+
+  private normalizarTipoTrajeto(tipo: any): "IDA" | "VOLTA" | "AMBOS" | null {
+    const valor = String(tipo ?? "").trim().toUpperCase();
+
+    if (!valor) return null;
+
+    if (valor === "IDA" || valor === "VOLTA" || valor === "AMBOS") {
+      return valor;
+    }
+
+    throw new Error("Tipo de trajeto inválido. Use IDA, VOLTA ou AMBOS.");
+  }
+
   async criar(dados: Partial<Aluno> & any) {
     this.limparCamposAntigos(dados);
 
@@ -168,18 +192,20 @@ export class ServiceAluno {
       throw new Error("Nome do aluno é obrigatório");
     }
 
+    const turno = this.normalizarTurno(dados.turno);
+    const tipoTrajeto = this.normalizarTipoTrajeto(dados.tipo_trajeto);
+
     const responsavel = await this.validarResponsavel(dados.id_responsavel);
     const escola = await this.validarEscola(dados.id_escola);
 
     const aluno = this.alunoRepository.create({
       nome: dados.nome.trim(),
       bairro: dados.bairro?.trim() || null,
-      vencimento: dados.vencimento || null,
       id_escola: escola.id_escola,
-      turno: dados.turno || null,
+      turno,
       endereco_embarque: dados.endereco_embarque?.trim() || null,
       endereco_desembarque: dados.endereco_desembarque?.trim() || null,
-      tipo_trajeto: dados.tipo_trajeto || null,
+      tipo_trajeto: tipoTrajeto,
       foto: dados.foto || null,
       id_responsavel: responsavel.id_responsavel,
       id_condutor: dados.id_condutor ? Number(dados.id_condutor) : null,
@@ -240,12 +266,8 @@ export class ServiceAluno {
       aluno.bairro = dados.bairro?.trim() || null;
     }
 
-    if (dados.vencimento !== undefined) {
-      aluno.vencimento = dados.vencimento || null;
-    }
-
     if (dados.turno !== undefined) {
-      aluno.turno = dados.turno || null;
+      aluno.turno = this.normalizarTurno(dados.turno);
     }
 
     if (dados.endereco_embarque !== undefined) {
@@ -257,7 +279,7 @@ export class ServiceAluno {
     }
 
     if (dados.tipo_trajeto !== undefined) {
-      aluno.tipo_trajeto = dados.tipo_trajeto || null;
+      aluno.tipo_trajeto = this.normalizarTipoTrajeto(dados.tipo_trajeto);
     }
 
     if (dados.foto !== undefined) {

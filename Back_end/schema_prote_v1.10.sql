@@ -1,7 +1,9 @@
 -- =====================================================
--- SCHEMA PROTE ADM - v1.9
+-- SCHEMA PROTE ADM - v1.10
 -- =====================================================
--- ALTERAÇÕES NESTA VERSÃO EM RELAÇÃO À v1.8:
+-- ALTERAÇÕES NESTA VERSÃO EM RELAÇÃO À v1.9:
+--
+-- 1.0) Campos Enum de turno, removido a opção NOITE
 --
 -- 1) NOVA TABELA: ITINERARIO_ALUNO (módulo Itinerários)
 --    - Guarda a ORDEM manual (arrastada pelo monitor/condutor
@@ -123,7 +125,7 @@ CREATE TABLE aluno (
     nome VARCHAR(100) NOT NULL,
     bairro VARCHAR(100),
     id_escola INT NOT NULL,
-    turno ENUM('MANHA','TARDE','NOITE'),
+    turno ENUM('MANHA','TARDE'),
     endereco_embarque VARCHAR(255),
     endereco_desembarque VARCHAR(255),
     tipo_trajeto ENUM('IDA','VOLTA','AMBOS'),
@@ -186,7 +188,7 @@ CREATE TABLE orcamento (
     telefone VARCHAR(20) NOT NULL,
     bairro VARCHAR(100),
     escola VARCHAR(150),
-    turno ENUM('MANHA','TARDE','NOITE'),
+    turno ENUM('MANHA','TARDE'),
     quantidade_alunos INT NOT NULL DEFAULT 1,
     tipo_trajeto ENUM('IDA','VOLTA','AMBOS'),
     endereco_embarque VARCHAR(255),

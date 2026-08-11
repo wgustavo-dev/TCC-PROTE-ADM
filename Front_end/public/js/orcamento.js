@@ -18,6 +18,7 @@ const campoDesembarque = document.getElementById("campoDesembarque");
 const campoBusca = document.getElementById("campoBusca");
 
 let orcamentos = [];
+let escolas = [];
 let statusAtual = "pendente";
 let idEmEdicao = null;
 
@@ -74,8 +75,136 @@ function limparFormularioOrcamento() {
   if (campoValor) campoValor.value = "";
   if (campoTurno) campoTurno.value = "";
   if (campoTrajeto) campoTrajeto.value = "";
-  if (campoEmbarque) campoEmbarque.value = "";
-  if (campoDesembarque) campoDesembarque.value = "";
+  if (campoEmbarque) {
+    campoEmbarque.value = "";
+    campoEmbarque.disabled = true;
+  }
+  if (campoDesembarque) {
+    campoDesembarque.value = "";
+    campoDesembarque.disabled = true;
+  }
+}
+
+function atualizarCamposTrajeto() {
+  const tipoTrajeto = campoTrajeto && campoTrajeto.value ? String(campoTrajeto.value).toUpperCase() : "";
+  const permiteEmbarque = tipoTrajeto === "IDA" || tipoTrajeto === "AMBOS";
+  const permiteDesembarque = tipoTrajeto === "VOLTA" || tipoTrajeto === "AMBOS";
+
+  if (campoEmbarque) {
+    campoEmbarque.disabled = !permiteEmbarque;
+    if (!permiteEmbarque) {
+      campoEmbarque.value = "";
+    }
+  }
+
+  if (campoDesembarque) {
+    campoDesembarque.disabled = !permiteDesembarque;
+    if (!permiteDesembarque) {
+      campoDesembarque.value = "";
+    }
+  }
+}
+
+async function carregarEscolas() {
+  try {
+    const data = await window.API.get("/escolas");
+    escolas = Array.isArray(data) ? data : [];
+    renderizarOpcoesEscola();
+  } catch (error) {
+    console.error("Erro ao carregar escolas:", error);
+    escolas = [];
+    renderizarOpcoesEscola();
+  }
+}
+
+function renderizarOpcoesEscola() {
+  if (!campoEscola) return;
+
+  const opcoes = escolas
+    .map((escola) => `<option value="${String(escola.nome || "").trim()}">${String(escola.nome || "").trim()}</option>`)
+    .join("");
+
+  campoEscola.innerHTML = `
+    <option value="">Selecione uma escola</option>
+    ${opcoes || '<option value="" disabled>Nenhuma escola cadastrada</option>'}
+  `;
+
+  const valorAtual = campoEscola.dataset.valorSelecionado || "";
+  if (valorAtual) {
+    campoEscola.value = valorAtual;
+    delete campoEscola.dataset.valorSelecionado;
+  }
+}
+
+function aplicarMascaraNome(valor) {
+  return String(valor || '')
+    .replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s'-]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .slice(0, 100);
+}
+
+function aplicarMascaraTelefone(valor) {
+  const numeros = String(valor || '').replace(/\D/g, '').slice(0, 11);
+
+  if (numeros.length <= 2) return `(${numeros}`;
+  if (numeros.length <= 7) return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+  if (numeros.length <= 10) return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
+
+  return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
+}
+
+function validarTelefone(valor) {
+  const telefone = limparMascaraTelefone(valor);
+  return /^\d{10,11}$/.test(telefone);
+}
+
+function aplicarMascaraEndereco(valor) {
+  return String(valor || '')
+    .replace(/[^0-9A-Za-zÀ-ÖØ-öø-ÿ.,º°ª\-/\s]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .slice(0, 255);
+}
+
+function limparMascaraTelefone(valor) {
+  return String(valor || '').replace(/\D/g, '');
+}
+
+function aplicarMascaraValor(valor) {
+  const texto = String(valor || '').replace(/[R$\s]/g, '').trim();
+  const numeros = texto.replace(/[^\d,]/g, '');
+
+  if (!numeros) return '';
+
+  const semSeparador = numeros.replace(/\./g, '').replace(',', '.');
+  const numero = Number(semSeparador);
+
+  if (!Number.isFinite(numero)) return '';
+
+  const parteInteira = Math.trunc(numero);
+  const parteDecimal = Math.round((numero - parteInteira) * 100);
+  const valorFormatado = (parteInteira + (parteDecimal / 100)).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  return valorFormatado;
+}
+
+function normalizarValorMonetario(valor) {
+  const texto = String(valor || '').trim();
+
+  if (!texto) return null;
+
+  const numero = Number(
+    texto
+      .replace(/[R$\s]/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.')
+  );
+
+  if (!Number.isFinite(numero)) return null;
+
+  return numero;
 }
 
 function obterQuantidadeAlunos() {
@@ -160,6 +289,7 @@ async function carregarOrcamentos() {
         tipo_trajeto: o.tipo_trajeto,
         endereco_embarque: o.endereco_embarque,
         endereco_desembarque: o.endereco_desembarque,
+        valor: o.valor !== null && o.valor !== undefined ? Number(o.valor) : null,
         status: statusNormalizado.valor,
         statusTexto: statusNormalizado.texto,
         statusClasse: statusNormalizado.classe,
@@ -245,11 +375,24 @@ async function handleTabelaClick(event) {
 
       if (campoId) campoId.value = orcamento.id;
       if (campoResponsavel) campoResponsavel.value = orcamento.nome || "";
-      if (campoTelefone) campoTelefone.value = orcamento.telefone || "";
+      if (campoTelefone) campoTelefone.value = aplicarMascaraTelefone(orcamento.telefone || "");
       if (campoQuantidadeAlunos) campoQuantidadeAlunos.value = orcamento.quantidade_alunos || 1;
       if (campoBairro) campoBairro.value = orcamento.bairro || "";
-      if (campoEscola) campoEscola.value = orcamento.escola || "";
-  if (campoValor) campoValor.value = orcamento.valor !== undefined && orcamento.valor !== null ? orcamento.valor : "";
+      if (campoEscola) {
+        campoEscola.dataset.valorSelecionado = orcamento.escola || "";
+        renderizarOpcoesEscola();
+        campoEscola.value = orcamento.escola || "";
+      }
+      if (campoTurno) campoTurno.value = orcamento.turno || "";
+      if (campoTrajeto) campoTrajeto.value = orcamento.tipo_trajeto || "";
+      if (campoEmbarque) {
+        campoEmbarque.value = orcamento.endereco_embarque || "";
+      }
+      if (campoDesembarque) {
+        campoDesembarque.value = orcamento.endereco_desembarque || "";
+      }
+      if (campoValor) campoValor.value = orcamento.valor !== undefined && orcamento.valor !== null ? aplicarMascaraValor(String(orcamento.valor)) : "";
+      atualizarCamposTrajeto();
       modal.classList.add("ativo");
       registrarEstadoInicialFormulario(modal);
     }
@@ -268,29 +411,85 @@ async function handleTabelaClick(event) {
    SALVAR ORÇAMENTO
 ================================ */
 async function salvarOrcamento() {
-  if (!campoResponsavel || !campoResponsavel.value.trim()) {
-    showWarning('Informe o nome do responsável');
+  const nomeResponsavel = aplicarMascaraNome(campoResponsavel?.value || '').trim();
+  if (!nomeResponsavel || nomeResponsavel.length < 2) {
+    showWarning('Informe o nome do responsável com no mínimo 2 caracteres.');
+    return;
+  }
+
+  const telefoneLimpo = limparMascaraTelefone(campoTelefone?.value || '');
+  if (!validarTelefone(telefoneLimpo)) {
+    showWarning('Informe um telefone válido com DDD e 10 ou 11 dígitos.');
     return;
   }
 
   const quantidadeAlunos = obterQuantidadeAlunos();
   if (!quantidadeAlunos) {
-    showWarning('Informe a quantidade de alunos');
+    showWarning('Informe a quantidade de alunos.');
     return;
   }
 
-  const valor = campoValor && campoValor.value.trim() ? Number(campoValor.value) : null;
+  const bairro = campoBairro ? aplicarMascaraEndereco(campoBairro.value).trim() : '';
+  const escola = campoEscola ? String(campoEscola.value || '').trim() : '';
+  if (!escola || escola.length < 2) {
+    showWarning('Selecione uma escola cadastrada.');
+    return;
+  }
+
+  const turno = campoTurno && campoTurno.value ? String(campoTurno.value).toUpperCase() : "";
+  if (!['MANHA', 'TARDE'].includes(turno)) {
+    showWarning('Selecione um turno válido: MANHA ou TARDE.');
+    return;
+  }
+
+  const tipoTrajeto = campoTrajeto && campoTrajeto.value ? String(campoTrajeto.value).toUpperCase() : "";
+  if (!['IDA', 'VOLTA', 'AMBOS'].includes(tipoTrajeto)) {
+    showWarning('Selecione um tipo de trajeto válido: IDA, VOLTA ou AMBOS.');
+    return;
+  }
+
+  const valorNumerico = campoValor && campoValor.value ? normalizarValorMonetario(campoValor.value) : null;
+  if (campoValor && campoValor.value && (valorNumerico === null || valorNumerico < 0 || valorNumerico > 9999999.99)) {
+    showWarning('Informe um valor válido para o orçamento.');
+    return;
+  }
+
+  const embarque = campoEmbarque ? aplicarMascaraEndereco(campoEmbarque.value).trim() : '';
+  const desembarque = campoDesembarque ? aplicarMascaraEndereco(campoDesembarque.value).trim() : '';
+
+  if (tipoTrajeto === 'IDA' || tipoTrajeto === 'AMBOS') {
+    if (!embarque || embarque.length < 5) {
+      showWarning('Informe o endereço de embarque para o trajeto de ida.');
+      return;
+    }
+  } else {
+    if (campoEmbarque && campoEmbarque.value) {
+      campoEmbarque.value = '';
+    }
+  }
+
+  if (tipoTrajeto === 'VOLTA' || tipoTrajeto === 'AMBOS') {
+    if (!desembarque || desembarque.length < 5) {
+      showWarning('Informe o endereço de desembarque para o trajeto de volta.');
+      return;
+    }
+  } else {
+    if (campoDesembarque && campoDesembarque.value) {
+      campoDesembarque.value = '';
+    }
+  }
+
   const payload = {
-    nome_responsavel: campoResponsavel.value.trim(),
-    telefone: campoTelefone.value.trim(),
+    nome_responsavel: nomeResponsavel,
+    telefone: telefoneLimpo,
     quantidade_alunos: quantidadeAlunos,
-    bairro: campoBairro ? campoBairro.value.trim() : "",
-    escola: campoEscola ? campoEscola.value.trim() : "",
-    valor,
-    turno: campoTurno && campoTurno.value ? campoTurno.value : null,
-    tipo_trajeto: campoTrajeto && campoTrajeto.value ? campoTrajeto.value : null,
-    endereco_embarque: campoEmbarque ? campoEmbarque.value.trim() : "",
-    endereco_desembarque: campoDesembarque ? campoDesembarque.value.trim() : "",
+    bairro,
+    escola,
+    valor: Number.isFinite(valorNumerico) ? valorNumerico : null,
+    turno,
+    tipo_trajeto: tipoTrajeto,
+    endereco_embarque: tipoTrajeto === 'IDA' || tipoTrajeto === 'AMBOS' ? embarque : null,
+    endereco_desembarque: tipoTrajeto === 'VOLTA' || tipoTrajeto === 'AMBOS' ? desembarque : null,
     data_solicitacao: new Date().toISOString().split("T")[0]
   };
 
@@ -348,6 +547,63 @@ if (salvarBtn) {
   salvarBtn.addEventListener("click", salvarOrcamento);
 }
 
+if (campoResponsavel) {
+  campoResponsavel.addEventListener("input", () => {
+    campoResponsavel.value = aplicarMascaraNome(campoResponsavel.value);
+  });
+}
+
+if (campoTelefone) {
+  campoTelefone.addEventListener("input", () => {
+    campoTelefone.value = aplicarMascaraTelefone(campoTelefone.value);
+  });
+}
+
+if (campoBairro) {
+  campoBairro.addEventListener("input", () => {
+    campoBairro.value = aplicarMascaraEndereco(campoBairro.value);
+  });
+}
+
+if (campoEscola) {
+  campoEscola.addEventListener("change", () => {
+    campoEscola.value = String(campoEscola.value || "").trim();
+  });
+}
+
+if (campoTrajeto) {
+  campoTrajeto.addEventListener("change", () => {
+    campoTrajeto.value = String(campoTrajeto.value || "").trim();
+    atualizarCamposTrajeto();
+  });
+}
+
+if (campoValor) {
+  campoValor.addEventListener("input", () => {
+    const valorAtual = campoValor.value;
+    const valorNumerico = valorAtual.replace(/[^\d,]/g, '');
+
+    if (!valorNumerico) {
+      campoValor.value = '';
+      return;
+    }
+
+    campoValor.value = aplicarMascaraValor(valorAtual);
+  });
+}
+
+if (campoEmbarque) {
+  campoEmbarque.addEventListener("input", () => {
+    campoEmbarque.value = aplicarMascaraEndereco(campoEmbarque.value);
+  });
+}
+
+if (campoDesembarque) {
+  campoDesembarque.addEventListener("input", () => {
+    campoDesembarque.value = aplicarMascaraEndereco(campoDesembarque.value);
+  });
+}
+
 if (campoBusca) {
   campoBusca.addEventListener("input", renderizarOrcamentos);
 }
@@ -387,6 +643,7 @@ function initMenu() {
 ================================ */
 document.addEventListener("DOMContentLoaded", () => {
   initMenu();
+  carregarEscolas();
   carregarOrcamentos().then(() => renderizarOrcamentos());
 });
 
