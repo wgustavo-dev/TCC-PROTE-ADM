@@ -108,10 +108,7 @@ function renderTabela() {
       <td>
         <div class="acoes-acesso">
           <button class="btn-acao-acesso editar" type="button" data-acao="editar" data-id="${item.id}" data-tipo="${item.tipo}" title="Editar" aria-label="Editar acesso">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 20h9"></path>
-              <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
-            </svg>
+            Editar
           </button>
 
           <button class="btn-acao-acesso excluir" type="button" data-acao="excluir" data-id="${item.id}" data-tipo="${item.tipo}" title="Excluir" aria-label="Excluir acesso">

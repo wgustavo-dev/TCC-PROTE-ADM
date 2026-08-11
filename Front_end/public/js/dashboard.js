@@ -13,6 +13,10 @@ function formatarDataBR(dataISO) {
   return `${partes[2]}/${partes[1]}/${partes[0]}`;
 }
 
+function formatarNumero2Digitos(valor) {
+  return String(Number(valor) || 0).padStart(2, "0");
+}
+
 /* ==========================================================================
    CARREGAMENTO
    ========================================================================== */
@@ -54,7 +58,7 @@ function initMenu() {
   fundoEscuro.addEventListener("click", fecharMenu);
 }
 
-function atualizarDashboard(dados) {
+function atualizarKpis(dados) {
   if (!dados) return;
 
   const elReceita = document.getElementById("kpiReceita");
@@ -74,10 +78,10 @@ function atualizarDashboard(dados) {
   if (elPresenca) elPresenca.textContent = `${presencaMedia.toFixed(1)}%`;
 
   const barraPresenca = document.getElementById("barraPresenca");
-  if (barraPresenca) barraPresenca.style.width = `${presencaMedia}%`;
+  if (barraPresenca) barraPresenca.style.width = `${Math.min(100, presencaMedia)}%`;
 
   const elMonitores = document.getElementById("kpiMonitores");
-  if (elMonitores) elMonitores.textContent = String(dados.monitores_ativos || 0);
+  if (elMonitores) elMonitores.textContent = formatarNumero2Digitos(dados.monitores_ativos);
 
   const documentos = dados.documentos || {};
   const elDocsVencidos = document.getElementById("kpiDocsVencidos");
@@ -94,10 +98,6 @@ function atualizarDashboard(dados) {
 
   const elOrcamentosNegados = document.getElementById("kpiOrcamentosNegados");
   if (elOrcamentosNegados) elOrcamentosNegados.textContent = String(dados.orcamentos?.negados || 0);
-
-  renderizarEscolas(dados.escolas);
-  renderizarProximosPagamentos(dados.proximos_pagamentos);
-  renderizarUltimosPagamentos(dados.ultimos_pagamentos);
 }
 
 function renderizarEstadoErro() {
@@ -132,6 +132,7 @@ function renderizarEstadoErro() {
   iniciarGrafico(null);
 }
 
+/* Card "Alunos por escola" */
 function renderizarEscolas(escolas) {
   const lista = document.getElementById("listaEscolas");
   if (!lista) return;
@@ -147,37 +148,70 @@ function renderizarEscolas(escolas) {
     .join("");
 }
 
-function renderizarProximosPagamentos(pagamentos) {
-  const lista = document.getElementById("listaProximosPagamentos");
-  if (!lista) return;
+/* Linha 3: listas de próximos e últimos pagamentos */
+function renderizarListaPagamentos(elementId, pagamentos, campoData, corValor, mensagemVazio) {
+  const container = document.getElementById(elementId);
+  if (!container) return;
 
-  if (!Array.isArray(pagamentos) || pagamentos.length === 0) {
-    lista.innerHTML = '<p class="aviso-sem-dados">Nenhum pagamento próximo encontrado.</p>';
+  if (!Array.isArray(pagamentos) || !pagamentos.length) {
+    container.innerHTML = `<p class="aviso-sem-dados">${mensagemVazio}</p>`;
     return;
   }
 
-  lista.innerHTML = pagamentos
-    .map((item) => {
-      return `<div class="item-pagamento"><span class="nome-pagamento">${item.nome_aluno}</span><span class="data-pagamento">${formatarDataBR(item.data_vencimento)}</span><span class="valor-pagamento laranja">${formatarBRL(item.valor)}</span></div>`;
-    })
+  container.innerHTML = pagamentos
+    .map((item) => `
+      <div class="item-pagamento">
+        <span class="nome-pagamento">${item.nome_aluno} — mensalidade</span>
+        <span class="data-pagamento">${formatarDataBR(item[campoData])}</span>
+        <span class="valor-pagamento ${corValor}">${formatarBRL(item.valor)}</span>
+      </div>
+    `)
     .join("");
 }
 
-function renderizarUltimosPagamentos(pagamentos) {
-  const lista = document.getElementById("listaUltimosPagamentos");
-  if (!lista) return;
+/* Linha 5: cards de Documentos e Orçamentos */
+function atualizarDocumentosEOrcamentos(dados) {
+  const documentos = dados.documentos || {};
+  const elDocsVencemBreve = document.getElementById("kpiDocsVencemBreve");
+  if (elDocsVencemBreve) elDocsVencemBreve.textContent = String(documentos.vencem_em_ate_7_dias || 0);
 
-  if (!Array.isArray(pagamentos) || pagamentos.length === 0) {
-    lista.innerHTML = '<p class="aviso-sem-dados">Nenhum pagamento recente encontrado.</p>';
-    return;
-  }
+  const elDocsVencidos = document.getElementById("kpiDocsVencidos");
+  if (elDocsVencidos) elDocsVencidos.textContent = String(documentos.vencidos || 0);
 
-  lista.innerHTML = pagamentos
-    .map((item) => {
-      return `<div class="item-pagamento"><span class="nome-pagamento">${item.nome_aluno}</span><span class="data-pagamento">${formatarDataBR(item.data_pagamento)}</span><span class="valor-pagamento verde">${formatarBRL(item.valor)}</span></div>`;
-    })
-    .join("");
+  const orcamentos = dados.orcamentos || {};
+  const elOrcPendentes = document.getElementById("kpiOrcamentosPendentes");
+  if (elOrcPendentes) elOrcPendentes.textContent = String(orcamentos.pendentes || 0);
+
+  const elOrcAprovados = document.getElementById("kpiOrcamentosAprovados");
+  if (elOrcAprovados) elOrcAprovados.textContent = String(orcamentos.aprovados || 0);
+
+  const elOrcNegados = document.getElementById("kpiOrcamentosNegados");
+  if (elOrcNegados) elOrcNegados.textContent = String(orcamentos.negados || 0);
 }
+
+function atualizarDashboard(dados) {
+  if (!dados) return;
+
+  atualizarKpis(dados);
+  renderizarEscolas(dados.escolas);
+  renderizarListaPagamentos(
+    "listaProximosPagamentos",
+    dados.proximos_pagamentos,
+    "data_vencimento",
+    "laranja",
+    "Nenhum pagamento previsto para os próximos 5 dias."
+  );
+  renderizarListaPagamentos(
+    "listaUltimosPagamentos",
+    dados.ultimos_pagamentos,
+    "data_pagamento",
+    "verde",
+    "Nenhum pagamento recebido nos últimos 5 dias."
+  );
+  atualizarDocumentosEOrcamentos(dados);
+}
+
+const MESES_ANO = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 function iniciarGrafico(dados) {
   if (typeof Chart === "undefined") return;
@@ -189,7 +223,11 @@ function iniciarGrafico(dados) {
     graficoExistente.destroy();
   }
 
-  const listaMensal = Array.isArray(dados?.grafico_mensal) ? dados.grafico_mensal : [];
+  // Usa exclusivamente os dados reais vindos do banco (via API). Quando não
+  // há retorno da API, exibe os 12 meses reais zerados — nunca dados fictícios.
+  const listaMensal = Array.isArray(dados?.grafico_mensal) && dados.grafico_mensal.length
+    ? dados.grafico_mensal
+    : MESES_ANO.map((mes) => ({ mes, receita: 0, despesa: 0 }));
   const labels = listaMensal.map((item) => item.mes);
   const receita = listaMensal.map((item) => Number(item.receita || 0));
   const despesa = listaMensal.map((item) => Number(item.despesa || 0));
@@ -254,12 +292,20 @@ function iniciarGrafico(dados) {
 document.addEventListener("DOMContentLoaded", async () => {
   initMenu();
 
-  const dados = await carregarDashboard();
-  if (!dados) {
-    renderizarEstadoErro();
-    return;
-  }
+  const dashboardRoot = document.getElementById("kpiReceita");
+  let dados = null;
 
-  atualizarDashboard(dados);
-  iniciarGrafico(dados);
+  if (dashboardRoot && window.API) {
+    try {
+      dados = await window.API.get("/dashboard/resumo");
+      atualizarDashboard(dados);
+      iniciarGrafico(dados);
+    } catch (error) {
+      console.error("Erro ao carregar dados do dashboard:", error);
+      showError("Não foi possível carregar os dados do dashboard.");
+      iniciarGrafico(null);
+    }
+  } else {
+    iniciarGrafico(null);
+  }
 });

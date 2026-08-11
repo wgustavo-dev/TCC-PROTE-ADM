@@ -10,6 +10,7 @@ import routeDashboard from "./route_dashboard";
 import routeResponsavel from "./route_responsavel";
 import routeEscola from "./route_escola";
 import routeAcessos from "./route_acessos";
+import routeItinerario from "./route_itinerario";
 
 const routes = Router();
 
@@ -24,5 +25,5 @@ routes.use('/api', routeOrcamento);
 routes.use('/api', routePresenca)
 routes.use('/api', routeMensalidade)
 routes.use("/api", routeDashboard);
-
+routes.use("/api", routeItinerario);
 export default routes;

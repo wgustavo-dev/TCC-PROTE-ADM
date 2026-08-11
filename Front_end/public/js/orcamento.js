@@ -10,6 +10,7 @@ const campoTelefone = document.getElementById("campoTelefone");
 const campoQuantidadeAlunos = document.getElementById("campoQuantidadeAlunos");
 const campoBairro = document.getElementById("campoBairro");
 const campoEscola = document.getElementById("campoEscola");
+const campoValor = document.getElementById("campoValor");
 const campoTurno = document.getElementById("campoTurno");
 const campoTrajeto = document.getElementById("campoTrajeto");
 const campoEmbarque = document.getElementById("campoEmbarque");
@@ -70,6 +71,7 @@ function limparFormularioOrcamento() {
   if (campoQuantidadeAlunos) campoQuantidadeAlunos.value = "";
   if (campoBairro) campoBairro.value = "";
   if (campoEscola) campoEscola.value = "";
+  if (campoValor) campoValor.value = "";
   if (campoTurno) campoTurno.value = "";
   if (campoTrajeto) campoTrajeto.value = "";
   if (campoEmbarque) campoEmbarque.value = "";
@@ -202,10 +204,7 @@ function renderizarOrcamentos() {
       <td>
         <div class="coluna-acoes">
           <button class="botao-acao editar" data-id="${o.id}" title="Editar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
+            Editar
           </button>
 
           <button class="botao-acao aprovar" data-id="${o.id}" title="Converter" ${o.status !== "pendente" ? "disabled" : ""}>
@@ -250,11 +249,7 @@ async function handleTabelaClick(event) {
       if (campoQuantidadeAlunos) campoQuantidadeAlunos.value = orcamento.quantidade_alunos || 1;
       if (campoBairro) campoBairro.value = orcamento.bairro || "";
       if (campoEscola) campoEscola.value = orcamento.escola || "";
-      if (campoTurno) campoTurno.value = orcamento.turno || "";
-      if (campoTrajeto) campoTrajeto.value = orcamento.tipo_trajeto || "";
-      if (campoEmbarque) campoEmbarque.value = orcamento.endereco_embarque || "";
-      if (campoDesembarque) campoDesembarque.value = orcamento.endereco_desembarque || "";
-
+  if (campoValor) campoValor.value = orcamento.valor !== undefined && orcamento.valor !== null ? orcamento.valor : "";
       modal.classList.add("ativo");
       registrarEstadoInicialFormulario(modal);
     }
@@ -284,12 +279,14 @@ async function salvarOrcamento() {
     return;
   }
 
+  const valor = campoValor && campoValor.value.trim() ? Number(campoValor.value) : null;
   const payload = {
     nome_responsavel: campoResponsavel.value.trim(),
     telefone: campoTelefone.value.trim(),
     quantidade_alunos: quantidadeAlunos,
     bairro: campoBairro ? campoBairro.value.trim() : "",
     escola: campoEscola ? campoEscola.value.trim() : "",
+    valor,
     turno: campoTurno && campoTurno.value ? campoTurno.value : null,
     tipo_trajeto: campoTrajeto && campoTrajeto.value ? campoTrajeto.value : null,
     endereco_embarque: campoEmbarque ? campoEmbarque.value.trim() : "",
@@ -398,3 +395,11 @@ document.addEventListener('keydown', (event) => {
     fecharModalOrcamentoSeguro();
   }
 });
+
+const botaoFecharModal = document.getElementById("botaoFecharModal");
+
+if (botaoFecharModal) {
+  botaoFecharModal.addEventListener("click", () => {
+    fecharModalOrcamentoSeguro();
+  });
+}

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,19 +17,21 @@
             ".nav-item[data-page=\"presenca\"], .nav-item[data-page=\"alunos\"] { display: flex !important; }";
           document.head.appendChild(estilo);
         }
-      } catch (erro) {}
+      } catch (erro) { }
     })();
   </script>
   <title>PROTE — Despesas</title>
   <link rel="stylesheet" href="css/globalcss.css" />
   <link rel="stylesheet" href="css/despesas.css" />
   <link rel="stylesheet" href="core/alerts.css" />
+  <link rel="stylesheet" href="../css/perfil-widget.css">
 </head>
+
 <body>
 
   <!-- Escurece o fundo quando a sidebar abre no celular -->
   <div class="fundo-escuro" id="fundoEscuro"></div>
-  
+
   <div class="layout">
     <header class="barra-topo">
       <button class="botao-menu" id="botaoMenu" aria-label="Abrir menu">
@@ -48,42 +51,89 @@
 
       <nav class="nav">
         <a href="index.html" class="nav-item" data-page="dashboard">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+          </svg>
           Dashboard
         </a>
         <a href="despesas.html" class="nav-item active" data-page="despesas">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="2" x2="12" y2="22"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
           Despesas
         </a>
         <a href="documentos.html" class="nav-item" data-page="documentos">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8"></path><path d="M8 17h5"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <path d="M14 2v6h6"></path>
+            <path d="M8 13h8"></path>
+            <path d="M8 17h5"></path>
+          </svg>
           Documentos
         </a>
         <a href="responsaveis.html" class="nav-item" data-page="responsaveis">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
           Responsáveis
         </a>
         <a href="alunos.html" class="nav-item" data-page="alunos">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
           Alunos
         </a>
         <a href="orcamento.html" class="nav-item" data-page="orcamento">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <path d="M14 2v6h6"></path>
+            <path d="M12 18v-6"></path>
+            <path d="M9 15h6"></path>
+          </svg>
           Orçamento
         </a>
         <a href="mensalidade.html" class="nav-item" data-page="mensalidades">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path><path d="M6 15h4"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <path d="M2 10h20"></path>
+            <path d="M6 15h4"></path>
+          </svg>
           Mensalidades
         </a>
         <a href="presenca.html" class="nav-item" data-page="presenca">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
           Presença
         </a>
         <a href="acessos.html" class="nav-item" data-page="acessos">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path><circle cx="12" cy="16" r="1"></circle></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            <circle cx="12" cy="16" r="1"></circle>
+          </svg>
           Acessos
         </a>
       </nav>
+
+      <!-- PERFIL -->
+
+      <div class="sidebar-footer">
+
+        <div id="perfil-widget-root"></div>
+
+      </div>
+
+
     </aside>
 
     <main class="main">
@@ -96,8 +146,8 @@
         </div>
         <button class="botao-nova-despesa" id="botaoNovaDespesa">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
           Nova Despesa
         </button>
@@ -110,8 +160,8 @@
           <!-- Classe "rosa" adicionada para aplicar o fundo pastel e ícone magenta/vermelho -->
           <div class="icone-resumo rosa">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="12" y1="1" x2="12" y2="23"/>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
             </svg>
           </div>
           <div>
@@ -125,8 +175,8 @@
           <!-- Classe "azul" adicionada para aplicar o fundo pastel e ícone azul -->
           <div class="icone-resumo azul">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="12" y1="1" x2="12" y2="23"/>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
             </svg>
           </div>
           <div>
@@ -141,22 +191,17 @@
       <!-- Campo de busca por tipo ou descrição -->
       <div class="campo-busca">
         <svg class="icone-busca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-        <input
-          type="text"
-          class="input-busca"
-          id="campoBusca"
-          placeholder="Buscar por tipo ou descrição..."
-        />
+        <input type="text" class="input-busca" id="campoBusca" placeholder="Buscar por tipo ou descrição..." />
       </div>
 
       <!-- Botão que abre/fecha o painel de filtros -->
       <div class="barra-filtro">
         <button class="botao-filtro" id="botaoFiltro">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
           </svg>
           Filtro
         </button>
@@ -166,15 +211,19 @@
       <div class="painel-filtros" id="painelFiltros">
         <p class="titulo-filtros">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
           </svg>
           Filtrar por:
         </p>
         <div class="campos-filtro">
           <div class="grupo-filtro">
-            <label class="label-filtro" for="filtroData">Data</label>
-            <input type="date" class="input-filtro" id="filtroData" />
-          </div>
+    <label class="label-filtro" for="filtroMesAno">Mês e Ano</label>
+    <input
+        type="month"
+        class="input-filtro"
+        id="filtroMesAno"
+    />
+</div>
           <div class="grupo-filtro">
             <label class="label-filtro" for="filtroMin">Valor mínimo</label>
             <input type="number" class="input-filtro" id="filtroMin" placeholder="R$ 0,00" min="0" step="0.01" />
@@ -220,11 +269,7 @@
 
       <div class="modal-header">
         <h2 class="titulo-modal" id="tituloModal">Nova Despesa</h2>
-        <button
-          type="button"
-          class="btn-close"
-          id="botaoFecharModal"
-          aria-label="Fechar">
+        <button type="button" class="btn-close" id="botaoFecharModal" aria-label="Fechar">
           ×
         </button>
       </div>
@@ -251,13 +296,7 @@
           <label class="label-campo" for="campValor">
             Valor (R$)
           </label>
-          <input
-            type="number"
-            class="input-campo"
-            id="campValor"
-            placeholder="0,00"
-            min="0.01"
-            step="0.01">
+          <input type="number" class="input-campo" id="campValor" placeholder="0,00" min="0.01" step="0.01">
           <span class="mensagem-erro" id="erroValor"></span>
         </div>
 
@@ -265,10 +304,7 @@
           <label class="label-campo" for="campData">
             Data
           </label>
-          <input
-            type="date"
-            class="input-campo"
-            id="campData">
+          <input type="date" class="input-campo" id="campData">
           <span class="mensagem-erro" id="erroData"></span>
         </div>
 
@@ -276,27 +312,18 @@
           <label class="label-campo" for="campDescricao">
             Descrição
           </label>
-          <textarea
-            class="textarea-campo"
-            id="campDescricao"
-            maxlength="255"
+          <textarea class="textarea-campo" id="campDescricao" maxlength="255"
             placeholder="Informações complementares..."></textarea>
-          <span
-            class="contador-caracteres"
-            id="contadorCaracteres">
+          <span class="contador-caracteres" id="contadorCaracteres">
             0/255 caracteres
           </span>
         </div>
 
         <div class="acoes-modal">
-          <button
-            class="botao-cancelar"
-            id="botaoCancelar">
+          <button class="botao-cancelar" id="botaoCancelar">
             Cancelar
           </button>
-          <button
-            class="botao-cadastrar"
-            id="botaoCadastrar">
+          <button class="botao-cadastrar" id="botaoCadastrar">
             Cadastrar
           </button>
         </div>
@@ -307,19 +334,13 @@
 
   <!-- MODAL DE EXCLUSÃO -->
   <div class="fundo-modal" id="fundoModalExcluir">
-    <div class="caixa-modal caixa-modal-pequena"
-         role="dialog"
-         aria-modal="true">
+    <div class="caixa-modal caixa-modal-pequena" role="dialog" aria-modal="true">
 
       <div class="modal-header">
         <h2 class="titulo-modal">
           Excluir Despesa
         </h2>
-        <button
-          type="button"
-          class="btn-close"
-          id="botaoFecharExcluir"
-          aria-label="Fechar">
+        <button type="button" class="btn-close" id="botaoFecharExcluir" aria-label="Fechar">
           ×
         </button>
       </div>
@@ -331,14 +352,10 @@
         </p>
 
         <div class="acoes-modal">
-          <button
-            class="botao-cancelar"
-            id="botaoCancelarExclusao">
+          <button class="botao-cancelar" id="botaoCancelarExclusao">
             Cancelar
           </button>
-          <button
-            class="botao-excluir"
-            id="botaoConfirmarExclusao">
+          <button class="botao-excluir" id="botaoConfirmarExclusao">
             Excluir
           </button>
         </div>
@@ -352,5 +369,9 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="core/alerts.js"></script>
   <script src="js/despesas.js"></script>
+  <script src="js/perfil-widget.js"></script>
+  <script src="js/perfil-init.js"></script>
+
 </body>
+
 </html>
