@@ -101,6 +101,43 @@ function escaparHTML(texto) {
     .replace(/"/g, '&quot;');
 }
 
+function aplicarMascaraValorDespesa(valor) {
+  var texto = String(valor || '').replace(/[R$\s]/g, '').trim();
+  var numeros = texto.replace(/[^\d,]/g, '');
+
+  if (!numeros) return '';
+
+  var semSeparador = numeros.replace(/\./g, '').replace(',', '.');
+  var numero = Number(semSeparador);
+
+  if (Number.isNaN(numero)) return '';
+
+  var parteInteira = Math.trunc(numero);
+  var parteDecimal = Math.round((numero - parteInteira) * 100);
+  var valorFormatado = (parteInteira + (parteDecimal / 100)).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  return valorFormatado;
+}
+
+function normalizarValorDespesa(valor) {
+  var texto = String(valor || '').trim();
+
+  if (!texto) return null;
+
+  var numero = Number(
+    texto
+      .replace(/[R$\s]/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.')
+  );
+
+  if (!Number.isFinite(numero)) return null;
+
+  return numero;
+}
 
 /*
    FILTROS
@@ -233,7 +270,7 @@ function abrirModal(despesa) {
     tituloModal.textContent    = 'Editar Despesa';
     botaoCadastrar.textContent = 'Salvar';
     campTipo.value             = despesa.tipo;
-    campValor.value            = despesa.valor;
+    campValor.value            = aplicarMascaraValorDespesa(String(despesa.valor || ''));
     campData.value             = despesa.data;
     campDescricao.value        = despesa.descricao || '';
   } else {
@@ -260,6 +297,12 @@ function fecharModal() {
 
 /* Atualiza o contador de caracteres da textarea */
 campDescricao.addEventListener('input', atualizarContador);
+
+campValor.addEventListener('input', function() {
+  var valorAtual = campValor.value;
+  var valorMascarado = aplicarMascaraValorDespesa(valorAtual);
+  campValor.value = valorMascarado;
+});
 
 function atualizarContador() {
   contadorCaracteres.textContent = campDescricao.value.length + '/255 caracteres';
@@ -300,8 +343,8 @@ function validarFormulario() {
     valido = false;
   }
 
-  var valor = parseFloat(campValor.value);
-  if (!campValor.value || isNaN(valor) || valor <= 0) {
+  var valor = normalizarValorDespesa(campValor.value);
+  if (!campValor.value || valor === null || valor <= 0 || valor > 9999999.99) {
     erroValor.textContent = 'Informe um valor maior que zero.';
     campValor.classList.add('invalido');
     valido = false;
@@ -323,9 +366,11 @@ function validarFormulario() {
 botaoCadastrar.addEventListener('click', function() {
   if (!validarFormulario()) return;
 
+  var valorNumerico = normalizarValorDespesa(campValor.value);
+
   var payload = {
     tipo:      campTipo.value,
-    valor:     parseFloat(parseFloat(campValor.value).toFixed(2)),
+    valor:     Number(valorNumerico.toFixed(2)),
     data:      campData.value,
     descricao: campDescricao.value.trim()
   };
