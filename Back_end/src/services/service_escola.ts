@@ -14,11 +14,13 @@ export class ServiceEscola {
   }
 
   async listar() {
-    return await this.escolaRepository.find({
+    const escolas = await this.escolaRepository.find({
       order: {
         nome: "ASC",
       },
     });
+
+    return Promise.all(escolas.map((escola) => this.montarComContagem(escola)));
   }
 
   async buscarPorID(id: number) {
@@ -30,7 +32,20 @@ export class ServiceEscola {
       throw new Error("Escola não encontrada");
     }
 
-    return escola;
+    return this.montarComContagem(escola);
+  }
+
+  /*
+    A quantidade de alunos de uma escola não é um campo editável: ela é
+    sempre calculada a partir dos alunos realmente vinculados (aluno.id_escola),
+    a mesma relação usada para bloquear a exclusão de escolas com alunos.
+  */
+  private async montarComContagem(escola: Escola) {
+    const quantidade_alunos = await this.alunoRepository.count({
+      where: { id_escola: escola.id_escola },
+    });
+
+    return { ...escola, quantidade_alunos };
   }
 
   async criar(dados: Partial<Escola>) {

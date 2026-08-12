@@ -16,15 +16,15 @@ router.get("/escolas/:id", authMiddleware, roleMiddleware(["CONDUTOR", "MONITOR"
   controlEscola.buscarPorID(req, res)
 );
 
-router.post("/escolas", authMiddleware, roleMiddleware(["CONDUTOR", "MONITOR"]), (req, res) =>
+router.post("/escolas", authMiddleware, roleMiddleware(["CONDUTOR"]), (req, res) =>
   controlEscola.criar(req, res)
 );
 
-router.put("/escolas/:id", authMiddleware, roleMiddleware(["CONDUTOR", "MONITOR"]), (req, res) =>
+router.put("/escolas/:id", authMiddleware, roleMiddleware(["CONDUTOR"]), (req, res) =>
   controlEscola.atualizar(req, res)
 );
 
-router.delete("/escolas/:id", authMiddleware, roleMiddleware(["CONDUTOR", "MONITOR"]), (req, res) =>
+router.delete("/escolas/:id", authMiddleware, roleMiddleware(["CONDUTOR"]), (req, res) =>
   controlEscola.deletar(req, res)
 );
 
