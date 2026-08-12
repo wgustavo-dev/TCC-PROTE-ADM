@@ -18,6 +18,20 @@ function formatarNumero2Digitos(valor) {
 }
 
 /* ==========================================================================
+   CARREGAMENTO
+   ========================================================================== */
+
+async function carregarDashboard() {
+  try {
+    return await window.API.get("/dashboard/resumo");
+  } catch (error) {
+    console.error("Erro ao carregar dados do dashboard:", error);
+    showError("Não foi possível carregar o dashboard.");
+    return null;
+  }
+}
+
+/* ==========================================================================
    COMPONENTES DA INTERFACE
    ========================================================================== */
 
@@ -44,8 +58,9 @@ function initMenu() {
   fundoEscuro.addEventListener("click", fecharMenu);
 }
 
-/* Linha 1 e 2: cards financeiros e indicadores operacionais */
 function atualizarKpis(dados) {
+  if (!dados) return;
+
   const elReceita = document.getElementById("kpiReceita");
   if (elReceita) elReceita.textContent = formatarBRL(dados.receita_mensal);
 
@@ -55,17 +70,66 @@ function atualizarKpis(dados) {
   const elLucro = document.getElementById("kpiLucro");
   if (elLucro) elLucro.textContent = formatarBRL(dados.lucro_mensal);
 
-  const elPresenca = document.getElementById("kpiPresenca");
-  if (elPresenca) elPresenca.textContent = `${Number(dados.presenca_media || 0).toFixed(1)}%`;
-
-  const barraPresenca = document.getElementById("barraPresenca");
-  if (barraPresenca) barraPresenca.style.width = `${Math.min(100, Number(dados.presenca_media) || 0)}%`;
-
   const elAlunos = document.getElementById("kpiAlunos");
   if (elAlunos) elAlunos.textContent = String(dados.alunos_ativos || 0);
 
+  const presencaMedia = Number(dados.presenca_media || 0);
+  const elPresenca = document.getElementById("kpiPresenca");
+  if (elPresenca) elPresenca.textContent = `${presencaMedia.toFixed(1)}%`;
+
+  const barraPresenca = document.getElementById("barraPresenca");
+  if (barraPresenca) barraPresenca.style.width = `${Math.min(100, presencaMedia)}%`;
+
   const elMonitores = document.getElementById("kpiMonitores");
   if (elMonitores) elMonitores.textContent = formatarNumero2Digitos(dados.monitores_ativos);
+
+  const documentos = dados.documentos || {};
+  const elDocsVencidos = document.getElementById("kpiDocsVencidos");
+  if (elDocsVencidos) elDocsVencidos.textContent = String(documentos.vencidos || 0);
+
+  const elDocsBreve = document.getElementById("kpiDocsVencemBreve");
+  if (elDocsBreve) elDocsBreve.textContent = String(documentos.vencem_em_ate_7_dias || 0);
+
+  const elOrcamentosPendentes = document.getElementById("kpiOrcamentosPendentes");
+  if (elOrcamentosPendentes) elOrcamentosPendentes.textContent = String(dados.orcamentos?.pendentes || 0);
+
+  const elOrcamentosAprovados = document.getElementById("kpiOrcamentosAprovados");
+  if (elOrcamentosAprovados) elOrcamentosAprovados.textContent = String(dados.orcamentos?.aprovados || 0);
+
+  const elOrcamentosNegados = document.getElementById("kpiOrcamentosNegados");
+  if (elOrcamentosNegados) elOrcamentosNegados.textContent = String(dados.orcamentos?.negados || 0);
+}
+
+function renderizarEstadoErro() {
+  ["kpiReceita", "kpiDespesas", "kpiLucro", "kpiAlunos", "kpiPresenca", "kpiMonitores"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = "—";
+  });
+
+  const barraPresenca = document.getElementById("barraPresenca");
+  if (barraPresenca) barraPresenca.style.width = "0%";
+
+  ["kpiDocsVencidos", "kpiDocsVencemBreve", "kpiOrcamentosPendentes", "kpiOrcamentosAprovados", "kpiOrcamentosNegados"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = "—";
+  });
+
+  const listaEscolas = document.getElementById("listaEscolas");
+  if (listaEscolas) {
+    listaEscolas.innerHTML = '<li class="aviso-sem-dados">Não foi possível carregar os dados.</li>';
+  }
+
+  const listaProximos = document.getElementById("listaProximosPagamentos");
+  if (listaProximos) {
+    listaProximos.innerHTML = '<p class="aviso-sem-dados">Não foi possível carregar os dados.</p>';
+  }
+
+  const listaUltimos = document.getElementById("listaUltimosPagamentos");
+  if (listaUltimos) {
+    listaUltimos.innerHTML = '<p class="aviso-sem-dados">Não foi possível carregar os dados.</p>';
+  }
+
+  iniciarGrafico(null);
 }
 
 /* Card "Alunos por escola" */
@@ -73,12 +137,13 @@ function renderizarEscolas(escolas) {
   const lista = document.getElementById("listaEscolas");
   if (!lista) return;
 
-  if (!Array.isArray(escolas) || !escolas.length) {
-    lista.innerHTML = '<li class="aviso-sem-dados">Nenhum aluno cadastrado.</li>';
+  if (!Array.isArray(escolas) || escolas.length === 0) {
+    lista.innerHTML = '<li class="aviso-sem-dados">Nenhuma escola cadastrada.</li>';
     return;
   }
 
-  lista.innerHTML = escolas
+  const topEscolas = escolas.slice(0, 4);
+  lista.innerHTML = topEscolas
     .map((item) => `<li><span>${item.nome}</span> <strong>${item.total}</strong></li>`)
     .join("");
 }
@@ -153,7 +218,6 @@ function iniciarGrafico(dados) {
   const canvas = document.getElementById("graficoFinanceiro");
   if (!canvas) return;
 
-  // Destrói gráfico antigo se existir
   const graficoExistente = Chart.getChart(canvas);
   if (graficoExistente) {
     graficoExistente.destroy();
@@ -164,7 +228,6 @@ function iniciarGrafico(dados) {
   const listaMensal = Array.isArray(dados?.grafico_mensal) && dados.grafico_mensal.length
     ? dados.grafico_mensal
     : MESES_ANO.map((mes) => ({ mes, receita: 0, despesa: 0 }));
-
   const labels = listaMensal.map((item) => item.mes);
   const receita = listaMensal.map((item) => Number(item.receita || 0));
   const despesa = listaMensal.map((item) => Number(item.despesa || 0));
@@ -183,7 +246,7 @@ function iniciarGrafico(dados) {
           fill: true,
           tension: 0.35,
           pointRadius: 4,
-          pointBackgroundColor: "#10B981"
+          pointBackgroundColor: "#10B981",
         },
         {
           label: "Despesa",
@@ -194,7 +257,7 @@ function iniciarGrafico(dados) {
           fill: true,
           tension: 0.35,
           pointRadius: 4,
-          pointBackgroundColor: "#EF4444"
+          pointBackgroundColor: "#EF4444",
         },
       ],
     },
@@ -202,50 +265,47 @@ function iniciarGrafico(dados) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false }
+        legend: { display: false },
       },
       scales: {
         y: {
           beginAtZero: true,
           ticks: {
             callback: (val) => `R$ ${val}`,
-            color: "#6B7280"
+            color: "#6B7280",
           },
-          grid: { color: "#F3F4F6" }
+          grid: { color: "#F3F4F6" },
         },
         x: {
           ticks: { color: "#6B7280" },
-          grid: { display: false }
-        }
-      }
+          grid: { display: false },
+        },
+      },
     },
   });
 }
 
 /* ==========================================================================
-   INICIALIZAÇÃO ÚNICA DA PÁGINA
+   INICIALIZAÇÃO
    ========================================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
   initMenu();
 
-  // Tenta carregar dados da API se o endpoint e o elemento raiz existirem
   const dashboardRoot = document.getElementById("kpiReceita");
+  let dados = null;
 
   if (dashboardRoot && window.API) {
     try {
-      const dados = await window.API.get("/dashboard/resumo");
+      dados = await window.API.get("/dashboard/resumo");
       atualizarDashboard(dados);
       iniciarGrafico(dados);
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard:", error);
       showError("Não foi possível carregar os dados do dashboard.");
-
-      // Carrega o gráfico com fallback em caso de erro da API
       iniciarGrafico(null);
     }
   } else {
-    // Caso esteja testando localmente sem a API conectada
     iniciarGrafico(null);
   }
 });
