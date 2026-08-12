@@ -4,6 +4,7 @@ import { Responsavel } from "../models/model_responsavel";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Presenca } from "../models/model_presenca";
 import { Escola } from "../models/model_escola";
+import { criarItensItinerario, sincronizarItensItinerario } from "./service_itinerario"; // NOVO
 
 export class ServiceAluno {
   private get alunoRepository() {
@@ -79,6 +80,31 @@ export class ServiceAluno {
     return dados;
   }
 
+  // NOVO: mantém o itinerário em dia com o cadastro. Só mexe em
+  // itinerario_aluno se o aluno tiver turno + tipo_trajeto + condutor
+  // definidos — sem isso não tem como saber onde encaixá-lo na rota.
+  private async sincronizarItinerarioDoAluno(aluno: Aluno) {
+    // try/catch aqui de propósito: se a sincronização do itinerário
+    // falhar por qualquer motivo (tabela ausente, etc.), isso NÃO
+    // pode derrubar o cadastro/edição do aluno — só avisa no console.
+    try {
+      if (aluno.turno && aluno.tipo_trajeto && aluno.id_condutor) {
+        await sincronizarItensItinerario(
+          aluno.id_aluno,
+          aluno.id_condutor,
+          aluno.turno as any,
+          aluno.tipo_trajeto as any
+        );
+      } else {
+        // Ficou incompleto (perdeu turno/tipo/condutor) — remove
+        // qualquer entrada antiga de itinerário que tenha sobrado.
+        await AppDataSource.query("DELETE FROM itinerario_aluno WHERE id_aluno = ?", [aluno.id_aluno]);
+      }
+    } catch (error) {
+      console.error("Falha ao sincronizar itinerário do aluno:", error);
+    }
+  }
+
   async listarResponsaveis() {
     return await this.responsavelRepository.find({
       select: {
@@ -135,12 +161,39 @@ export class ServiceAluno {
     return aluno;
   }
 
+  private normalizarTurno(turno: any): "MANHA" | "TARDE" | null {
+    const valor = String(turno ?? "").trim().toUpperCase();
+
+    if (!valor) return null;
+
+    if (valor === "MANHA" || valor === "TARDE") {
+      return valor;
+    }
+
+    throw new Error("Turno inválido. Use MANHA ou TARDE.");
+  }
+
+  private normalizarTipoTrajeto(tipo: any): "IDA" | "VOLTA" | "AMBOS" | null {
+    const valor = String(tipo ?? "").trim().toUpperCase();
+
+    if (!valor) return null;
+
+    if (valor === "IDA" || valor === "VOLTA" || valor === "AMBOS") {
+      return valor;
+    }
+
+    throw new Error("Tipo de trajeto inválido. Use IDA, VOLTA ou AMBOS.");
+  }
+
   async criar(dados: Partial<Aluno> & any) {
     this.limparCamposAntigos(dados);
 
     if (!dados.nome?.trim()) {
       throw new Error("Nome do aluno é obrigatório");
     }
+
+    const turno = this.normalizarTurno(dados.turno);
+    const tipoTrajeto = this.normalizarTipoTrajeto(dados.tipo_trajeto);
 
     const responsavel = await this.validarResponsavel(dados.id_responsavel);
     const escola = await this.validarEscola(dados.id_escola);
@@ -149,16 +202,33 @@ export class ServiceAluno {
       nome: dados.nome.trim(),
       bairro: dados.bairro?.trim() || null,
       id_escola: escola.id_escola,
-      turno: dados.turno || null,
+      turno,
       endereco_embarque: dados.endereco_embarque?.trim() || null,
       endereco_desembarque: dados.endereco_desembarque?.trim() || null,
-      tipo_trajeto: dados.tipo_trajeto || null,
+      tipo_trajeto: tipoTrajeto,
       foto: dados.foto || null,
       id_responsavel: responsavel.id_responsavel,
       id_condutor: dados.id_condutor ? Number(dados.id_condutor) : null,
     });
 
     await this.alunoRepository.save(aluno);
+
+    // NOVO: gera as entradas do itinerário (ida/volta) se já tiver
+    // turno + tipo_trajeto + condutor definidos no cadastro.
+    // try/catch de propósito — problema no itinerário não pode
+    // impedir o aluno de ser cadastrado.
+    try {
+      if (aluno.turno && aluno.tipo_trajeto && aluno.id_condutor) {
+        await criarItensItinerario(
+          aluno.id_aluno,
+          aluno.id_condutor,
+          aluno.turno as any,
+          aluno.tipo_trajeto as any
+        );
+      }
+    } catch (error) {
+      console.error("Falha ao criar itens do itinerário:", error);
+    }
 
     return await this.buscarPorID(aluno.id_aluno);
   }
@@ -197,7 +267,7 @@ export class ServiceAluno {
     }
 
     if (dados.turno !== undefined) {
-      aluno.turno = dados.turno || null;
+      aluno.turno = this.normalizarTurno(dados.turno);
     }
 
     if (dados.endereco_embarque !== undefined) {
@@ -209,7 +279,7 @@ export class ServiceAluno {
     }
 
     if (dados.tipo_trajeto !== undefined) {
-      aluno.tipo_trajeto = dados.tipo_trajeto || null;
+      aluno.tipo_trajeto = this.normalizarTipoTrajeto(dados.tipo_trajeto);
     }
 
     if (dados.foto !== undefined) {
@@ -221,6 +291,11 @@ export class ServiceAluno {
     }
 
     await this.alunoRepository.save(aluno);
+
+    // NOVO: sincroniza o itinerário com o turno/tipo_trajeto/condutor
+    // atuais do aluno (cria o que falta, remove o que não vale mais,
+    // sem mexer na ordem do que continua válido).
+    await this.sincronizarItinerarioDoAluno(aluno);
 
     return await this.buscarPorID(aluno.id_aluno);
   }
@@ -241,6 +316,11 @@ export class ServiceAluno {
     */
     await this.presencaRepository.delete({ id_aluno });
     await this.mensalidadeRepository.delete({ id_aluno });
+    try {
+      await AppDataSource.query("DELETE FROM itinerario_aluno WHERE id_aluno = ?", [id_aluno]); // NOVO
+    } catch (error) {
+      console.error("Falha ao limpar itinerário do aluno excluído:", error);
+    }
 
     await this.alunoRepository.remove(aluno);
 

@@ -48,15 +48,15 @@ function obterParametrosFluxo() {
 
 function mapTrajetoOrcamento(tipo) {
   const valor = String(tipo || "").toUpperCase();
-  if (valor === "IDA") return "ir";
-  if (valor === "VOLTA") return "voltar";
-  return "ambos";
+  if (valor === "IDA") return "IDA";
+  if (valor === "VOLTA") return "VOLTA";
+  return "AMBOS";
 }
 
 function mapTurnoOrcamento(turno) {
   const valor = String(turno || "").toUpperCase();
-  if (valor === "TARDE") return "tarde";
-  return "manha";
+  if (valor === "TARDE") return "TARDE";
+  return "MANHA";
 }
 
 function definirCamposResponsavelFluxo(responsavel, bloquear) {
@@ -110,12 +110,13 @@ async function iniciarFluxoCadastro() {
   if (fluxoCadastro === "orcamento" && idOrcamentoFluxo) {
     try {
       const orcamento = await window.API.get(`/orcamentos/${idOrcamentoFluxo}`);
+      const escola = buscarEscolaPorNome(orcamento.escola || "");
 
       if (el.escolaAluno) el.escolaAluno.value = encontrarEscolaPorNome(orcamento.escola) || "";
       if (el.enderecoEmbarque) el.enderecoEmbarque.value = orcamento.endereco_embarque || "";
       if (el.enderecoDesembarque) el.enderecoDesembarque.value = orcamento.endereco_desembarque || "";
       if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = mapTrajetoOrcamento(orcamento.tipo_trajeto);
-      if (el.periodoAluno) el.periodoAluno.value = mapTurnoOrcamento(orcamento.turno);
+      if (el.turnoAluno) el.turnoAluno.value = mapTurnoOrcamento(orcamento.turno);
     } catch (error) {
       console.error(error);
       showWarning("Não foi possível carregar os dados do orçamento para pré-preencher o aluno.");
@@ -160,8 +161,6 @@ function mapearAlunoApi(item) {
     nome: item.nome || "",
     responsavel1: item.responsavel?.nome || "",
     telefone1: item.responsavel?.telefone || "",
-    responsavel2: "",
-    telefone2: "",
     embarque: item.endereco_embarque || "",
     desembarque: item.endereco_desembarque || "",
     foto: toUrlFoto(item.foto),
@@ -269,13 +268,31 @@ function aplicarMascaraEndereco(valor) {
   return valor
     .replace(/[^0-9A-Za-zÀ-ÖØ-öø-ÿ.,º°ª\-\/\s]/g, "")
     .replace(/\s{2,}/g, " ")
-    .slice(0, 140);
+    .slice(0, 255);
+}
+
+function aplicarMascaraBairro(valor) {
+  return String(valor || "")
+    .replace(/[^A-Za-zÀ-ÖØ-öø-ÿ0-9\s\-]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .slice(0, 100);
+}
+
+function validarTurno(valor) {
+  const turno = String(valor || "").trim().toUpperCase();
+  return ["MANHA", "TARDE"].includes(turno);
+}
+
+function validarTipoTrajeto(valor) {
+  const tipo = String(valor || "").trim().toUpperCase();
+  return ["IDA", "VOLTA", "AMBOS"].includes(tipo);
 }
 
 function configurarMascaras() {
-  const camposNome = [el.nomeAluno, el.nomeResponsavel1, el.nomeResponsavel2];
-  const camposTelefone = [el.telefoneResponsavel1, el.telefoneResponsavel2];
+  const camposNome = [el.nomeAluno, el.nomeResponsavel1];
+  const camposTelefone = [el.telefoneResponsavel1];
   const camposEndereco = [el.enderecoEmbarque, el.enderecoDesembarque];
+  const camposBairro = [el.bairroAluno];
 
   camposNome.forEach((campo) => campo && campo.addEventListener("input", () => (campo.value = aplicarMascaraNome(campo.value))));
   camposTelefone.forEach((campo) =>
@@ -283,6 +300,9 @@ function configurarMascaras() {
   );
   camposEndereco.forEach((campo) =>
     campo && campo.addEventListener("input", () => (campo.value = aplicarMascaraEndereco(campo.value)))
+  );
+  camposBairro.forEach((campo) =>
+    campo && campo.addEventListener("input", () => (campo.value = aplicarMascaraBairro(campo.value)))
   );
 }
 
@@ -349,25 +369,31 @@ function montarPayloadAluno() {
 
 async function salvarAluno(payload, idResponsavel) {
   const form = new FormData();
+
   form.append("nome", payload.nome);
-  form.append("endereco_embarque", payload.embarque);
-  form.append("endereco_desembarque", payload.desembarque);
-  if (idResponsavel) {
-    form.append("id_responsavel", String(idResponsavel));
-  } else {
-    form.append("responsavel_nome", payload.responsavel1);
-    form.append("responsavel_telefone", payload.telefone1);
+  form.append("id_responsavel", String(idResponsavel));
+  form.append("id_escola", String(payload.id_escola));
+  form.append("turno", payload.turno);
+  form.append("tipo_trajeto", payload.tipo_trajeto);
+
+  if (payload.endereco_embarque) {
+    form.append("endereco_embarque", payload.endereco_embarque);
+  }
+
+  if (payload.endereco_desembarque) {
+    form.append("endereco_desembarque", payload.endereco_desembarque);
   }
   form.append("id_escola", String(payload.idEscola));
   const tipoTrajetoApi = payload.tipoTrajeto === "ir" ? "IDA" : payload.tipoTrajeto === "voltar" ? "VOLTA" : "AMBOS";
   const turnoApi = payload.periodo ? payload.periodo.toUpperCase() : "MANHA";
 
-    form.append("tipo_trajeto", tipoTrajetoApi);
-    form.append("turno", turnoApi);
+  if (payload.bairro) {
+    form.append("bairro", payload.bairro);
+  }
 
-    if (el.fotoAluno?.files?.[0]) {
-        form.append("foto", el.fotoAluno.files[0]);
-    }
+  if (payload.foto) {
+    form.append("foto", payload.foto);
+  }
 
   if (payload.id) {
     await window.API.put(`/alunos/${payload.id}`, form);
@@ -490,7 +516,7 @@ function obterAlunosFiltrados() {
   const ordem = el.filtroOrdem ? el.filtroOrdem.value : "alfabetica";
 
   let lista = alunos.filter((aluno) => {
-    const textoBusca = [aluno.nome, aluno.responsavel1, aluno.responsavel2, aluno.escola, aluno.embarque, aluno.desembarque]
+    const textoBusca = [aluno.nome, aluno.responsavel1, aluno.telefone1, aluno.escola, aluno.embarque, aluno.desembarque]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
@@ -541,22 +567,17 @@ function renderizarTabela(lista) {
       <td>${obterDescricaoTrajeto(aluno.tipoTrajeto)}</td>
       <td>
         <span class="linha-texto">${aluno.responsavel1 || "-"}</span>
-        ${aluno.responsavel2 ? `<span class="linha-texto">${aluno.responsavel2}</span>` : ""}
-        </td>
+      </td>
       <td>
         <span class="linha-texto">${aluno.telefone1 || "-"}</span>
-        ${aluno.telefone2 ? `<span class="linha-texto">${aluno.telefone2}</span>` : ""}
-        </td>
+      </td>
       <td>${aluno.embarque || "-"}</td>
       <td>${aluno.desembarque || "-"}</td>
       <td>
         ${usuarioEhMonitor() ? `<span class="texto-somente-leitura">Somente visualização</span>` : `
         <div class="actions">
           <button class="icon-btn edit" data-id="${aluno.id}" data-action="editar" aria-label="Editar aluno">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-              <path d="M12 20h9"></path>
-              <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
-            </svg>
+            Editar
           </button>
           <button class="icon-btn delete" data-id="${aluno.id}" data-action="excluir" aria-label="Excluir aluno">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
@@ -652,11 +673,14 @@ function configurarFormulario() {
     const payload = montarPayloadAluno();
     const fluxoAtivo = emFluxoCadastro() && !payload.id;
     
-    if (!fluxoAtivo) {
-      if (!payload.responsavel1 || payload.responsavel1.trim() === "") {
-        showWarning("O campo 'Responsável 1' é obrigatório.");
-        return;
-      }
+      if (!payload.nome || !payload.id_escola) {
+      showWarning("Preencha nome e escola do aluno.");
+      return;
+    }
+
+    if (!validarTurno(payload.turno)) {
+      showWarning("Selecione um turno válido: MANHA ou TARDE.");
+      return;
     }
 
     // Validação dos campos obrigatórios do aluno
@@ -672,24 +696,21 @@ function configurarFormulario() {
       return;
     }
 
-    // Validação de período
-    if (!payload.periodo) {
-      console.warn('Validação de período falhou.');
-      showWarning("Selecione o período do aluno.");
+    if (!payload.id_responsavel) {
+      showWarning("É necessário vincular o aluno a um responsável válido.");
       return;
     }
 
     if (!fluxoAtivo) {
       const responsavelSelecionado = encontrarResponsavelPorNome(payload.responsavel1);
-      
+
       if (!responsavelSelecionado) {
-        showWarning("Responsável não encontrado. O cadastro de novos alunos deve ser feito pelo fluxo de aprovação de orçamento.");
+        showWarning("Responsável não encontrado para o vínculo do aluno.");
         return;
       }
 
-      payload.responsavel1 = responsavelSelecionado.nome || payload.responsavel1;
-      payload.telefone1 = aplicarMascaraTelefone(responsavelSelecionado.telefone || "");
-      if (el.telefoneResponsavel1) el.telefoneResponsavel1.value = payload.telefone1;
+      payload.id_responsavel = responsavelSelecionado.id_responsavel;
+      if (el.telefoneResponsavel1) el.telefoneResponsavel1.value = aplicarMascaraTelefone(responsavelSelecionado.telefone || "");
     }
 
     try {
@@ -710,15 +731,15 @@ function configurarFormulario() {
       renderizar();
 
       if (fluxoAtivo && alunoSalvo) {
-        redirecionarParaMensalidade(alunoSalvo, payload.vencimento);
+        redirecionarParaMensalidade(alunoSalvo, payload.turno);
         return;
       }
-      
+
       await showSuccess(
         `${payload.id ? "Aluno atualizado" : "Aluno cadastrado"} com sucesso!\n\n` +
         `Nome: ${payload.nome}\n` +
-        `Período: ${payload.periodo === "manha" ? "Manhã" : "Tarde"}\n` +
-        `Trajeto: ${payload.tipoTrajeto === "ir" ? "Ida" : payload.tipoTrajeto === "voltar" ? "Volta" : "Ida e Volta"}`
+        `Turno: ${payload.turno}\n` +
+        `Tipo de trajeto: ${payload.tipo_trajeto}`
       );
     } catch (error) {
       console.error('Erro ao salvar aluno:', error);
@@ -776,8 +797,7 @@ function obterElementos() {
     nomeAluno: document.getElementById("nomeAluno"),
     nomeResponsavel1: document.getElementById("nomeResponsavel1"),
     telefoneResponsavel1: document.getElementById("telefoneResponsavel1"),
-    nomeResponsavel2: document.getElementById("nomeResponsavel2"),
-    telefoneResponsavel2: document.getElementById("telefoneResponsavel2"),
+    bairroAluno: document.getElementById("bairroAluno"),
     enderecoEmbarque: document.getElementById("enderecoEmbarque"),
     enderecoDesembarque: document.getElementById("enderecoDesembarque"),
     fotoAluno: document.getElementById("fotoAluno"),
@@ -785,9 +805,8 @@ function obterElementos() {
     previewFoto: document.getElementById("previewFoto"),
     avatarModalAluno: document.getElementById("avatarModalAluno"),
     escolaAluno: document.getElementById("escolaAluno"),
-    vencimentoAluno: document.getElementById("vencimentoAluno"),
+    turnoAluno: document.getElementById("turnoAluno"),
     tipoTrajetoAluno: document.getElementById("tipoTrajetoAluno"),
-    periodoAluno: document.getElementById("periodoAluno"),
     inputBusca: document.getElementById("inputBusca"),
     tbodyAlunos: document.getElementById("tbodyAlunos"),
     emptyState: document.getElementById("emptyState"),
@@ -818,6 +837,7 @@ function abrirModalNovo() {
     el.telefoneResponsavel1.required = false;
     el.telefoneResponsavel1.readOnly = false;
   }
+  if (el.bairroAluno) el.bairroAluno.value = "";
   if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   esconderPreviewFoto();
   if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
@@ -962,9 +982,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const monitor = usuarioEhMonitor();
 
+  escolas = await carregarEscolas();
   alunos = await carregarAlunos();
   responsaveis = monitor ? [] : await carregarResponsaveis();
   escolasDisponiveis = await carregarEscolas();
+
+  renderizarOpcoesEscola();
 
   configurarModal();
   configurarBuscaEFiltros();

@@ -1,9 +1,23 @@
 -- =====================================================
--- SCHEMA PROTE ADM - v1.8
+-- SCHEMA PROTE ADM - v1.10
 -- =====================================================
--- ALTERAÇÕES NESTA VERSÃO EM RELAÇÃO À v1.7:
+-- ALTERAÇÕES NESTA VERSÃO EM RELAÇÃO À v1.9:
 --
--- 1) RELACIONAMENTO CONDUTOR <-> MONITOR INVERTIDO
+-- 1.0) Campos Enum de turno, removido a opção NOITE
+--
+-- 1) NOVA TABELA: ITINERARIO_ALUNO (módulo Itinerários)
+--    - Guarda a ORDEM manual (arrastada pelo monitor/condutor
+--      na tela de Alunos), separada do cadastro em si.
+--    - Um aluno com tipo_trajeto = 'AMBOS' gera DUAS linhas aqui
+--      (uma 'IDA', uma 'VOLTA') — cada uma arrastável e ordenável
+--      de forma independente dentro do turno.
+--    - FK para aluno(id_aluno) com ON DELETE CASCADE: excluiu o
+--      aluno, some do itinerário automaticamente.
+--    - ordem é sempre numerada por turno + condutor, então a fila
+--      de um condutor nunca interfere na de outro.
+--
+-- (changelog da v1.8 mantido abaixo para referência)
+-- 2) RELACIONAMENTO CONDUTOR <-> MONITOR INVERTIDO
 --    - Antes: condutor.id_monitor -> monitor (1 condutor apontava
 --      para 1 monitor). Isso não representava a regra de negócio real
 --      (um condutor pode ter VÁRIOS monitores).
@@ -12,7 +26,7 @@
 --    - Os campos condutor.id_monitor e condutor.possui_monitor foram
 --      REMOVIDOS, pois deixaram de fazer sentido com a FK invertida.
 --
--- 2) EXCLUSÃO LÓGICA (novo módulo Controle de Acessos)
+-- 3) EXCLUSÃO LÓGICA (novo módulo Controle de Acessos)
 --    - Adicionada a coluna "ativo BOOLEAN NOT NULL DEFAULT TRUE" nas
 --      tabelas condutor e monitor.
 --    - O DELETE do módulo de Acessos não remove a linha do banco,
@@ -48,7 +62,7 @@ CREATE TABLE condutor (
     token_recuperacao VARCHAR(255),
     expiracao_recuperacao DATETIME,
 
-    -- NOVO (v1.8): exclusão lógica
+    -- exclusão lógica
     ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
@@ -65,12 +79,12 @@ CREATE TABLE monitor (
     token_recuperacao VARCHAR(255),
     expiracao_recuperacao DATETIME,
 
-    -- NOVO (v1.8): todo monitor pertence obrigatoriamente a um condutor.
+    -- todo monitor pertence obrigatoriamente a um condutor.
     -- Preenchido automaticamente pelo backend a partir do condutor
     -- autenticado (req.user), nunca escolhido pelo frontend.
     id_condutor INT NOT NULL,
 
-    -- NOVO (v1.8): exclusão lógica
+    -- exclusão lógica
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
 
     FOREIGN KEY (id_condutor)
@@ -111,7 +125,7 @@ CREATE TABLE aluno (
     nome VARCHAR(100) NOT NULL,
     bairro VARCHAR(100),
     id_escola INT NOT NULL,
-    turno ENUM('MANHA','TARDE','NOITE'),
+    turno ENUM('MANHA','TARDE'),
     endereco_embarque VARCHAR(255),
     endereco_desembarque VARCHAR(255),
     tipo_trajeto ENUM('IDA','VOLTA','AMBOS'),
@@ -137,6 +151,35 @@ CREATE TABLE aluno (
 );
 
 -- =========================
+-- TABELA: ITINERARIO_ALUNO   (NOVO — v1.9)
+-- =========================
+-- Fica logo depois de "aluno" porque depende dela (e de condutor).
+-- Não mexe em nada da tabela aluno: turno e tipo_trajeto já
+-- existiam lá e continuam sendo a fonte da verdade do cadastro.
+CREATE TABLE itinerario_aluno (
+    id_itinerario INT AUTO_INCREMENT PRIMARY KEY,
+    id_aluno      INT NOT NULL,
+    id_condutor   INT NOT NULL,
+    turno         ENUM('MANHA','TARDE','NOITE') NOT NULL,
+    tipo          ENUM('IDA','VOLTA') NOT NULL,
+    ordem         INT NOT NULL,
+    criado_em     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_aluno)
+    REFERENCES aluno(id_aluno)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+    FOREIGN KEY (id_condutor)
+    REFERENCES condutor(id_condutor)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+    -- impede o mesmo aluno aparecer duas vezes com o mesmo tipo no mesmo turno
+    UNIQUE KEY uk_aluno_turno_tipo (id_aluno, turno, tipo)
+);
+
+-- =========================
 -- TABELA: ORCAMENTO
 -- =========================
 CREATE TABLE orcamento (
@@ -145,7 +188,7 @@ CREATE TABLE orcamento (
     telefone VARCHAR(20) NOT NULL,
     bairro VARCHAR(100),
     escola VARCHAR(150),
-    turno ENUM('MANHA','TARDE','NOITE'),
+    turno ENUM('MANHA','TARDE'),
     quantidade_alunos INT NOT NULL DEFAULT 1,
     tipo_trajeto ENUM('IDA','VOLTA','AMBOS'),
     endereco_embarque VARCHAR(255),
@@ -252,7 +295,7 @@ INSERT INTO condutor (nome, email, senha, telefone, escolas, foto)
 VALUES (
     'Carlos Souza',
     'liametechnologies@gmail.com',
-    '$2a$10$7fAHxESMFev.n3JnpJDcI.3CqrxRSj9.d/4sxMDDM/9KI7QSnpUGG',
+    '123456',
     '11988888888',
     'Escola Estadual São Paulo',
     'carlos.jpg'
@@ -301,6 +344,48 @@ VALUES (
     1
 );
 
+-- =========================
+-- ITINERARIO_ALUNO   (NOVO — v1.9)
+-- =========================
+-- Backfill: gera automaticamente as entradas de itinerário pra
+-- todo aluno já cadastrado acima. Fica DEPOIS do INSERT de aluno
+-- (precisa que os alunos já existam) e ANTES do restante, pra já
+-- deixar tudo pronto quando o SELECT de testes rodar lá embaixo.
+-- Requer MySQL 8+ ou MariaDB 10.2+ (função ROW_NUMBER).
+
+-- 1) Entradas de IDA (tipo_trajeto IDA ou AMBOS)
+INSERT INTO itinerario_aluno (id_aluno, id_condutor, turno, tipo, ordem)
+SELECT
+    a.id_aluno,
+    a.id_condutor,
+    a.turno,
+    'IDA',
+    ROW_NUMBER() OVER (PARTITION BY a.turno, a.id_condutor ORDER BY a.id_aluno)
+FROM aluno a
+WHERE a.tipo_trajeto IN ('IDA', 'AMBOS')
+  AND a.turno IS NOT NULL
+  AND a.id_condutor IS NOT NULL;
+
+-- 2) Entradas de VOLTA (tipo_trajeto VOLTA ou AMBOS), continuando a
+--    numeração depois das entradas de IDA do mesmo turno/condutor.
+INSERT INTO itinerario_aluno (id_aluno, id_condutor, turno, tipo, ordem)
+SELECT
+    a.id_aluno,
+    a.id_condutor,
+    a.turno,
+    'VOLTA',
+    (
+      SELECT COUNT(*) FROM itinerario_aluno ia
+      WHERE ia.turno = a.turno AND ia.id_condutor = a.id_condutor
+    )
+    + ROW_NUMBER() OVER (PARTITION BY a.turno, a.id_condutor ORDER BY a.id_aluno)
+FROM aluno a
+WHERE a.tipo_trajeto IN ('VOLTA', 'AMBOS')
+  AND a.turno IS NOT NULL
+  AND a.id_condutor IS NOT NULL;
+
+
+
 INSERT INTO presenca (id_aluno, data, status)
 VALUES (1, '2026-04-10', 'PRESENTE');
 
@@ -342,6 +427,7 @@ SELECT * FROM monitor;
 SELECT * FROM responsavel;
 SELECT * FROM escola;
 SELECT * FROM aluno;
+SELECT * FROM itinerario_aluno;
 SELECT * FROM presenca;
 SELECT * FROM mensalidade;
 SELECT * FROM orcamento;

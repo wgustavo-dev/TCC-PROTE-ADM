@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -20,7 +21,7 @@
             ".nav-item[data-page=\"presenca\"], .nav-item[data-page=\"alunos\"] { display: flex !important; }";
           document.head.appendChild(estilo);
         }
-      } catch (erro) {}
+      } catch (erro) { }
     })();
   </script>
   <title>PROTE — Alunos</title>
@@ -29,10 +30,13 @@
   <link rel="stylesheet" href="css/alunos.css" />
   <link rel="stylesheet" href="core/alerts.css" />
   <link rel="stylesheet" href="css/formularios.css">
+  <link rel="stylesheet" href="../css/perfil-widget.css">
+   <link rel="stylesheet" href="css/itinerarios.css">
 </head>
+
 <body>
   <div class="fundo-escuro" id="fundoEscuro"></div>
-    <div class="layout">
+  <div class="layout">
     <header class="barra-topo">
       <button class="botao-menu" id="botaoMenu" aria-label="Abrir menu">
         <span></span>
@@ -51,39 +55,76 @@
 
       <nav class="nav">
         <a href="index.html" class="nav-item" data-page="dashboard">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+          </svg>
           Dashboard
         </a>
         <a href="despesas.html" class="nav-item" data-page="despesas">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="2" x2="12" y2="22"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
           Despesas
         </a>
         <a href="documentos.html" class="nav-item" data-page="documentos">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8"></path><path d="M8 17h5"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <path d="M14 2v6h6"></path>
+            <path d="M8 13h8"></path>
+            <path d="M8 17h5"></path>
+          </svg>
           Documentos
         </a>
         <a href="responsaveis.html" class="nav-item" data-page="responsaveis">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
           Responsáveis
         </a>
         <a href="alunos.html" class="nav-item active" data-page="alunos">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
           Alunos
         </a>
         <a href="orcamento.html" class="nav-item" data-page="orcamento">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <path d="M14 2v6h6"></path>
+            <path d="M12 18v-6"></path>
+            <path d="M9 15h6"></path>
+          </svg>
           Orçamento
         </a>
         <a href="mensalidade.html" class="nav-item" data-page="mensalidades">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path><path d="M6 15h4"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <path d="M2 10h20"></path>
+            <path d="M6 15h4"></path>
+          </svg>
           Mensalidades
         </a>
         <a href="presenca.html" class="nav-item" data-page="presenca">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
           Presença
         </a>
         <a href="acessos.html" class="nav-item" data-page="acessos">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path><circle cx="12" cy="16" r="1"></circle></svg>
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            <circle cx="12" cy="16" r="1"></circle>
+          </svg>
           Acessos
         </a>
         <a href="escolas.html" class="nav-item" data-page="escolas">
@@ -91,6 +132,15 @@
           Escolas
         </a>
       </nav>
+
+      <!-- PERFIL -->
+
+      <div class="sidebar-footer">
+
+        <div id="perfil-widget-root"></div>
+
+      </div>
+
     </aside>
 
     <main class="main">
@@ -106,13 +156,17 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" id="inputBusca" class="input-busca" placeholder="Buscar por aluno..." />
+       <input
+         type="text"
+         id="inputBusca"
+         class="input-busca"
+          placeholder="Buscar por aluno..." />
       </div>
-  <div class="barra-filtro">
-        <button type="button" class="botao-filtro" id="botaoFiltroAluno"> 
+      <div class="barra-filtro">
+        <button type="button" class="botao-filtro" id="botaoFiltroAluno">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-          </svg> 
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
           Filtro
         </button>
       </div>
@@ -145,7 +199,7 @@
               <option value="ambos">Ida e Volta</option>
             </select>
           </div>
-                    <div class="grupo-filtro">
+          <div class="grupo-filtro">
             <label class="label-filtro" for="filtroTurmaAluno">Lista de itinerário</label>
             <select id="filtroTurmaAluno" class="input-filtro">
               <option value="">Todas as listas</option>
@@ -183,6 +237,99 @@
           Nenhum aluno cadastrado ainda.
         </div>
       </div>
+
+<!--Itinerário-->
+<section class="itinerarios-card">
+  <div class="itinerarios-topo">
+    <div>
+      <div class="itinerarios-titulo-grupo">
+        <p class="itinerarios-titulo">Itinerários</p>
+        <span class="modo-indicador" id="modoIndicador">🔒 Somente visualização</span>
+      </div>
+      <p class="itinerarios-subtitulo" id="itinerariosSubtitulo">Ordem atual dos alunos por período</p>
+    </div>
+    <div class="filtro-grupo">
+      <span class="filtro-label">Período:</span>
+      <button class="filtro-btn filtro-ativo" data-filtro="todos">Todos</button>
+      <button class="filtro-btn" data-filtro="manha">☀️ Manhã <small>6h-8h30</small></button>
+      <button class="filtro-btn" data-filtro="tarde">🌤️ Tarde <small>11h-14h30</small></button>
+      <button class="filtro-btn" data-filtro="noite">🌙 Noite <small>16h-20h</small></button>
+    </div>
+  </div>
+
+  <div class="periodos-grid" id="periodosGrid">
+
+    <div class="periodo-coluna" data-periodo="manha">
+      <div class="periodo-header">
+        <span class="periodo-icone">☀️</span>
+        <div class="periodo-titulo-grupo">
+          <span class="periodo-titulo">Manhã</span>
+          <span class="periodo-horario">6h - 8h30</span>
+        </div>
+        <span class="periodo-contagem" data-contagem="manha">0 alunos</span>
+        <button class="periodo-toggle" data-toggle="manha" aria-label="Recolher período">⌄</button>
+      </div>
+      <div class="aluno-lista-cabecalho">
+        <span class="cabecalho-espaco-handle" aria-hidden="true"></span>
+        <span class="cabecalho-ordem">Ordem</span>
+        <span class="cabecalho-espaco-avatar" aria-hidden="true"></span>
+        <span class="cabecalho-aluno">Aluno</span>
+        <span class="cabecalho-tipo">Tipo</span>
+      </div>
+      <ul class="aluno-lista" data-periodo="manha"></ul>
+    </div>
+
+    <div class="periodo-coluna recolhido" data-periodo="tarde">
+      <div class="periodo-header">
+        <span class="periodo-icone">🌤️</span>
+        <div class="periodo-titulo-grupo">
+          <span class="periodo-titulo">Tarde</span>
+          <span class="periodo-horario">11h - 14h30</span>
+        </div>
+        <span class="periodo-contagem" data-contagem="tarde">0 alunos</span>
+        <button class="periodo-toggle" data-toggle="tarde" aria-label="Expandir período">⌄</button>
+      </div>
+      <div class="aluno-lista-cabecalho">
+        <span class="cabecalho-espaco-handle" aria-hidden="true"></span>
+        <span class="cabecalho-ordem">Ordem</span>
+        <span class="cabecalho-espaco-avatar" aria-hidden="true"></span>
+        <span class="cabecalho-aluno">Aluno</span>
+        <span class="cabecalho-tipo">Tipo</span>
+      </div>
+      <ul class="aluno-lista" data-periodo="tarde"></ul>
+    </div>
+
+    <div class="periodo-coluna recolhido" data-periodo="noite">
+      <div class="periodo-header">
+        <span class="periodo-icone">🌙</span>
+        <div class="periodo-titulo-grupo">
+          <span class="periodo-titulo">Noite</span>
+          <span class="periodo-horario">16h - 20h</span>
+        </div>
+        <span class="periodo-contagem" data-contagem="noite">0 alunos</span>
+        <button class="periodo-toggle" data-toggle="noite" aria-label="Expandir período">⌄</button>
+      </div>
+      <div class="aluno-lista-cabecalho">
+        <span class="cabecalho-espaco-handle" aria-hidden="true"></span>
+        <span class="cabecalho-ordem">Ordem</span>
+        <span class="cabecalho-espaco-avatar" aria-hidden="true"></span>
+        <span class="cabecalho-aluno">Aluno</span>
+        <span class="cabecalho-tipo">Tipo</span>
+      </div>
+      <ul class="aluno-lista" data-periodo="noite"></ul>
+    </div>
+
+  </div>
+
+  <div class="itinerarios-rodape">
+    <button class="btn-secundario" id="btnCancelarOrdem" hidden>Cancelar</button>
+    <button class="btn-editar" id="btnEditarOrdem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Editar ordem</button>
+    <button class="btn-salvar" id="btnSalvarOrdem" hidden>Salvar ordem</button>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
     </main>
   </div>
 
@@ -198,8 +345,11 @@
 
         <div class="foto-primeiro-bloco">
           <div class="avatar-modal-aluno" id="avatarModalAluno" aria-hidden="true">
-            <svg id="avatarPlaceholderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 7a2 2 0 0 1 2-2h3l1.2-1.6A2 2 0 0 1 10.8 3h2.4a2 2 0 0 1 1.6.8L16 5h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <svg id="avatarPlaceholderIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M3 7a2 2 0 0 1 2-2h3l1.2-1.6A2 2 0 0 1 10.8 3h2.4a2 2 0 0 1 1.6.8L16 5h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z">
+              </path>
               <circle cx="12" cy="12" r="3.6"></circle>
             </svg>
             <img id="previewFoto" alt="Pré-visualização da foto do aluno" />
@@ -227,13 +377,8 @@
         </div>
 
         <div class="grupo-filtro">
-          <label class="label-filtro" for="nomeResponsavel2">Nome do responsável 2</label>
-          <input type="text" id="nomeResponsavel2" class="input-filtro" placeholder="Digite..." />
-        </div>
-
-        <div class="grupo-filtro">
-          <label class="label-filtro" for="telefoneResponsavel2">Contato 2</label>
-          <input type="text" id="telefoneResponsavel2" class="input-filtro" placeholder="(00) 00000-0000" />
+          <label class="label-filtro" for="bairroAluno">Bairro</label>
+          <input type="text" id="bairroAluno" class="input-filtro" placeholder="Digite o bairro..." />
         </div>
 
         <div class="grupo-filtro" id="grupoEnderecoEmbarque">
@@ -259,19 +404,19 @@
         </div>
 
         <div class="grupo-filtro">
-          <label class="label-filtro" for="tipoTrajetoAluno">Trajeto</label>
-          <select id="tipoTrajetoAluno" class="input-filtro" required>
-            <option value="ir">Ida</option>
-            <option value="voltar">Volta</option>
-            <option value="ambos" selected>Ida e Volta</option>
+          <label class="label-filtro" for="turnoAluno">Turno</label>
+          <select id="turnoAluno" class="input-filtro" required>
+            <option value="MANHA">MANHA</option>
+            <option value="TARDE">TARDE</option>
           </select>
         </div>
 
         <div class="grupo-filtro">
-          <label class="label-filtro" for="periodoAluno">Período</label>
-          <select id="periodoAluno" class="input-filtro" required>
-            <option value="manha">Manhã</option>
-            <option value="tarde">Tarde</option>
+          <label class="label-filtro" for="tipoTrajetoAluno">Tipo de trajeto</label>
+          <select id="tipoTrajetoAluno" class="input-filtro" required>
+            <option value="IDA">IDA</option>
+            <option value="VOLTA">VOLTA</option>
+            <option value="AMBOS" selected>AMBOS</option>
           </select>
         </div>
 
@@ -292,6 +437,10 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="core/alerts.js"></script>
   <script src="js/alunos.js"></script>
-
+  <script src="js/perfil-widget.js"></script>
+  <script src="js/perfil-init.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<script src="js/itinerarios.js"></script>
 </body>
+
 </html>

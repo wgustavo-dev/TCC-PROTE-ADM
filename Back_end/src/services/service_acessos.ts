@@ -53,6 +53,20 @@ export class ServiceAcessos {
     }
   }
 
+  private normalizarEmail(email: any): string {
+    const valor = String(email ?? "").trim().toLowerCase();
+
+    if (!valor) {
+      throw new Error("E-mail é obrigatório.");
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor)) {
+      throw new Error("E-mail informado é inválido.");
+    }
+
+    return valor;
+  }
+
   private formatarCondutor(condutor: Condutor) {
     return {
       id: condutor.id_condutor,
@@ -105,9 +119,7 @@ export class ServiceAcessos {
       throw new Error("Nome é obrigatório.");
     }
 
-    if (!dados.email?.trim()) {
-      throw new Error("E-mail é obrigatório.");
-    }
+    const email = this.normalizarEmail(dados.email);
 
     if (!dados.telefone?.trim()) {
       throw new Error("Telefone é obrigatório.");
@@ -117,7 +129,6 @@ export class ServiceAcessos {
       throw new Error("A senha deve ter no mínimo 6 caracteres.");
     }
 
-    const email = dados.email.trim().toLowerCase();
     await this.validarEmailDisponivel(email);
 
     const senhaCriptografada = await bcrypt.hash(dados.senha, 10);
@@ -195,8 +206,7 @@ export class ServiceAcessos {
       }
 
       if (dados.email !== undefined) {
-        const email = String(dados.email).trim().toLowerCase();
-        if (!email) throw new Error("E-mail é obrigatório.");
+        const email = this.normalizarEmail(dados.email);
         await this.validarEmailDisponivel(email, { tipo: "condutor", id });
         condutor.email = email;
       }
@@ -231,8 +241,7 @@ export class ServiceAcessos {
     }
 
     if (dados.email !== undefined) {
-      const email = String(dados.email).trim().toLowerCase();
-      if (!email) throw new Error("E-mail é obrigatório.");
+      const email = this.normalizarEmail(dados.email);
       await this.validarEmailDisponivel(email, { tipo: "monitor", id });
       monitor.email = email;
     }
@@ -308,7 +317,7 @@ export class ServiceAcessos {
       }
 
       const emailDestino =
-        dados.email !== undefined ? String(dados.email).trim().toLowerCase() : condutorOrigem.email;
+        dados.email !== undefined ? this.normalizarEmail(dados.email) : condutorOrigem.email;
       if (!emailDestino) throw new Error("E-mail é obrigatório.");
 
       // Cenário A: já existe um monitor (ativo ou inativo) com esse
@@ -386,7 +395,7 @@ export class ServiceAcessos {
     }
 
     const emailDestino =
-      dados.email !== undefined ? String(dados.email).trim().toLowerCase() : monitorOrigem.email;
+      dados.email !== undefined ? this.normalizarEmail(dados.email) : monitorOrigem.email;
     if (!emailDestino) throw new Error("E-mail é obrigatório.");
 
     // Cenário A: já existe um condutor (ativo ou inativo) com esse

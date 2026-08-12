@@ -13,20 +13,8 @@ function formatarDataBR(dataISO) {
   return `${partes[2]}/${partes[1]}/${partes[0]}`;
 }
 
-function formatarVencimentoRelativo(dataISO) {
-  if (!dataISO) return "";
-
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
-  const vencimento = new Date(`${String(dataISO).slice(0, 10)}T00:00:00`);
-  vencimento.setHours(0, 0, 0, 0);
-
-  const diffDias = Math.round((hoje - vencimento) / (1000 * 60 * 60 * 24));
-
-  if (diffDias === 0) return "hoje";
-  if (diffDias === 1) return "ontem";
-  return formatarDataBR(dataISO);
+function formatarNumero2Digitos(valor) {
+  return String(Number(valor) || 0).padStart(2, "0");
 }
 
 /* ==========================================================================
@@ -56,22 +44,8 @@ function initMenu() {
   fundoEscuro.addEventListener("click", fecharMenu);
 }
 
-function iniciarMapa() {
-  if (typeof L === "undefined") return;
-  const elementoMapa = document.getElementById("mapa-rotas");
-  if (!elementoMapa) return;
-
-  const mapa = L.map("mapa-rotas", { zoomControl: true, scrollWheelZoom: false }).setView([-23.5489, -46.6388], 13);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 19,
-  }).addTo(mapa);
-}
-
-function atualizarDashboard(dados) {
-  if (!dados) return;
-
-  // KPIs Superiores
+/* Linha 1 e 2: cards financeiros e indicadores operacionais */
+function atualizarKpis(dados) {
   const elReceita = document.getElementById("kpiReceita");
   if (elReceita) elReceita.textContent = formatarBRL(dados.receita_mensal);
 
@@ -81,80 +55,98 @@ function atualizarDashboard(dados) {
   const elLucro = document.getElementById("kpiLucro");
   if (elLucro) elLucro.textContent = formatarBRL(dados.lucro_mensal);
 
-  const elAlunos = document.getElementById("kpiAlunos");
-  if (elAlunos) elAlunos.textContent = String(dados.alunos_ativos || 0);
-
   const elPresenca = document.getElementById("kpiPresenca");
   if (elPresenca) elPresenca.textContent = `${Number(dados.presenca_media || 0).toFixed(1)}%`;
 
   const barraPresenca = document.getElementById("barraPresenca");
-  if (barraPresenca) barraPresenca.style.width = `${dados.presenca_media || 0}%`;
+  if (barraPresenca) barraPresenca.style.width = `${Math.min(100, Number(dados.presenca_media) || 0)}%`;
 
-  // Documentos
-  const documentos = dados.documentos || {};
-  const elDocsVencidos = document.getElementById("kpiDocsVencidos");
-  if (elDocsVencidos) elDocsVencidos.textContent = `${Number(documentos.vencidos || 0)} vencidos`;
+  const elAlunos = document.getElementById("kpiAlunos");
+  if (elAlunos) elAlunos.textContent = String(dados.alunos_ativos || 0);
 
-  const elDocsBreve = document.getElementById("kpiDocsVencemBreve");
-  if (elDocsBreve) elDocsBreve.textContent = `${Number(documentos.vencem_em_ate_7_dias || 0)} vencem em até 7 dias`;
-
-  // Resumo
-  const elResumoReceita = document.getElementById("resumoReceita");
-  if (elResumoReceita) elResumoReceita.textContent = formatarBRL(dados.resumo_financeiro?.receita_total);
-
-  const elResumoDespesas = document.getElementById("resumoDespesas");
-  if (elResumoDespesas) elResumoDespesas.textContent = formatarBRL(dados.resumo_financeiro?.despesas_total);
-
-  const elResumoSaldo = document.getElementById("resumoSaldo");
-  if (elResumoSaldo) elResumoSaldo.textContent = formatarBRL(dados.resumo_financeiro?.saldo_mensal);
-
-  // Banner
-  const saldo = Number(dados.resumo_financeiro?.saldo_mensal || 0);
-  const banner = document.getElementById("bannerSaldo");
-  const titulo = document.getElementById("tituloBanner");
-  const descricao = document.getElementById("descricaoBanner");
-
-  if (banner && titulo && descricao) {
-    if (saldo >= 0) {
-      banner.classList.remove("negativo");
-      titulo.textContent = "Operação saudável este mês!";
-      descricao.textContent = "Continue monitorando as despesas e receitas.";
-    } else {
-      banner.classList.add("negativo");
-      titulo.textContent = "Atenção: saldo negativo!";
-      descricao.textContent = "Suas despesas estão superando a receita.";
-    }
-  }
+  const elMonitores = document.getElementById("kpiMonitores");
+  if (elMonitores) elMonitores.textContent = formatarNumero2Digitos(dados.monitores_ativos);
 }
 
-function renderizarAlertas(alertas) {
-  const lista = document.getElementById("listaAlertas");
+/* Card "Alunos por escola" */
+function renderizarEscolas(escolas) {
+  const lista = document.getElementById("listaEscolas");
   if (!lista) return;
 
-  if (!Array.isArray(alertas) || !alertas.length) {
-    lista.innerHTML = '<p class="aviso-sem-dados">Nenhum alerta no momento.</p>';
+  if (!Array.isArray(escolas) || !escolas.length) {
+    lista.innerHTML = '<li class="aviso-sem-dados">Nenhum aluno cadastrado.</li>';
     return;
   }
 
-  const alertasOrdenados = [...alertas].sort((a, b) => {
-    const diffDias = (b.dias_atraso ?? 0) - (a.dias_atraso ?? 0);
-    if (diffDias !== 0) return diffDias;
-    return String(a.nome_aluno || "").localeCompare(String(b.nome_aluno || ""));
-  });
-
-  lista.innerHTML = alertasOrdenados
-    .map((item) => {
-      const nomeAluno = item.nome_aluno || "Aluno";
-
-      if (item.tipo === "vence_hoje") {
-        return `<div class="alerta alerta-amarelo"><p class="titulo-alerta amarelo">${nomeAluno}</p><p class="descricao-alerta amarelo">A mensalidade de ${nomeAluno} vence hoje.</p></div>`;
-      }
-
-      const quando = formatarVencimentoRelativo(item.data_vencimento);
-      return `<div class="alerta alerta-vermelho"><p class="titulo-alerta vermelho">${nomeAluno}</p><p class="descricao-alerta vermelho">A mensalidade de ${nomeAluno} venceu ${quando}.</p></div>`;
-    })
+  lista.innerHTML = escolas
+    .map((item) => `<li><span>${item.nome}</span> <strong>${item.total}</strong></li>`)
     .join("");
 }
+
+/* Linha 3: listas de próximos e últimos pagamentos */
+function renderizarListaPagamentos(elementId, pagamentos, campoData, corValor, mensagemVazio) {
+  const container = document.getElementById(elementId);
+  if (!container) return;
+
+  if (!Array.isArray(pagamentos) || !pagamentos.length) {
+    container.innerHTML = `<p class="aviso-sem-dados">${mensagemVazio}</p>`;
+    return;
+  }
+
+  container.innerHTML = pagamentos
+    .map((item) => `
+      <div class="item-pagamento">
+        <span class="nome-pagamento">${item.nome_aluno} — mensalidade</span>
+        <span class="data-pagamento">${formatarDataBR(item[campoData])}</span>
+        <span class="valor-pagamento ${corValor}">${formatarBRL(item.valor)}</span>
+      </div>
+    `)
+    .join("");
+}
+
+/* Linha 5: cards de Documentos e Orçamentos */
+function atualizarDocumentosEOrcamentos(dados) {
+  const documentos = dados.documentos || {};
+  const elDocsVencemBreve = document.getElementById("kpiDocsVencemBreve");
+  if (elDocsVencemBreve) elDocsVencemBreve.textContent = String(documentos.vencem_em_ate_7_dias || 0);
+
+  const elDocsVencidos = document.getElementById("kpiDocsVencidos");
+  if (elDocsVencidos) elDocsVencidos.textContent = String(documentos.vencidos || 0);
+
+  const orcamentos = dados.orcamentos || {};
+  const elOrcPendentes = document.getElementById("kpiOrcamentosPendentes");
+  if (elOrcPendentes) elOrcPendentes.textContent = String(orcamentos.pendentes || 0);
+
+  const elOrcAprovados = document.getElementById("kpiOrcamentosAprovados");
+  if (elOrcAprovados) elOrcAprovados.textContent = String(orcamentos.aprovados || 0);
+
+  const elOrcNegados = document.getElementById("kpiOrcamentosNegados");
+  if (elOrcNegados) elOrcNegados.textContent = String(orcamentos.negados || 0);
+}
+
+function atualizarDashboard(dados) {
+  if (!dados) return;
+
+  atualizarKpis(dados);
+  renderizarEscolas(dados.escolas);
+  renderizarListaPagamentos(
+    "listaProximosPagamentos",
+    dados.proximos_pagamentos,
+    "data_vencimento",
+    "laranja",
+    "Nenhum pagamento previsto para os próximos 5 dias."
+  );
+  renderizarListaPagamentos(
+    "listaUltimosPagamentos",
+    dados.ultimos_pagamentos,
+    "data_pagamento",
+    "verde",
+    "Nenhum pagamento recebido nos últimos 5 dias."
+  );
+  atualizarDocumentosEOrcamentos(dados);
+}
+
+const MESES_ANO = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 function iniciarGrafico(dados) {
   if (typeof Chart === "undefined") return;
@@ -167,20 +159,15 @@ function iniciarGrafico(dados) {
     graficoExistente.destroy();
   }
 
-  // Dados vindos da API ou Fallback estático caso a API não traga a propriedade
-  const listaMensal = dados?.grafico_mensal;
-  
-  const labels = listaMensal 
-    ? listaMensal.map((item) => item.mes) 
-    : ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"];
-    
-  const receita = listaMensal 
-    ? listaMensal.map((item) => Number(item.receita || 0)) 
-    : [10000, 12000, 16000, 13000, 16500, 14000];
-    
-  const despesa = listaMensal 
-    ? listaMensal.map((item) => Number(item.despesa || 0)) 
-    : [6000, 7500, 9000, 8000, 11000, 9500];
+  // Usa exclusivamente os dados reais vindos do banco (via API). Quando não
+  // há retorno da API, exibe os 12 meses reais zerados — nunca dados fictícios.
+  const listaMensal = Array.isArray(dados?.grafico_mensal) && dados.grafico_mensal.length
+    ? dados.grafico_mensal
+    : MESES_ANO.map((mes) => ({ mes, receita: 0, despesa: 0 }));
+
+  const labels = listaMensal.map((item) => item.mes);
+  const receita = listaMensal.map((item) => Number(item.receita || 0));
+  const despesa = listaMensal.map((item) => Number(item.despesa || 0));
 
   new Chart(canvas, {
     type: "line",
@@ -241,22 +228,19 @@ function iniciarGrafico(dados) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   initMenu();
-  iniciarMapa();
 
   // Tenta carregar dados da API se o endpoint e o elemento raiz existirem
   const dashboardRoot = document.getElementById("kpiReceita");
-  
+
   if (dashboardRoot && window.API) {
     try {
       const dados = await window.API.get("/dashboard/resumo");
       atualizarDashboard(dados);
-      renderizarAlertas(dados.alertas);
       iniciarGrafico(dados);
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard:", error);
-      const lista = document.getElementById("listaAlertas");
-      if (lista) lista.innerHTML = '<p class="aviso-sem-dados">Não foi possível carregar o dashboard.</p>';
-      
+      showError("Não foi possível carregar os dados do dashboard.");
+
       // Carrega o gráfico com fallback em caso de erro da API
       iniciarGrafico(null);
     }

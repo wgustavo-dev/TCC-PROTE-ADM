@@ -1,0 +1,328 @@
+:root {
+  --azul-principal: #1d4ed8;
+  --azul-escuro: #1e3a8a;
+  --azul-claro-bg: #eff6ff;
+  --texto-principal: #1f2937;
+  --texto-secundario: #6b7280;
+  --borda: #e5e7eb;
+  --fundo-pagina: #f3f4f6;
+  --branco: #ffffff;
+
+  --manha-cor: #539eff;
+  --manha-bg: #dbeafe;
+  --tarde-cor: #ee591e;
+  --tarde-bg: #ffedd5;
+  --noite-cor: #6d28d9;
+  --noite-bg: #ede9fe;
+
+  --ida-cor: #15803d;
+  --ida-bg: #dcfce7;
+  --volta-cor: #b45309;
+  --volta-bg: #fef3c7;
+}
+/* ---------- Card principal ---------- */
+.itinerarios-card {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  padding: 22px 22px 26px;
+  margin-top: 24px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--texto-principal);
+}
+ 
+.itinerarios-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+ 
+.itinerarios-titulo-grupo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.itinerarios-titulo { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
+.itinerarios-subtitulo { font-size: 13.5px; color: var(--texto-secundario); margin: 0; }
+ 
+.modo-indicador {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11.5px; font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--fundo-pagina);
+  color: var(--texto-secundario);
+  white-space: nowrap;
+}
+.modo-indicador.modo-indicador--edicao {
+  background: var(--azul-claro-bg);
+  color: var(--azul-principal);
+}
+ 
+.filtro-grupo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.filtro-label { font-size: 13px; color: var(--texto-secundario); margin-right: 2px; }
+ 
+.filtro-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px;
+  border: 1px solid var(--borda);
+  background: var(--branco);
+  color: var(--texto-principal);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.filtro-btn:hover { border-color: var(--azul-principal); }
+.filtro-btn.filtro-ativo {
+  background: var(--azul-principal);
+  border-color: var(--azul-principal);
+  color: var(--branco);
+}
+.filtro-btn[data-filtro="manha"].filtro-ativo { background: var(--manha-cor); border-color: var(--manha-cor); }
+.filtro-btn[data-filtro="tarde"].filtro-ativo { background: var(--tarde-cor); border-color: var(--tarde-cor); }
+.filtro-btn[data-filtro="noite"].filtro-ativo { background: var(--noite-cor); border-color: var(--noite-cor); }
+ 
+/* ---------- Grid de períodos ---------- */
+.periodos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.periodos-grid.grid--unico { grid-template-columns: 1fr; }
+ 
+.periodo-coluna {
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--branco);
+}
+.periodo-coluna.oculto { display: none; }
+ 
+.periodo-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--borda);
+  background: var(--branco);
+  transition: background .15s, border-radius .15s;
+}
+.periodo-icone { font-size: 16px; line-height: 1; }
+.periodo-titulo-grupo { display: flex; flex-direction: column; line-height: 1.2; margin-right: auto; }
+.periodo-titulo { font-size: 13.5px; font-weight: 700; }
+.periodo-horario { font-size: 11.5px; color: var(--texto-secundario); }
+ 
+.periodo-contagem {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--texto-secundario);
+  background: rgba(255,255,255,.6);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+ 
+.periodo-toggle {
+  display: none;
+  align-items: center; justify-content: center;
+  width: 24px; height: 24px;
+  border: none; background: transparent;
+  color: var(--texto-secundario);
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform .2s;
+}
+ 
+/* cabeçalho do período sempre tingido com a cor do turno */
+.periodo-coluna[data-periodo="manha"] .periodo-header { background: var(--manha-bg); }
+.periodo-coluna[data-periodo="tarde"] .periodo-header { background: var(--tarde-bg); }
+.periodo-coluna[data-periodo="noite"] .periodo-header { background: var(--noite-bg); }
+ 
+.periodo-coluna[data-periodo="manha"] .periodo-icone { color: var(--manha-cor); }
+.periodo-coluna[data-periodo="tarde"] .periodo-icone { color: var(--tarde-cor); }
+.periodo-coluna[data-periodo="noite"] .periodo-icone { color: var(--noite-cor); }
+ 
+/* linha de cabeçalho (Ordem / Aluno / Tipo) */
+
+.aluno-lista-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: var(--texto-secundario);
+  background: #f9fafb;
+  border-bottom: 1px solid var(--borda);
+}
+.cabecalho-espaco-handle { width: 18px; flex-shrink: 0; }
+.cabecalho-espaco-avatar { width: 26px; flex-shrink: 0; }
+.cabecalho-ordem { flex-shrink: 0; white-space: nowrap; }
+.cabecalho-aluno { flex: 1; }
+.cabecalho-tipo { flex-shrink: 0; margin-right: 2px; }
+ 
+/*  Lista de alunos (área "arrastável") */
+.aluno-lista {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  min-height: 68px;
+}
+ 
+/* Texto do estado vazio muda conforme o modo (travado x edição) */
+.aluno-lista:empty::after {
+  content: "Nenhum aluno neste período";
+  display: block;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--texto-secundario);
+  border: 1.5px dashed var(--borda);
+  border-radius: 8px;
+  padding: 18px 8px;
+}
+.periodos-grid.modo-edicao .aluno-lista:empty::after {
+  content: "Arraste um aluno para cá";
+}
+ 
+.aluno-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  background: var(--branco);
+}
+.aluno-item + .aluno-item { margin-top: 2px; }
+.aluno-item:hover { background: #f9fafb; }
+ 
+.drag-handle {
+  display: flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px;
+  color: #9ca3af;
+  cursor: default;
+  flex-shrink: 0;
+  opacity: .3;
+  transition: opacity .15s;
+}
+/* só fica "pegável" quando o modo de edição está ativo */
+.periodos-grid.modo-edicao .drag-handle {
+  cursor: grab;
+  opacity: 1;
+}
+.periodos-grid.modo-edicao .drag-handle:active { cursor: grabbing; }
+ 
+.ordem-badge {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11.5px; font-weight: 700;
+  background: var(--fundo-pagina);
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  color: var(--texto-secundario);
+}
+ 
+.aluno-avatar {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--azul-claro-bg);
+  color: var(--azul-principal);
+  display: flex; align-items: center; justify-content: center;
+}
+ 
+.aluno-info { min-width: 0; margin-right: auto; line-height: 1.25; }
+.aluno-nome { display: block; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aluno-endereco { display: block; font-size: 11.5px; color: var(--texto-secundario); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+ 
+.tipo-badge {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: .02em;
+}
+.tipo-badge--ida { background: var(--ida-bg); color: var(--ida-cor); }
+.tipo-badge--volta { background: var(--volta-bg); color: var(--volta-cor); }
+ 
+/*  Estados de arraste (SortableJS)  */
+.aluno-ghost { opacity: .35; }
+.aluno-chosen { box-shadow: 0 0 0 2px var(--azul-principal) inset; background: var(--azul-claro-bg); }
+.aluno-drag { opacity: .95; }
+ 
+/*  Rodapé / ações  */
+.itinerarios-rodape {
+  display: flex; justify-content: flex-end; align-items: center;
+  gap: 10px; margin-top: 18px;
+}
+ 
+.btn-editar,
+.btn-secundario,
+.btn-salvar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 9px 18px;
+  cursor: pointer;
+}
+ 
+.btn-editar {
+  background: var(--branco);
+  color: var(--azul-principal);
+  border: 1px solid var(--azul-principal);
+}
+.btn-editar:hover { background: var(--azul-claro-bg); }
+ 
+.btn-secundario {
+  background: var(--branco);
+  color: var(--texto-secundario);
+  border: 1px solid var(--borda);
+}
+.btn-secundario:hover { background: var(--fundo-pagina); }
+ 
+.btn-salvar {
+  background: var(--azul-principal);
+  color: var(--branco);
+  border: none;
+}
+.btn-salvar:hover { background: var(--azul-escuro); }
+ 
+[hidden] { display: none !important; }
+ 
+.toast {
+  position: fixed;
+  bottom: 22px; left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: #111827;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s, transform .2s;
+  z-index: 50;
+}
+.toast.visivel { opacity: 1; transform: translateX(-50%) translateY(0); }
+ 
+/* ---------- Mobile: colunas viram acordeão ---------- */
+@media (max-width: 860px) {
+  .periodos-grid, .periodos-grid.grid--unico { grid-template-columns: 1fr; }
+  .periodo-toggle { display: flex; }
+ 
+  .periodo-coluna.recolhido .aluno-lista,
+  .periodo-coluna.recolhido .aluno-lista-cabecalho { display: none; }
+  .periodo-coluna.recolhido .periodo-header { border-bottom: none; border-radius: 999px; margin: 4px; }
+  .periodo-coluna.recolhido .periodo-toggle { transform: rotate(-90deg); }
+ 
+  .itinerarios-topo { flex-direction: column; }
+}

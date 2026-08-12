@@ -84,7 +84,7 @@ async function iniciarFluxoCadastro() {
   if (botaoSalvar) botaoSalvar.textContent = "Cadastrar";
 
   definirValorCampo("campoIdMensalidade", "");
-  definirValorCampo("campoAlunoMensalidade", aluno.nome || "", true);
+  definirValorCampo("campoAlunoMensalidade", String(aluno.id_aluno || ""), true);
   definirValorCampo("campoResponsavelMensalidade", aluno.responsavel?.nome || "", true);
   definirValorCampo("campoContatoMensalidade", aluno.responsavel?.telefone || "", true);
   definirValorCampo("campoEscolaMensalidade", aluno.escola?.nome || "", true);
@@ -157,6 +157,70 @@ function badgeStatus(status) {
   if (status === "pago") return `<span class="status-badge status-pago">PAGO</span>`;
   if (status === "atrasado") return `<span class="status-badge status-atrasado">ATRASADO</span>`;
   return `<span class="status-badge status-pendente">PENDENTE</span>`;
+}
+
+function aplicarMascaraTelefoneMensalidade(valor) {
+  const numeros = String(valor || "").replace(/\D/g, "").slice(0, 11);
+  if (!numeros) return "";
+
+  if (numeros.length <= 2) return `(${numeros}`;
+  if (numeros.length <= 7) return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+  if (numeros.length <= 10) return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
+
+  return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
+}
+
+function aplicarMascaraNomeMensalidade(valor) {
+  return String(valor || "")
+    .replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s'-]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .slice(0, 100);
+}
+
+function aplicarMascaraValorMensalidade(valor) {
+  const texto = String(valor || "").replace(/[R$\s]/g, "").trim();
+  const numeros = texto.replace(/[^\d,]/g, "");
+
+  if (!numeros) return "";
+
+  const semSeparador = numeros.replace(/\./g, "").replace(",", ".");
+  const numero = Number(semSeparador);
+
+  if (!Number.isFinite(numero)) return "";
+
+  const parteInteira = Math.trunc(numero);
+  const parteDecimal = Math.round((numero - parteInteira) * 100);
+  const valorFormatado = (parteInteira + (parteDecimal / 100)).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  return valorFormatado;
+}
+
+function normalizarValorMensalidade(valor) {
+  const texto = String(valor || "").trim();
+  if (!texto) return null;
+
+  const numero = Number(
+    texto
+      .replace(/[R$\s]/g, "")
+      .replace(".", "")
+      .replace(",", ".")
+  );
+
+  if (!Number.isFinite(numero) || numero <= 0) return null;
+  return Number(numero.toFixed(2));
+}
+
+function validarDataISO(dataTexto) {
+  const valor = String(dataTexto || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) return false;
+
+  const data = new Date(`${valor}T12:00:00`);
+  const [ano, mes, dia] = valor.split("-").map(Number);
+
+  return !Number.isNaN(data.getTime()) && data.getFullYear() === ano && data.getMonth() + 1 === mes && data.getDate() === dia;
 }
 
 /* =========================================================
@@ -288,6 +352,57 @@ function atualizarOpcoesEscola() {
   `;
 }
 
+function renderizarOpcoesAluno() {
+  const campoAluno = document.getElementById("campoAlunoMensalidade");
+  if (!campoAluno) return;
+
+  const valorAtual = campoAluno.value || "";
+  const opcoes = alunos
+    .filter((aluno) => aluno && Number.isFinite(Number(aluno.id_aluno)))
+    .sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"))
+    .map((aluno) => `<option value="${aluno.id_aluno}">${aluno.nome}</option>`)
+    .join("");
+
+  campoAluno.innerHTML = `
+    <option value="">Selecione um aluno</option>
+    ${opcoes}
+  `;
+
+  if (valorAtual) {
+    campoAluno.value = String(valorAtual);
+  }
+}
+
+function preencherDadosAlunoSelecionado() {
+  const campoAluno = document.getElementById("campoAlunoMensalidade");
+  const campoEscola = document.getElementById("campoEscolaMensalidade");
+  const campoContato = document.getElementById("campoContatoMensalidade");
+  const campoResponsavel = document.getElementById("campoResponsavelMensalidade");
+
+  if (!campoAluno) return;
+
+  const idAluno = Number(campoAluno.value || 0);
+  const aluno = alunos.find((item) => Number(item.id_aluno) === idAluno);
+
+  if (campoEscola) {
+    campoEscola.value = aluno?.escola?.nome || aluno?.escola || "";
+  }
+
+  if (campoContato) {
+    campoContato.value = aplicarMascaraTelefoneMensalidade(aluno?.responsavel?.telefone || "");
+  }
+
+  if (campoResponsavel) {
+    campoResponsavel.value = aplicarMascaraNomeMensalidade(aluno?.responsavel?.nome || "");
+  }
+
+  const nomeAlunoSpan = document.getElementById("nomeAlunoModalInfo");
+  const responsavelSpan = document.getElementById("responsavelModalInfo");
+
+  if (nomeAlunoSpan) nomeAlunoSpan.textContent = aluno?.nome || "Novo cadastro";
+  if (responsavelSpan) responsavelSpan.textContent = aluno?.responsavel?.nome || "Responsável";
+}
+
 /* =========================================================
    RENDERIZAÇÃO DA TABELA
    ========================================================= */
@@ -300,7 +415,7 @@ function renderizarTabela() {
 
   let listaFiltrada = mensalidades.filter((item) => {
     const matchBusca = item.aluno.toLowerCase().includes(busca);
-    const matchVenc = !venc || item.vencimento === venc;
+    const matchVenc = !venc || item.vencimento.startsWith(venc);
     const matchEscola = !escola || item.escola === escola;
     return matchBusca && matchVenc && matchEscola;
   });
@@ -350,10 +465,7 @@ function renderizarTabela() {
       <td>
         <div class="area-acoes">
           <button class="botao-acao" data-acao="editar" data-id="${item.id}" title="Editar" aria-label="Editar mensalidade">
-            <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 20h9"></path>
-              <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
-            </svg>
+            Editar
           </button>
           <button class="botao-acao" data-acao="pagar" data-id="${item.id}" title="Marcar pago" aria-label="Marcar mensalidade como paga">
             <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -405,24 +517,32 @@ function atualizarResumo() {
 function preencherDadosModal(item) {
   const setValue = (id, value) => {
     const el = document.getElementById(id);
-    if (el) el.value = value || "";
+    if (el) el.value = value ?? "";
   };
 
+  const idAluno = item?.idAluno ?? item?.id_aluno ?? "";
+
   setValue("campoIdMensalidade", item?.id);
-  setValue("campoAlunoMensalidade", item?.aluno);
-  setValue("campoValorMensalidade", item?.valor);
-  setValue("campoPagamentoMensalidade", item?.pagamento);
-  setValue("campoVencimentoMensalidade", item?.vencimento);
-  setValue("campoContatoMensalidade", (item?.contato || []).join(", "));
-  setValue("campoResponsavelMensalidade", item?.responsavel);
-  setValue("campoEscolaMensalidade", item?.escola);
-  setValue("campoStatusMensalidade", (item?.status || "pendente").toUpperCase());
+  setValue("campoAlunoMensalidade", idAluno);
+  setValue("campoValorMensalidade", item?.valor !== undefined && item?.valor !== null ? aplicarMascaraValorMensalidade(String(item.valor)) : "");
+  setValue("campoPagamentoMensalidade", item?.pagamento || "");
+  setValue("campoVencimentoMensalidade", item?.vencimento || "");
+  setValue("campoStatusMensalidade", (item?.status || "PENDENTE").toUpperCase());
+
+  const aluno = alunos.find((registro) => Number(registro.id_aluno) === Number(idAluno));
+  const campoEscola = document.getElementById("campoEscolaMensalidade");
+  const campoContato = document.getElementById("campoContatoMensalidade");
+  const campoResponsavel = document.getElementById("campoResponsavelMensalidade");
+
+  if (campoEscola) campoEscola.value = aluno?.escola?.nome || aluno?.escola || item?.escola || "";
+  if (campoContato) campoContato.value = aplicarMascaraTelefoneMensalidade(aluno?.responsavel?.telefone || "");
+  if (campoResponsavel) campoResponsavel.value = aplicarMascaraNomeMensalidade(aluno?.responsavel?.nome || item?.responsavel || "");
 
   const nomeAlunoSpan = document.getElementById("nomeAlunoModalInfo");
   const responsavelSpan = document.getElementById("responsavelModalInfo");
 
-  if (nomeAlunoSpan) nomeAlunoSpan.textContent = item?.aluno || "Novo cadastro";
-  if (responsavelSpan) responsavelSpan.textContent = item?.responsavel || "Responsável";
+  if (nomeAlunoSpan) nomeAlunoSpan.textContent = item?.aluno || aluno?.nome || "Novo cadastro";
+  if (responsavelSpan) responsavelSpan.textContent = item?.responsavel || aluno?.responsavel?.nome || "Responsável";
 }
 
 function abrirModalNova() {
@@ -430,6 +550,7 @@ function abrirModalNova() {
   const titulo = document.getElementById("tituloModalMensalidade");
   if (titulo) titulo.textContent = "Nova mensalidade";
   if (botaoSalvar) botaoSalvar.textContent = "Cadastrar";
+  renderizarOpcoesAluno();
   preencherDadosModal(null);
   if (fundoModal) fundoModal.classList.add("ativo");
 
@@ -452,6 +573,7 @@ function abrirModalEditar(id) {
   const titulo = document.getElementById("tituloModalMensalidade");
   if (titulo) titulo.textContent = "Editar mensalidade";
   if (botaoSalvar) botaoSalvar.textContent = "Editar";
+  renderizarOpcoesAluno();
   preencherDadosModal(item);
   if (fundoModal) fundoModal.classList.add("ativo");
 
@@ -478,36 +600,45 @@ function idAlunoPorNome(nomeAluno) {
 }
 
 async function salvarMensalidade() {
-  const nomeAluno = document.getElementById("campoAlunoMensalidade")?.value.trim() || "";
-  const valor = Number(document.getElementById("campoValorMensalidade")?.value || 0);
+  const idAlunoSelecionado = document.getElementById("campoAlunoMensalidade")?.value || "";
+  const valorTexto = document.getElementById("campoValorMensalidade")?.value || "";
+  const valorNumerico = normalizarValorMensalidade(valorTexto);
   const pagamento = document.getElementById("campoPagamentoMensalidade")?.value || "";
   const vencimento = document.getElementById("campoVencimentoMensalidade")?.value || "";
   const statusSelecionado = document.getElementById("campoStatusMensalidade")?.value || "PENDENTE";
   const mensalidadeEditando = mensalidades.find((item) => item.id === idEditando);
-  const idAlunoFinal = idAlunoFluxo || idAlunoPorNome(nomeAluno) || mensalidadeEditando?.idAluno || null;
+  const idAlunoFinal = idAlunoFluxo || Number(idAlunoSelecionado) || mensalidadeEditando?.idAluno || null;
 
-  if (!nomeAluno || !valor || !vencimento || !idAlunoFinal) {
-    showWarning("Preencha os campos obrigatórios. O nome do aluno deve existir no cadastro.");
+  if (!idAlunoFinal) {
+    showWarning("Selecione um aluno válido.");
     return;
   }
 
-  const statusFinal = statusSelecionado;
-
-  if (statusFinal === "PAGO" && !pagamento) {
-    showWarning("Para status pago, preencha a data de pagamento.");
+  if (!valorNumerico) {
+    showWarning("Informe um valor da mensalidade maior que zero.");
     return;
   }
 
-  if (statusFinal !== "PAGO" && pagamento) {
-    showWarning("Data de pagamento será removida porque o status não é PAGO.");
+  if (!validarDataISO(vencimento)) {
+    showWarning("Informe uma data de vencimento válida no formato YYYY-MM-DD.");
+    return;
+  }
+
+  if (statusSelecionado === "PAGO" && !pagamento) {
+    showWarning("Para status pago, informe a data de pagamento.");
+    return;
+  }
+
+  if (statusSelecionado !== "PAGO" && pagamento) {
+    showWarning("A data de pagamento será removida porque o status não é PAGO.");
   }
 
   const payload = {
-    id_aluno: idAlunoFinal,
-    valor,
+    id_aluno: Number(idAlunoFinal),
+    valor: valorNumerico,
     data_vencimento: vencimento,
-    data_pagamento: statusFinal === "PAGO" ? pagamento : null,
-    status: statusFinal,
+    data_pagamento: statusSelecionado === "PAGO" ? pagamento : null,
+    status: statusSelecionado,
   };
 
   try {
@@ -588,6 +719,23 @@ function configurarEventosTabela() {
 function configurarBotoes() {
   if (botaoCancelar) botaoCancelar.addEventListener("click", fecharModal);
   if (botaoFecharTopo) botaoFecharTopo.addEventListener("click", fecharModal);
+
+  const campoAluno = document.getElementById("campoAlunoMensalidade");
+  const campoValor = document.getElementById("campoValorMensalidade");
+
+  if (campoAluno) {
+    campoAluno.addEventListener("change", preencherDadosAlunoSelecionado);
+  }
+
+  if (campoValor) {
+    campoValor.addEventListener("input", (event) => {
+      const valorMascara = aplicarMascaraValorMensalidade(event.target.value);
+      if (valorMascara !== event.target.value) {
+        event.target.value = valorMascara;
+      }
+    });
+  }
+
   if (botaoSalvar) {
     botaoSalvar.addEventListener("click", async () => {
       await salvarMensalidade();
@@ -612,6 +760,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   try {
     await carregarDados();
+    renderizarOpcoesAluno();
     atualizarOpcoesEscola();
     renderizarTabela();
     atualizarResumo();

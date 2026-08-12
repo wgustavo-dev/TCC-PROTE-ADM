@@ -62,13 +62,23 @@ export class ServiceMensalidade {
   }
 
   private validarValor(valor: any) {
-    const valorNumerico = Number(valor);
-
-    if (Number.isNaN(valorNumerico) || valorNumerico <= 0) {
+    const texto = String(valor ?? "").trim();
+    if (!texto) {
       throw new Error("Valor da mensalidade deve ser maior que zero");
     }
 
-    return valorNumerico;
+    const valorNumerico = Number(
+      texto
+        .replace(/[R$\s]/g, "")
+        .replace(/\./g, "")
+        .replace(",", ".")
+    );
+
+    if (!Number.isFinite(valorNumerico) || valorNumerico <= 0) {
+      throw new Error("Valor da mensalidade deve ser maior que zero");
+    }
+
+    return Number(valorNumerico.toFixed(2));
   }
 
   private validarDataVencimento(data_vencimento: any) {
@@ -76,13 +86,24 @@ export class ServiceMensalidade {
       throw new Error("Data de vencimento é obrigatória");
     }
 
-    const data = new Date(data_vencimento);
-
-    if (Number.isNaN(data.getTime())) {
+    const valor = String(data_vencimento).trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
       throw new Error("Data de vencimento inválida");
     }
 
-    return data_vencimento;
+    const data = new Date(`${valor}T12:00:00`);
+    const [ano, mes, dia] = valor.split("-").map(Number);
+
+    if (
+      Number.isNaN(data.getTime()) ||
+      data.getFullYear() !== ano ||
+      data.getMonth() + 1 !== mes ||
+      data.getDate() !== dia
+    ) {
+      throw new Error("Data de vencimento inválida");
+    }
+
+    return valor;
   }
 
   private validarStatus(status: any) {
@@ -91,12 +112,13 @@ export class ServiceMensalidade {
     }
 
     const statusPermitidos = ["PAGO", "PENDENTE", "ATRASADO"];
+    const statusNormalizado = String(status).trim().toUpperCase();
 
-    if (!statusPermitidos.includes(status)) {
+    if (!statusPermitidos.includes(statusNormalizado)) {
       throw new Error("Status da mensalidade inválido");
     }
 
-    return status as "PAGO" | "PENDENTE" | "ATRASADO";
+    return statusNormalizado as "PAGO" | "PENDENTE" | "ATRASADO";
   }
 
   async listar() {

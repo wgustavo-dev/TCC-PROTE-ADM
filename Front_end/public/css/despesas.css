@@ -342,8 +342,9 @@
 .botao-acao svg { width: 16px; height: 16px; }
 
 /* Editar — azul */
-.botao-acao.editar     svg { stroke: var(--cor-principal, #1A56DB); }
-.botao-acao.editar:hover   { background: var(--cor-principal-clara, #EFF6FF); }
+.botao-acao.editar,
+.botao-acao.editar svg { color: var(--cor-principal, #1A56DB); stroke: currentColor; }
+.botao-acao.editar:hover { background: var(--cor-principal-clara, #EFF6FF); }
 
 /* Excluir — vermelho */
 .botao-acao.excluir    svg { stroke: var(--vermelho-texto, #EF4444); }

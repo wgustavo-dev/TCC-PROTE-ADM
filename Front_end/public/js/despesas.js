@@ -46,7 +46,7 @@ var quantidadeDespesas = document.getElementById('quantidadeDespesas');
 var mediaDespesas      = document.getElementById('mediaDespesas');
 
 var campoBusca         = document.getElementById('campoBusca');
-var filtroData         = document.getElementById('filtroData');
+var filtroMesAno        = document.getElementById('filtroMesAno');
 var filtroMin          = document.getElementById('filtroMin');
 var filtroMax          = document.getElementById('filtroMax');
 var painelFiltros      = document.getElementById('painelFiltros');
@@ -101,6 +101,43 @@ function escaparHTML(texto) {
     .replace(/"/g, '&quot;');
 }
 
+function aplicarMascaraValorDespesa(valor) {
+  var texto = String(valor || '').replace(/[R$\s]/g, '').trim();
+  var numeros = texto.replace(/[^\d,]/g, '');
+
+  if (!numeros) return '';
+
+  var semSeparador = numeros.replace(/\./g, '').replace(',', '.');
+  var numero = Number(semSeparador);
+
+  if (Number.isNaN(numero)) return '';
+
+  var parteInteira = Math.trunc(numero);
+  var parteDecimal = Math.round((numero - parteInteira) * 100);
+  var valorFormatado = (parteInteira + (parteDecimal / 100)).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  return valorFormatado;
+}
+
+function normalizarValorDespesa(valor) {
+  var texto = String(valor || '').trim();
+
+  if (!texto) return null;
+
+  var numero = Number(
+    texto
+      .replace(/[R$\s]/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.')
+  );
+
+  if (!Number.isFinite(numero)) return null;
+
+  return numero;
+}
 
 /*
    FILTROS
@@ -108,25 +145,30 @@ function escaparHTML(texto) {
    o usuário digitou na busca e nos campos de filtro.
 */
 function obterDespesasFiltradas() {
-  var busca  = campoBusca.value.trim().toLowerCase();
-  var porData = filtroData.value;
-  var minVal  = parseFloat(filtroMin.value) || 0;
-  var maxVal  = parseFloat(filtroMax.value) || Infinity;
+  var busca = campoBusca.value.trim().toLowerCase();
+  var porMesAno = filtroMesAno.value;
+  var minVal = parseFloat(filtroMin.value) || 0;
+  var maxVal = parseFloat(filtroMax.value) || Infinity;
 
   return despesas.filter(function(d) {
-    var bateBusca = !busca ||
+
+    var bateBusca =
+      !busca ||
       d.tipo.toLowerCase().includes(busca) ||
       (d.descricao && d.descricao.toLowerCase().includes(busca));
 
-    var bateData = !porData || d.data === porData;
-    var bateMin  = d.valor >= minVal;
-    var bateMax  = maxVal === Infinity || d.valor <= maxVal;
+    var bateData = true;
+
+    if (porMesAno) {
+      bateData = d.data.startsWith(porMesAno);
+    }
+
+    var bateMin = d.valor >= minVal;
+    var bateMax = maxVal === Infinity || d.valor <= maxVal;
 
     return bateBusca && bateData && bateMin && bateMax;
   });
 }
-
-
 /*
    RENDERIZAÇÃO
    Atualiza os cards de resumo e a tabela com os dados
@@ -171,12 +213,7 @@ function renderizar() {
         '<td>' + formatarDataBR(d.data) + '</td>' +
         '<td>' +
           '<div class="coluna-acoes">' +
-            '<button class="botao-acao editar" data-id="' + d.id + '" title="Editar">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>' +
-                '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>' +
-              '</svg>' +
-            '</button>' +
+            '<button class="botao-acao editar" data-id="' + d.id + '" title="Editar">Editar</button>' +
             '<button class="botao-acao excluir" data-id="' + d.id + '" title="Excluir">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
                 '<polyline points="3 6 5 6 21 6"/>' +
@@ -202,16 +239,19 @@ botaoFiltro.addEventListener('click', function() {
   botaoFiltro.classList.toggle('aberto');
 });
 
-/* Limpa os três campos de filtro e re-renderiza */
 botaoLimparFiltros.addEventListener('click', function() {
-  filtroData.value = '';
-  filtroMin.value  = '';
-  filtroMax.value  = '';
+  filtroMesAno.value = '';
+  filtroMin.value = '';
+  filtroMax.value = '';
   renderizar();
 });
 
+[campoBusca, filtroMesAno, filtroMin, filtroMax].forEach(function(campo) {
+  campo.addEventListener('input', renderizar);
+});
+
 /* Qualquer alteração nos campos atualiza a tabela imediatamente */
-[campoBusca, filtroData, filtroMin, filtroMax].forEach(function(campo) {
+[campoBusca, filtroMesAno, filtroMin, filtroMax].forEach(function(campo) {
   campo.addEventListener('input', renderizar);
 });
 
@@ -230,7 +270,7 @@ function abrirModal(despesa) {
     tituloModal.textContent    = 'Editar Despesa';
     botaoCadastrar.textContent = 'Salvar';
     campTipo.value             = despesa.tipo;
-    campValor.value            = despesa.valor;
+    campValor.value            = aplicarMascaraValorDespesa(String(despesa.valor || ''));
     campData.value             = despesa.data;
     campDescricao.value        = despesa.descricao || '';
   } else {
@@ -257,6 +297,12 @@ function fecharModal() {
 
 /* Atualiza o contador de caracteres da textarea */
 campDescricao.addEventListener('input', atualizarContador);
+
+campValor.addEventListener('input', function() {
+  var valorAtual = campValor.value;
+  var valorMascarado = aplicarMascaraValorDespesa(valorAtual);
+  campValor.value = valorMascarado;
+});
 
 function atualizarContador() {
   contadorCaracteres.textContent = campDescricao.value.length + '/255 caracteres';
@@ -297,8 +343,8 @@ function validarFormulario() {
     valido = false;
   }
 
-  var valor = parseFloat(campValor.value);
-  if (!campValor.value || isNaN(valor) || valor <= 0) {
+  var valor = normalizarValorDespesa(campValor.value);
+  if (!campValor.value || valor === null || valor <= 0 || valor > 9999999.99) {
     erroValor.textContent = 'Informe um valor maior que zero.';
     campValor.classList.add('invalido');
     valido = false;
@@ -320,9 +366,11 @@ function validarFormulario() {
 botaoCadastrar.addEventListener('click', function() {
   if (!validarFormulario()) return;
 
+  var valorNumerico = normalizarValorDespesa(campValor.value);
+
   var payload = {
     tipo:      campTipo.value,
-    valor:     parseFloat(parseFloat(campValor.value).toFixed(2)),
+    valor:     Number(valorNumerico.toFixed(2)),
     data:      campData.value,
     descricao: campDescricao.value.trim()
   };
