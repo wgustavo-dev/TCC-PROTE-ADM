@@ -15,16 +15,6 @@ var botaoEntrar = document.getElementById('botaoEntrar');
 var botaoVerSenha = document.getElementById('botaoVerSenha');
 var iconeOlhoAberto = document.getElementById('iconeOlhoAberto');
 var iconeOlhoFechado = document.getElementById('iconeOlhoFechado');
-var botaoFechar = document.getElementById('botaoFecharLogin');
-
-
-/* -------------------------------------------------------
-   FECHAR — recarrega a página
-------------------------------------------------------- */
-botaoFechar.addEventListener('click', function () {
-    window.location.reload();
-});
-
 
 /* -------------------------------------------------------
    MOSTRAR / ESCONDER SENHA
