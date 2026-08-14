@@ -209,15 +209,19 @@ function removerLinhaDetalhes() {
 function renderTabela() {
   detalheAbertoId = null;
   removerLinhaDetalhes();
-
+  
   const dados = listaFiltrada();
 
-  tbody.innerHTML = dados.map((r) => `
+  tbody.innerHTML = dados.map((r) => {
+    const valorMensalidade = Number(String(r.mensalidade).replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+    const mensalidadeTexto = valorMensalidade === 0 ? 'em dia' : `R$ ${r.mensalidade}`;
+
+    return `
     <tr>
       <td>${r.nome}</td>
       <td>${r.quantidade}</td>
       <td>${r.telefone}<br>${r.email || '-'}</td>
-      <td>R$ ${r.mensalidade}</td>
+      <td>${mensalidadeTexto}</td>
       <td>
         <div class="acoes">
           <button class="acao-btn ver" data-ac="ver" data-id="${r.id}" title="Ver detalhes" aria-label="Ver detalhes">
@@ -240,7 +244,8 @@ function renderTabela() {
         </div>
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 
   emptyState.classList.toggle('hidden', dados.length > 0);
 }
@@ -515,23 +520,37 @@ form.addEventListener('submit', salvarFormulario);
 tbody.addEventListener('click', (e) => {
   const botao = e.target.closest('[data-ac]');
 
-  if (!botao) return;
+  if (botao) {
+    const id = Number(botao.dataset.id);
+    const acao = botao.dataset.ac;
+    const item = responsaveis.find((r) => r.id === id);
 
-  const id = Number(botao.dataset.id);
-  const acao = botao.dataset.ac;
-  const item = responsaveis.find((r) => r.id === id);
+    if (acao === 'ver') {
+      abrirDetalhes(id, botao.closest('tr'));
+    }
 
-  if (acao === 'ver') {
-    abrirDetalhes(id, botao.closest('tr'));
+    if (acao === 'editar' && item) {
+      abrirModal(true, item);
+    }
+
+    if (acao === 'excluir') {
+      excluirResponsavel(id);
+    }
+
+    return;
   }
 
-  if (acao === 'editar' && item) {
-    abrirModal(true, item);
-  }
+  const linha = e.target.closest('tr');
 
-  if (acao === 'excluir') {
-    excluirResponsavel(id);
-  }
+  if (!linha || !linha.parentElement || linha.parentElement !== tbody) return;
+
+  const botaoVer = linha.querySelector('[data-ac="ver"]');
+  if (!botaoVer) return;
+
+  const id = Number(botaoVer.dataset.id);
+  if (Number.isNaN(id)) return;
+
+  abrirDetalhes(id, linha);
 });
 
 obterParametrosFluxo();
