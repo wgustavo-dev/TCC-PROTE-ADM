@@ -4,7 +4,12 @@ import { Responsavel } from "../models/model_responsavel";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Presenca } from "../models/model_presenca";
 import { Escola } from "../models/model_escola";
-import { ServiceItinerario } from "./service_itinerario"; // NOVO
+import { ServiceItinerario } from "./service_itinerario";
+
+interface UsuarioLogado {
+  id: number;
+  role: "CONDUTOR" | "MONITOR";
+}
 
 export class ServiceAluno {
   private itinerarioService = new ServiceItinerario();
@@ -86,6 +91,23 @@ export class ServiceAluno {
   // service_itinerario, agora via TypeORM) já sabe lidar sozinho com o
   // caso de o aluno não ter turno/tipo_trajeto/condutor completos —
   // não precisa de tratamento especial aqui.
+  private async resolverIdCondutorParaAluno(
+    dados: Partial<Aluno> & any,
+    usuarioLogado?: UsuarioLogado
+  ): Promise<number | null> {
+    const idCondutorInformado = dados.id_condutor ?? dados.idCondutor;
+
+    if (idCondutorInformado !== undefined && idCondutorInformado !== null && idCondutorInformado !== "") {
+      return Number(idCondutorInformado);
+    }
+
+    if (!usuarioLogado) {
+      return null;
+    }
+
+    return await this.itinerarioService.resolverIdCondutor(usuarioLogado);
+  }
+
   private async sincronizarItinerarioDoAluno(aluno: Aluno) {
     // try/catch aqui de propósito: se a sincronização do itinerário
     // falhar por qualquer motivo, isso NÃO pode derrubar o
@@ -205,7 +227,7 @@ export class ServiceAluno {
     return { embarque, desembarque };
   }
 
-  async criar(dados: Partial<Aluno> & any) {
+  async criar(dados: Partial<Aluno> & any, usuarioLogado?: UsuarioLogado) {
     this.limparCamposAntigos(dados);
 
     if (!dados.nome?.trim()) {
@@ -214,6 +236,7 @@ export class ServiceAluno {
 
     const turno = this.normalizarTurno(dados.turno);
     const tipoTrajeto = this.normalizarTipoTrajeto(dados.tipo_trajeto);
+    const idCondutor = await this.resolverIdCondutorParaAluno(dados, usuarioLogado);
 
     const responsavel = await this.validarResponsavel(dados.id_responsavel);
     const escola = await this.validarEscola(dados.id_escola);
@@ -234,7 +257,7 @@ export class ServiceAluno {
       tipo_trajeto: tipoTrajeto,
       foto: dados.foto || null,
       id_responsavel: responsavel.id_responsavel,
-      id_condutor: dados.id_condutor ? Number(dados.id_condutor) : null,
+      id_condutor: idCondutor,
     });
 
     await this.alunoRepository.save(aluno);
@@ -248,7 +271,7 @@ export class ServiceAluno {
     return await this.buscarPorID(aluno.id_aluno);
   }
 
-  async atualizar(id: number, dados: Partial<Aluno> & any) {
+  async atualizar(id: number, dados: Partial<Aluno> & any, usuarioLogado?: UsuarioLogado) {
     this.limparCamposAntigos(dados);
 
     const aluno = await this.alunoRepository.findOneBy({
@@ -316,6 +339,8 @@ export class ServiceAluno {
 
     if (dados.id_condutor !== undefined) {
       aluno.id_condutor = dados.id_condutor ? Number(dados.id_condutor) : null;
+    } else if (usuarioLogado && aluno.id_condutor === null) {
+      aluno.id_condutor = await this.itinerarioService.resolverIdCondutor(usuarioLogado);
     }
 
     await this.alunoRepository.save(aluno);
