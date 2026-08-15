@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { AppDataSource } from "./config/database";
 import path = require("node:path");
 import routes from "./routes";
+import { ServiceMensalidade } from "./services/service_mensalidade";
 
 dotenv.config();
 
@@ -113,6 +114,27 @@ AppDataSource.initialize()
         `ALTER TABLE condutor DROP FOREIGN KEY \`${fkAntigaRow.CONSTRAINT_NAME}\``
       );
     }
+    
+    // ===== Rotina de renovação mensal de mensalidades =====
+    // Roda uma vez ao subir o servidor (cobre o caso de o mês já ter
+    // virado enquanto o servidor estava desligado) e depois de hora em
+    // hora. A função é idempotente (usa mes_referencia), então rodar
+    // várias vezes no mesmo mês não duplica mensalidade nenhuma.
+    const serviceMensalidade = new ServiceMensalidade();
+    const UMA_HORA_MS = 60 * 60 * 1000;
+
+    const executarRenovacaoMensal = async () => {
+      try {
+        const resultado = await serviceMensalidade.gerarRenovacaoMensal();
+        console.log(`[mensalidade] ${resultado.message}`);
+      } catch (error) {
+        console.error("[mensalidade] Falha na rotina de renovação mensal:", error);
+      }
+    };
+
+    executarRenovacaoMensal();
+    setInterval(executarRenovacaoMensal, UMA_HORA_MS);
+
 
    /* await AppDataSource.query(
       `ALTER TABLE condutor DROP COLUMN IF EXISTS id_monitor`

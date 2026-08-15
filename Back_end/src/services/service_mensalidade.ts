@@ -5,6 +5,25 @@ import { Mensalidade } from "../models/model_mensalidade";
 import { Aluno } from "../models/model_aluno";
 import { Condutor } from "../models/model_condutor";
 
+// "YYYY-MM" a partir de uma data "YYYY-MM-DD"
+function mesReferenciaDe(dataISO: string): string {
+  return dataISO.slice(0, 7);
+}
+
+// Último dia válido de um mês (ex.: dia_vencimento=31 em fevereiro -> 28/29)
+function ultimoDiaDoMes(ano: number, mesIndexado1: number): number {
+  return new Date(ano, mesIndexado1, 0).getDate();
+}
+
+// Monta "YYYY-MM-DD" para o mês/ano informados, usando o dia desejado
+// (limitado ao último dia real daquele mês).
+function montarDataParaMes(ano: number, mesIndexado1: number, diaDesejado: number): string {
+  const dia = Math.min(Math.max(1, diaDesejado), ultimoDiaDoMes(ano, mesIndexado1));
+  const mesTexto = String(mesIndexado1).padStart(2, "0");
+  const diaTexto = String(dia).padStart(2, "0");
+  return `${ano}-${mesTexto}-${diaTexto}`;
+}
+
 export class ServiceMensalidade {
   private get mensalidadeRepository() {
     return AppDataSource.getRepository(Mensalidade);
@@ -159,28 +178,38 @@ export class ServiceMensalidade {
 
     const valor = this.validarValor(dados.valor);
     const dataVencimento = this.validarDataVencimento(dados.data_vencimento);
-    const status = this.validarStatus(dados.status);
 
-    let dataPagamento: Date | null = null;
-
-    if (status === "PAGO") {
-      dataPagamento = dados.data_pagamento
-        ? new Date(dados.data_pagamento)
-        : new Date();
-    }
-
+    /*
+      REMOVIDO (pedido do usuário): o formulário de mensalidade não pede
+      mais status nem data de pagamento na criação — toda mensalidade
+      nova é sempre PENDENTE por padrão, sem exceção, mesmo que algo
+      ainda mande esses campos no corpo da requisição. Marcar como paga
+      é feito depois, por PUT /mensalidades/:id/pagar.
+    */
     const mensalidade = this.mensalidadeRepository.create({
       id_aluno: aluno.id_aluno,
       valor,
       data_vencimento: dataVencimento,
-      data_pagamento: dataPagamento,
-      status,
+      data_pagamento: null,
+      status: "PENDENTE",
       id_condutor: condutor ? condutor.id_condutor : null,
+      mes_referencia: mesReferenciaDe(dataVencimento),
     });
 
     await this.mensalidadeRepository.save(mensalidade);
 
+    // Guarda o dia de vencimento escolhido no próprio aluno, para a
+    // rotina de renovação mensal saber que dia usar nos meses seguintes.
+    await this.atualizarDiaVencimentoDoAluno(aluno.id_aluno, dataVencimento);
+
     return await this.buscarPorId(mensalidade.id_mensalidade);
+  }
+
+  private async atualizarDiaVencimentoDoAluno(id_aluno: number, dataVencimentoISO: string) {
+    const dia = Number(dataVencimentoISO.slice(8, 10));
+    if (!Number.isInteger(dia) || dia < 1 || dia > 31) return;
+
+    await this.alunoRepository.update({ id_aluno }, { dia_vencimento: dia });
   }
 
   async atualizar(id: number, dados: Partial<Mensalidade>) {
@@ -207,9 +236,10 @@ export class ServiceMensalidade {
     }
 
     if (dados.data_vencimento !== undefined) {
-      mensalidade.data_vencimento = this.validarDataVencimento(
-        dados.data_vencimento
-      ) as any;
+      const dataVencimento = this.validarDataVencimento(dados.data_vencimento);
+      mensalidade.data_vencimento = dataVencimento as any;
+      mensalidade.mes_referencia = mesReferenciaDe(dataVencimento);
+      await this.atualizarDiaVencimentoDoAluno(mensalidade.id_aluno, dataVencimento);
     }
 
     if (dados.status !== undefined) {
@@ -272,6 +302,84 @@ export class ServiceMensalidade {
     await this.mensalidadeRepository.save(mensalidade);
 
     return await this.buscarPorId(mensalidade.id_mensalidade);
+  }
+
+  /*
+    ROTINA DE VIRADA DE MÊS (schema_prote_v1.11):
+
+    Regra do usuário:
+    - Quando o mês vira, o sistema deve gerar automaticamente uma nova
+      mensalidade PENDENTE para cada aluno que já tem histórico de
+      mensalidade, usando o dia de vencimento ("todo dia X") do aluno.
+    - Mensalidades antigas NUNCA são apagadas — o histórico é preservado.
+    - A geração é idempotente: rodar essa função várias vezes no mesmo
+      mês não duplica mensalidade nenhuma (usa mes_referencia para saber
+      o que já foi gerado).
+
+    Não depende de nenhum agendador externo (ex.: node-cron): é chamada
+    no startup do servidor e depois em um intervalo periódico dentro do
+    próprio server.ts, e também pode ser disparada manualmente pela rota
+    PUT /api/mensalidades/renovar-mes.
+  */
+  async gerarRenovacaoMensal() {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mesIndexado1 = hoje.getMonth() + 1;
+    const mesReferenciaAtual = `${ano}-${String(mesIndexado1).padStart(2, "0")}`;
+
+    // Para cada aluno, pega a mensalidade mais recente já cadastrada
+    // (independente do mês) — é dela que tiramos o valor a repetir.
+    const ultimasPorAluno: any[] = await AppDataSource.query(
+      `SELECT m.id_aluno, m.valor, m.mes_referencia
+       FROM mensalidade m
+       INNER JOIN (
+         SELECT id_aluno, MAX(data_vencimento) AS max_data
+         FROM mensalidade
+         GROUP BY id_aluno
+       ) ultima
+         ON ultima.id_aluno = m.id_aluno AND ultima.max_data = m.data_vencimento`
+    );
+
+    let geradas = 0;
+
+    for (const registro of ultimasPorAluno) {
+      if (registro.mes_referencia === mesReferenciaAtual) {
+        // Já existe mensalidade deste aluno no mês atual — não duplica.
+        continue;
+      }
+
+      const aluno = await this.alunoRepository.findOneBy({ id_aluno: registro.id_aluno });
+      if (!aluno) continue;
+
+      const diaVencimento = aluno.dia_vencimento || 10;
+      const novaDataVencimento = montarDataParaMes(ano, mesIndexado1, diaVencimento);
+
+      // Checagem extra de segurança contra corrida/duplicidade, além do
+      // filtro acima (que já usa a mensalidade mais recente).
+      const existente = await this.mensalidadeRepository.findOne({
+        where: { id_aluno: aluno.id_aluno, mes_referencia: mesReferenciaAtual },
+      });
+      if (existente) continue;
+
+      const novaMensalidade = this.mensalidadeRepository.create({
+        id_aluno: aluno.id_aluno,
+        valor: registro.valor,
+        data_vencimento: novaDataVencimento as any,
+        data_pagamento: null,
+        status: "PENDENTE",
+        id_condutor: aluno.id_condutor || null,
+        mes_referencia: mesReferenciaAtual,
+      });
+
+      await this.mensalidadeRepository.save(novaMensalidade);
+      geradas++;
+    }
+
+    return {
+      message: `Renovação mensal executada. ${geradas} mensalidade(s) gerada(s) para ${mesReferenciaAtual}.`,
+      geradas,
+      mes_referencia: mesReferenciaAtual,
+    };
   }
 
   async atualizarMensalidadesAtrasadas() {

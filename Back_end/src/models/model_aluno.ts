@@ -67,6 +67,16 @@ export class Aluno {
   @Column({ type: "varchar", length: 255, nullable: true })
   foto!: string;
 
+  /*
+    ADICIONADO (schema_prote_v1.11):
+    Dia do mês em que a mensalidade deste aluno vence ("todo dia X").
+    É definido/atualizado a partir do formulário de mensalidade e usado
+    pela rotina de renovação mensal para gerar a mensalidade do mês
+    seguinte automaticamente.
+  */
+  @Column({ type: "tinyint", nullable: true })
+  dia_vencimento!: number | null;
+
   @ManyToOne(() => Responsavel, { nullable: false })
   @JoinColumn({ name: "id_responsavel" })
   responsavel!: Responsavel;

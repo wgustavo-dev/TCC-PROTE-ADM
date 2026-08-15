@@ -214,7 +214,17 @@
         <div class="campos-filtro">
           <div class="grupo-filtro">
             <label class="label-filtro" for="filtroVencimentoMensalidade">Mês de vencimento</label>
-            <input type="month" id="filtroVencimentoMensalidade" class="input-filtro">
+            <!--
+              NOVO: o filtro passou a mostrar o mês selecionado no formato
+              "AGOSTO" "2026" (span abaixo, atualizado via JS), em vez de
+              só o "2026-08" cru do input nativo. O input continua
+              existindo (permite trocar de mês), só fica visualmente
+              discreto; o texto grande é quem o usuário lê.
+            -->
+            <div class="mes-vencimento-filtro">
+              <span id="labelMesVencimentoMensalidade" class="mes-vencimento-label"></span>
+              <input type="month" id="filtroVencimentoMensalidade" class="input-filtro input-filtro-mes">
+            </div>
           </div>
           <div class="grupo-filtro">
             <label class="label-filtro" for="filtroOrdemMensalidade">Ordem</label>
@@ -313,23 +323,29 @@
         </div>
 
         <div class="grupo-filtro">
-          <label class="label-filtro" for="campoVencimentoMensalidade">Data de vencimento</label>
-          <input type="date" id="campoVencimentoMensalidade" class="input-filtro" required />
+          <!--
+            CORRIGIDO: o campo pedia dd/mm/aaaa, mas mensalidade é
+            recorrente — o que o usuário decide é só o DIA do vencimento
+            ("todo dia X"), não uma data fechada. mensalidade.js monta a
+            data completa (dia + mês/ano atual) na hora de salvar.
+          -->
+          <label class="label-filtro" for="campoVencimentoMensalidade">Vencimento</label>
+          <div class="campo-dia-vencimento">
+            <span>Todo dia</span>
+            <input type="number" id="campoVencimentoMensalidade" class="input-filtro input-dia-vencimento"
+              min="1" max="31" step="1" placeholder="10" required />
+          </div>
         </div>
 
-        <div class="grupo-filtro">
-          <label class="label-filtro" for="campoStatusMensalidade">Status</label>
-          <select id="campoStatusMensalidade" class="input-filtro">
-            <option value="PENDENTE">Pendente</option>
-            <option value="PAGO">Pago</option>
-            <option value="ATRASADO">Atrasado</option>
-          </select>
-        </div>
-
-        <div class="grupo-filtro">
-          <label class="label-filtro" for="campoPagamentoMensalidade">Data de pagamento</label>
-          <input type="date" id="campoPagamentoMensalidade" class="input-filtro" />
-        </div>
+        <!--
+          REMOVIDO (pedido do usuário): campos "Status" e "Data de
+          pagamento" tirados deste formulário.
+          - Toda mensalidade nova já nasce PENDENTE por padrão (o
+            backend força isso, ver service_mensalidade.ts).
+          - Para marcar como paga, usa-se o botão dedicado "Marcar como
+            paga" na própria listagem (ação "pagar" -> PUT
+            /mensalidades/:id/pagar), que já existia e continua igual.
+        -->
 
         <!-- AÇÕES -->
         <div class="acoes-modal">

@@ -49,6 +49,16 @@ export class Mensalidade {
   id_condutor!: number | null;
 
   /*
+    ADICIONADO (schema_prote_v1.11):
+    Mês/ano de referência desta mensalidade, no formato "YYYY-MM".
+    Existe para impedir que a rotina de renovação mensal crie duas
+    mensalidades para o mesmo aluno no mesmo mês (histórico nunca é
+    apagado, só usado para checar o que já foi gerado).
+  */
+  @Column({ type: "char", length: 7 })
+  mes_referencia!: string;
+
+  /*
     ALTERADO:
     Relação com aluno explicitamente obrigatória.
   */

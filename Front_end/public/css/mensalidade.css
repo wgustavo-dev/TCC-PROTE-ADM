@@ -1305,3 +1305,31 @@
 .swal2-backdrop-show {
   z-index: 999998 !important;
 }
+/* NOVO: exibição "AGOSTO" "2026" do filtro de mês de vencimento */
+.mes-vencimento-filtro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mes-vencimento-label {
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.input-filtro-mes {
+  max-width: 150px;
+}
+
+/* NOVO: campo "Todo dia X" de vencimento no formulário de mensalidade */
+.campo-dia-vencimento {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-dia-vencimento {
+  max-width: 80px;
+  text-align: center;
+}

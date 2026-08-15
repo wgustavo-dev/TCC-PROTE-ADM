@@ -100,4 +100,18 @@ export class ControlMensalidade {
       });
     }
   }
+
+  // Disparo manual da rotina de renovação mensal (a mesma que roda
+  // sozinha no servidor). Útil para testar/forçar sem esperar o mês virar.
+  async renovarMes(req: Request, res: Response) {
+    try {
+      const resultado = await serviceMensalidade.gerarRenovacaoMensal();
+
+      return res.status(200).json(resultado);
+    } catch (error: any) {
+      return res.status(500).json({
+        error: error.message || "Erro ao renovar mensalidades do mês",
+      });
+    }
+  }
 }
