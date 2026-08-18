@@ -73,7 +73,7 @@ function definirCamposResponsavelFluxo(responsavel, bloquear) {
   }
 }
 
-function redirecionarParaMensalidade(alunoSalvo, vencimentoDia) {
+function redirecionarParaMensalidade(alunoSalvo) {
   const params = new URLSearchParams();
   params.set("fluxo", fluxoCadastro);
   params.set("id_responsavel", String(idResponsavelFluxo));
@@ -85,10 +85,8 @@ function redirecionarParaMensalidade(alunoSalvo, vencimentoDia) {
     params.set("id_orcamento", String(idOrcamentoFluxo));
   }
 
-  if (vencimentoDia) {
-    params.set("vencimento", vencimentoDia);
-  }
-
+  // O dia de vencimento é definido no próprio formulário de mensalidade
+  // (mensalidade.html), não faz mais parte do formulário de aluno.
   window.location.href = `mensalidade.html?${params.toString()}`;
 }
 
@@ -110,13 +108,26 @@ async function iniciarFluxoCadastro() {
   if (fluxoCadastro === "orcamento" && idOrcamentoFluxo) {
     try {
       const orcamento = await window.API.get(`/orcamentos/${idOrcamentoFluxo}`);
-      const escola = buscarEscolaPorNome(orcamento.escola || "");
 
+      /*
+        CORRIGIDO: aqui existia uma chamada a `buscarEscolaPorNome`, uma
+        função que nunca existiu neste arquivo (o nome certo é
+        `encontrarEscolaPorNome`, usado logo abaixo). Isso disparava um
+        ReferenceError sempre que esse fluxo rodava, o try/catch
+        engolia o erro e mostrava "não foi possível carregar os dados
+        do orçamento" — mesmo o fetch acima tendo funcionado
+        normalmente. Era essa a causa do "fetch quebrado" na tela de
+        alunos.
+      */
       if (el.escolaAluno) el.escolaAluno.value = encontrarEscolaPorNome(orcamento.escola) || "";
-      if (el.enderecoEmbarque) el.enderecoEmbarque.value = orcamento.endereco_embarque || "";
-      if (el.enderecoDesembarque) el.enderecoDesembarque.value = orcamento.endereco_desembarque || "";
       if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = mapTrajetoOrcamento(orcamento.tipo_trajeto);
       if (el.turnoAluno) el.turnoAluno.value = mapTurnoOrcamento(orcamento.turno);
+
+      // Endereços: só preenche o que faz sentido para o trajeto do
+      // orçamento (ver aplicarVisibilidadeEnderecos).
+      if (el.enderecoEmbarque) el.enderecoEmbarque.value = orcamento.endereco_embarque || "";
+      if (el.enderecoDesembarque) el.enderecoDesembarque.value = orcamento.endereco_desembarque || "";
+      aplicarVisibilidadeEnderecos();
     } catch (error) {
       console.error(error);
       showWarning("Não foi possível carregar os dados do orçamento para pré-preencher o aluno.");
@@ -341,9 +352,10 @@ function configurarPreviewFoto() {
 }
 
 function montarPayloadAluno() {
-  const tipoTrajeto = el.tipoTrajetoAluno ? el.tipoTrajetoAluno.value : "ambos";
-  const embarque = el.enderecoEmbarque.value.trim();
-  const desembarque = el.enderecoDesembarque.value.trim();
+  const tipoTrajeto = el.tipoTrajetoAluno ? el.tipoTrajetoAluno.value : "AMBOS";
+  const turno = el.turnoAluno ? el.turnoAluno.value : "MANHA";
+  const embarque = el.enderecoEmbarque ? el.enderecoEmbarque.value.trim() : "";
+  const desembarque = el.enderecoDesembarque ? el.enderecoDesembarque.value.trim() : "";
   const idEscola = el.escolaAluno && el.escolaAluno.value ? Number(el.escolaAluno.value) : null;
   const escolaNome = el.escolaAluno && el.escolaAluno.selectedOptions.length
     ? el.escolaAluno.selectedOptions[0].textContent.trim()
@@ -351,30 +363,34 @@ function montarPayloadAluno() {
   const rota = normalizarRotaPorTrajeto({ tipoTrajeto, embarque, desembarque, escola: escolaNome });
 
   return {
-    id: el.alunoId.value || null,
-    nome: el.nomeAluno.value.trim(),
-    responsavel1: el.nomeResponsavel1.value.trim(),
-    telefone1: el.telefoneResponsavel1.value.trim(),
+    id: el.alunoId ? el.alunoId.value || null : null,
+    nome: el.nomeAluno ? el.nomeAluno.value.trim() : "",
+    responsavel1: el.nomeResponsavel1 ? el.nomeResponsavel1.value.trim() : "",
+    telefone1: el.telefoneResponsavel1 ? el.telefoneResponsavel1.value.trim() : "",
     responsavel2: el.nomeResponsavel2 ? el.nomeResponsavel2.value.trim() : "",
     telefone2: el.telefoneResponsavel2 ? el.telefoneResponsavel2.value.trim() : "",
     embarque: rota.embarque,
     desembarque: rota.desembarque,
     idEscola,
+    id_escola: idEscola,
     escola: escolaNome,
-    vencimento: el.vencimentoAluno ? el.vencimentoAluno.value : "",
     tipoTrajeto,
-    periodo: el.periodoAluno ? el.periodoAluno.value : "manha"
+    tipo_trajeto: tipoTrajeto.toUpperCase(),
+    turno: turno.toUpperCase(),
+    endereco_embarque: rota.embarque,
+    endereco_desembarque: rota.desembarque,
+    foto: el.fotoAluno && el.fotoAluno.files && el.fotoAluno.files[0] ? el.fotoAluno.files[0] : null,
   };
 }
 
 async function salvarAluno(payload, idResponsavel) {
   const form = new FormData();
 
-  form.append("nome", payload.nome);
+  form.append("nome", payload.nome || "");
   form.append("id_responsavel", String(idResponsavel));
-  form.append("id_escola", String(payload.id_escola));
-  form.append("turno", payload.turno);
-  form.append("tipo_trajeto", payload.tipo_trajeto);
+  form.append("id_escola", String(payload.id_escola ?? payload.idEscola ?? ""));
+  form.append("turno", String(payload.turno || "MANHA").toUpperCase());
+  form.append("tipo_trajeto", String(payload.tipo_trajeto || payload.tipoTrajeto || "AMBOS").toUpperCase());
 
   if (payload.endereco_embarque) {
     form.append("endereco_embarque", payload.endereco_embarque);
@@ -383,9 +399,6 @@ async function salvarAluno(payload, idResponsavel) {
   if (payload.endereco_desembarque) {
     form.append("endereco_desembarque", payload.endereco_desembarque);
   }
-  form.append("id_escola", String(payload.idEscola));
-  const tipoTrajetoApi = payload.tipoTrajeto === "ir" ? "IDA" : payload.tipoTrajeto === "voltar" ? "VOLTA" : "AMBOS";
-  const turnoApi = payload.periodo ? payload.periodo.toUpperCase() : "MANHA";
 
   if (payload.bairro) {
     form.append("bairro", payload.bairro);
@@ -415,6 +428,11 @@ function configurarModal() {
       if (event.target === el.modalOverlay) fecharModalSeguroAluno();
     });
   }
+
+  // Esconde/mostra embarque e desembarque toda vez que o trajeto muda.
+  if (el.tipoTrajetoAluno) {
+    el.tipoTrajetoAluno.addEventListener("change", aplicarVisibilidadeEnderecos);
+  }
 }
 
 /* =========================================================
@@ -433,7 +451,7 @@ function configurarBuscaEFiltros() {
     el.inputBusca.addEventListener("input", renderizar);
   }
 
-  const filtros = [el.filtroOrdem, el.filtroEscola, el.filtroTrajeto, el.filtroTurma, el.filtroVencimento];
+  const filtros = [el.filtroOrdem, el.filtroEscola, el.filtroTrajeto, el.filtroTurma];
   filtros.forEach((campo) => campo && campo.addEventListener("change", renderizar));
 
   if (el.btnLimparFiltros) {
@@ -442,7 +460,6 @@ function configurarBuscaEFiltros() {
       if (el.filtroEscola) el.filtroEscola.value = "";
       if (el.filtroTrajeto) el.filtroTrajeto.value = "";
       if (el.filtroTurma) el.filtroTurma.value = "";
-      if (el.filtroVencimento) el.filtroVencimento.value = "";
       renderizar();
     });
   }
@@ -464,6 +481,10 @@ function atualizarOpcoesEscola() {
   }
 }
 
+function renderizarOpcoesEscola() {
+  atualizarOpcoesEscola();
+}
+
 function atualizarOpcoesTurma() {
   if (!el.filtroTurma) return;
 
@@ -483,28 +504,76 @@ function obterDescricaoTrajeto(tipo) {
 }
 
 
+/*
+  CORRIGIDO: esta função fazia um "swap" manual de embarque/desembarque
+  tentando compensar o fato de o formulário sempre exigir os dois campos,
+  mesmo quando o trajeto não usava um deles. Agora quem decide qual campo
+  existe é `aplicarVisibilidadeEnderecos` (esconde o campo que não se
+  aplica) e o backend (que zera o campo que não faz sentido para o
+  tipo_trajeto), então aqui só precisamos repassar o que o usuário viu e
+  preencheu — sem inventar valor nenhum para o campo escondido.
+
+  IMPORTANTE: o <select id="tipoTrajetoAluno"> usa os valores
+  "IDA" / "VOLTA" / "AMBOS" (iguais ao enum do backend) — não
+  "ir" / "voltar" / "ambos". A versão antiga desta função comparava
+  contra "ir"/"voltar", então a checagem nunca batia e o swap nunca
+  rodava de verdade.
+*/
 function normalizarRotaPorTrajeto(aluno) {
   const embarqueOriginal = (aluno.embarque || "").trim();
   const desembarqueOriginal = (aluno.desembarque || "").trim();
+  const tipo = String(aluno.tipoTrajeto || "").toUpperCase();
 
-  if (aluno.tipoTrajeto === "voltar") {
-    return {
-      embarque: desembarqueOriginal || embarqueOriginal,
-      desembarque: embarqueOriginal || desembarqueOriginal
-    };
+  if (tipo === "IDA") {
+    return { embarque: embarqueOriginal, desembarque: "" };
   }
 
-  if (aluno.tipoTrajeto === "ir") {
-    return {
-      embarque: embarqueOriginal,
-      desembarque: desembarqueOriginal || aluno.escola || "Escola"
-    };
+  if (tipo === "VOLTA") {
+    return { embarque: "", desembarque: desembarqueOriginal };
   }
 
-  return {
-    embarque: embarqueOriginal,
-    desembarque: desembarqueOriginal
-  };
+  return { embarque: embarqueOriginal, desembarque: desembarqueOriginal };
+}
+
+/*
+  NOVO: um aluno com tipo_trajeto = IDA não tem endereço de desembarque
+  (o destino já é a escola); um aluno VOLTA não tem endereço de embarque
+  (a origem já é a escola); só IDA_E_VOLTA (AMBOS) tem os dois. Esta
+  função esconde/mostra os campos certos no formulário de acordo com o
+  trajeto selecionado, e tira o campo escondido da validação obrigatória.
+*/
+function aplicarVisibilidadeEnderecos() {
+  if (!el.tipoTrajetoAluno) return;
+
+  const tipo = String(el.tipoTrajetoAluno.value || "").toUpperCase();
+  const mostrarEmbarque = tipo !== "VOLTA";
+  const mostrarDesembarque = tipo !== "IDA";
+
+  if (el.grupoEnderecoEmbarque) {
+    el.grupoEnderecoEmbarque.style.display = mostrarEmbarque ? "" : "none";
+  }
+  if (el.enderecoEmbarque) {
+    el.enderecoEmbarque.required = mostrarEmbarque;
+    if (!mostrarEmbarque) el.enderecoEmbarque.value = "";
+  }
+
+  if (el.grupoEnderecoDesembarque) {
+    el.grupoEnderecoDesembarque.style.display = mostrarDesembarque ? "" : "none";
+  }
+  if (el.enderecoDesembarque) {
+    el.enderecoDesembarque.required = mostrarDesembarque;
+    if (!mostrarDesembarque) el.enderecoDesembarque.value = "";
+  }
+}
+
+// Converte o formato interno usado pela tabela/filtros ("ir"/"voltar"/
+// "ambos") para o valor esperado pelo <select id="tipoTrajetoAluno">
+// ("IDA"/"VOLTA"/"AMBOS"). Sem isso, editar um aluno não preenchia o
+// select corretamente (o value setado nunca batia com nenhuma <option>).
+function tipoTrajetoParaSelect(tipoTrajetoInterno) {
+  if (tipoTrajetoInterno === "ir") return "IDA";
+  if (tipoTrajetoInterno === "voltar") return "VOLTA";
+  return "AMBOS";
 }
 
 function obterAlunosFiltrados() {
@@ -512,7 +581,6 @@ function obterAlunosFiltrados() {
   const escola = el.filtroEscola ? el.filtroEscola.value : "";
   const trajeto = el.filtroTrajeto ? el.filtroTrajeto.value : "";
   const turma = el.filtroTurma ? el.filtroTurma.value : "";
-  const venc = el.filtroVencimento ? el.filtroVencimento.value : "";
   const ordem = el.filtroOrdem ? el.filtroOrdem.value : "alfabetica";
 
   let lista = alunos.filter((aluno) => {
@@ -527,8 +595,7 @@ function obterAlunosFiltrados() {
       (!busca || textoBusca.includes(busca)) &&
       (!escola || aluno.idEscola === Number(escola)) &&
       (!trajeto || aluno.tipoTrajeto === trajeto) &&
-      (!listaSelecionada || alunoPertenceALista(aluno, listaSelecionada)) &&
-      (!venc || aluno.vencimento === venc)
+      (!listaSelecionada || alunoPertenceALista(aluno, listaSelecionada))
     );
   });
 
@@ -672,9 +739,27 @@ function configurarFormulario() {
 
     const payload = montarPayloadAluno();
     const fluxoAtivo = emFluxoCadastro() && !payload.id;
-    
-      if (!payload.nome || !payload.id_escola) {
-      showWarning("Preencha nome e escola do aluno.");
+
+    const responsavelSelecionado = fluxoAtivo
+      ? responsaveis.find((item) => Number(item.id_responsavel) === Number(idResponsavelFluxo)) || null
+      : encontrarResponsavelPorNome(payload.responsavel1);
+
+    const idResponsavelSalvar = fluxoAtivo
+      ? Number(idResponsavelFluxo)
+      : responsavelSelecionado?.id_responsavel;
+
+    if (!payload.nome) {
+      showWarning("Informe o nome do aluno.");
+      return;
+    }
+
+    if (!payload.id_escola && !payload.idEscola) {
+      showWarning("Selecione a escola do aluno.");
+      return;
+    }
+
+    if (!idResponsavelSalvar) {
+      showWarning("É necessário vincular o aluno a um responsável válido.");
       return;
     }
 
@@ -683,55 +768,54 @@ function configurarFormulario() {
       return;
     }
 
-    // Validação dos campos obrigatórios do aluno
-    if (!payload.nome || !payload.embarque || !payload.desembarque || !payload.idEscola || !payload.vencimento) {
-      console.warn('Validação falhou. Campos vazios:', {
-        nome: !!payload.nome,
-        embarque: !!payload.embarque,
-        desembarque: !!payload.desembarque,
-        idEscola: !!payload.idEscola,
-        vencimento: !!payload.vencimento
-      });
-      showWarning("Preencha todos os campos obrigatórios do aluno.");
+    if (!validarTipoTrajeto(payload.tipo_trajeto || payload.tipoTrajeto)) {
+      showWarning("Selecione um tipo de trajeto válido: IDA, VOLTA ou AMBOS.");
       return;
     }
 
-    if (!payload.id_responsavel) {
-      showWarning("É necessário vincular o aluno a um responsável válido.");
+    /*
+      CORRIGIDO: aqui os dois endereços eram sempre obrigatórios, o que
+      contradiz a regra do projeto (IDA só tem embarque, VOLTA só tem
+      desembarque, AMBOS tem os dois). Agora a validação depende do
+      tipo_trajeto escolhido — o mesmo campo que já fica escondido em
+      `aplicarVisibilidadeEnderecos`.
+    */
+    const tipoTrajetoValidacao = String(payload.tipo_trajeto || payload.tipoTrajeto || "AMBOS").toUpperCase();
+    const precisaEmbarque = tipoTrajetoValidacao !== "VOLTA";
+    const precisaDesembarque = tipoTrajetoValidacao !== "IDA";
+
+    if (precisaEmbarque && !payload.embarque) {
+      showWarning("Preencha o endereço de embarque do aluno.");
       return;
     }
 
-    if (!fluxoAtivo) {
-      const responsavelSelecionado = encontrarResponsavelPorNome(payload.responsavel1);
+    if (precisaDesembarque && !payload.desembarque) {
+      showWarning("Preencha o endereço de desembarque do aluno.");
+      return;
+    }
 
-      if (!responsavelSelecionado) {
-        showWarning("Responsável não encontrado para o vínculo do aluno.");
-        return;
-      }
+    payload.id_responsavel = Number(idResponsavelSalvar);
+    payload.id_escola = Number(payload.id_escola ?? payload.idEscola);
+    payload.turno = String(payload.turno).toUpperCase();
+    payload.tipo_trajeto = String(payload.tipo_trajeto || payload.tipoTrajeto).toUpperCase();
 
-      payload.id_responsavel = responsavelSelecionado.id_responsavel;
-      if (el.telefoneResponsavel1) el.telefoneResponsavel1.value = aplicarMascaraTelefone(responsavelSelecionado.telefone || "");
+    if (responsavelSelecionado && el.telefoneResponsavel1) {
+      el.telefoneResponsavel1.value = aplicarMascaraTelefone(responsavelSelecionado.telefone || "");
     }
 
     try {
       console.log('Iniciando salvamento do aluno...');
-      const novoCadastro = !payload.id;
-      const idResponsavelSalvar = fluxoAtivo
-        ? idResponsavelFluxo
-        : encontrarResponsavelPorNome(payload.responsavel1)?.id_responsavel;
-
-      const alunoSalvo = await salvarAluno(payload, idResponsavelSalvar);
+      const alunoSalvo = await salvarAluno(payload, payload.id_responsavel);
       alunos = await carregarAlunos();
       console.log('Alunos recarregados, total:', alunos.length);
-      
+
       fecharModal();
       atualizarOpcoesEscola();
-      atualizarOpcoesTurma();
       atualizarOpcoesTurma();
       renderizar();
 
       if (fluxoAtivo && alunoSalvo) {
-        redirecionarParaMensalidade(alunoSalvo, payload.turno);
+        redirecionarParaMensalidade(alunoSalvo);
         return;
       }
 
@@ -800,6 +884,8 @@ function obterElementos() {
     bairroAluno: document.getElementById("bairroAluno"),
     enderecoEmbarque: document.getElementById("enderecoEmbarque"),
     enderecoDesembarque: document.getElementById("enderecoDesembarque"),
+    grupoEnderecoEmbarque: document.getElementById("grupoEnderecoEmbarque"),
+    grupoEnderecoDesembarque: document.getElementById("grupoEnderecoDesembarque"),
     fotoAluno: document.getElementById("fotoAluno"),
     linkFotoAluno: document.getElementById("linkFotoAluno"),
     previewFoto: document.getElementById("previewFoto"),
@@ -815,7 +901,6 @@ function obterElementos() {
     filtroEscola: document.getElementById("filtroEscolaAluno"),
     filtroTrajeto: document.getElementById("filtroTrajetoAluno"),
     filtroTurma: document.getElementById("filtroTurmaAluno"),
-    filtroVencimento: document.getElementById("filtroVencimentoAluno"),
     btnLimparFiltros: document.getElementById("btnLimparFiltrosAluno"),
     botaoFiltroAluno: document.getElementById("botaoFiltroAluno"),
     painelFiltrosAluno: document.getElementById("painelFiltrosAluno"),
@@ -840,6 +925,7 @@ function abrirModalNovo() {
   if (el.bairroAluno) el.bairroAluno.value = "";
   if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   esconderPreviewFoto();
+  aplicarVisibilidadeEnderecos();
   if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
   registrarEstadoInicialFormulario(el.formAluno);
 }
@@ -856,10 +942,10 @@ function abrirModalEditar(aluno) {
   if (el.enderecoEmbarque) el.enderecoEmbarque.value = aplicarMascaraEndereco(aluno.embarque || "");
   if (el.enderecoDesembarque) el.enderecoDesembarque.value = aplicarMascaraEndereco(aluno.desembarque || "");
   if (el.escolaAluno) el.escolaAluno.value = aluno.idEscola || "";
-  if (el.vencimentoAluno) el.vencimentoAluno.value = aluno.vencimento || "";
-  if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = aluno.tipoTrajeto || "ambos";
-  if (el.periodoAluno) el.periodoAluno.value = aluno.periodo || "manha";
+  if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = tipoTrajetoParaSelect(aluno.tipoTrajeto);
+  if (el.turnoAluno) el.turnoAluno.value = (aluno.periodo || "manha").toUpperCase();
   if (el.linkFotoAluno) el.linkFotoAluno.value = "";
+  aplicarVisibilidadeEnderecos();
   aluno.foto ? mostrarPreviewFoto(aluno.foto) : esconderPreviewFoto();
   if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
   registrarEstadoInicialFormulario(el.formAluno);
@@ -954,9 +1040,9 @@ async function processarRetornoResponsavel() {
             || encontrarEscolaPorNome(dados.alunoData.escola)
             || "";
         }
-        if (el.vencimentoAluno) el.vencimentoAluno.value = dados.alunoData.vencimento || "";
-        if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = dados.alunoData.tipoTrajeto || "ambos";
-        if (el.periodoAluno) el.periodoAluno.value = dados.alunoData.periodo || "manha";
+        if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = dados.alunoData.tipoTrajeto || "AMBOS";
+        if (el.turnoAluno) el.turnoAluno.value = dados.alunoData.turno || "MANHA";
+        aplicarVisibilidadeEnderecos();
         
         showSuccess("Responsável cadastrado! Agora complete os dados do aluno.");
       }, 100);

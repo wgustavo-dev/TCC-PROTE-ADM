@@ -4,9 +4,16 @@ import { Responsavel } from "../models/model_responsavel";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Presenca } from "../models/model_presenca";
 import { Escola } from "../models/model_escola";
-import { criarItensItinerario, sincronizarItensItinerario } from "./service_itinerario"; // NOVO
+import { ServiceItinerario } from "./service_itinerario";
+
+interface UsuarioLogado {
+  id: number;
+  role: "CONDUTOR" | "MONITOR";
+}
 
 export class ServiceAluno {
+  private itinerarioService = new ServiceItinerario();
+
   private get alunoRepository() {
     return AppDataSource.getRepository(Aluno);
   }
@@ -80,26 +87,35 @@ export class ServiceAluno {
     return dados;
   }
 
-  // NOVO: mantém o itinerário em dia com o cadastro. Só mexe em
-  // itinerario_aluno se o aluno tiver turno + tipo_trajeto + condutor
-  // definidos — sem isso não tem como saber onde encaixá-lo na rota.
+  // Mantém o itinerário em dia com o cadastro. `sincronizarAluno` (do
+  // service_itinerario, agora via TypeORM) já sabe lidar sozinho com o
+  // caso de o aluno não ter turno/tipo_trajeto/condutor completos —
+  // não precisa de tratamento especial aqui.
+  private async resolverIdCondutorParaAluno(
+    dados: Partial<Aluno> & any,
+    usuarioLogado?: UsuarioLogado
+  ): Promise<number | null> {
+    const idCondutorInformado = dados.id_condutor ?? dados.idCondutor;
+
+    if (idCondutorInformado !== undefined && idCondutorInformado !== null && idCondutorInformado !== "") {
+      return Number(idCondutorInformado);
+    }
+
+    if (!usuarioLogado) {
+      return null;
+    }
+
+    return await this.itinerarioService.resolverIdCondutor(usuarioLogado);
+  }
+
   private async sincronizarItinerarioDoAluno(aluno: Aluno) {
     // try/catch aqui de propósito: se a sincronização do itinerário
-    // falhar por qualquer motivo (tabela ausente, etc.), isso NÃO
-    // pode derrubar o cadastro/edição do aluno — só avisa no console.
+    // falhar por qualquer motivo, isso NÃO pode derrubar o
+    // cadastro/edição do aluno — só avisa no console. Vale lembrar que,
+    // mesmo se isso falhar, o próximo GET /api/itinerarios se
+    // autocorrige sozinho (ver ServiceItinerario.listarAgrupado).
     try {
-      if (aluno.turno && aluno.tipo_trajeto && aluno.id_condutor) {
-        await sincronizarItensItinerario(
-          aluno.id_aluno,
-          aluno.id_condutor,
-          aluno.turno as any,
-          aluno.tipo_trajeto as any
-        );
-      } else {
-        // Ficou incompleto (perdeu turno/tipo/condutor) — remove
-        // qualquer entrada antiga de itinerário que tenha sobrado.
-        await AppDataSource.query("DELETE FROM itinerario_aluno WHERE id_aluno = ?", [aluno.id_aluno]);
-      }
+      await this.itinerarioService.sincronizarAluno(aluno);
     } catch (error) {
       console.error("Falha ao sincronizar itinerário do aluno:", error);
     }
@@ -185,7 +201,33 @@ export class ServiceAluno {
     throw new Error("Tipo de trajeto inválido. Use IDA, VOLTA ou AMBOS.");
   }
 
-  async criar(dados: Partial<Aluno> & any) {
+  /*
+    Regra de negócio (endereços por tipo de trajeto):
+    - IDA         -> só endereço de embarque (não tem desembarque, o
+                      destino já é a escola).
+    - VOLTA       -> só endereço de desembarque (não tem embarque, a
+                      origem já é a escola).
+    - IDA E VOLTA -> tem os dois endereços.
+    Aqui o backend garante essa regra mesmo que o front mande os dois
+    campos preenchidos: o que não faz sentido para o trajeto é limpo.
+  */
+  private aplicarRegraEnderecoPorTrajeto(
+    tipoTrajeto: "IDA" | "VOLTA" | "AMBOS" | null,
+    embarque: string | null,
+    desembarque: string | null
+  ) {
+    if (tipoTrajeto === "IDA") {
+      return { embarque, desembarque: null };
+    }
+
+    if (tipoTrajeto === "VOLTA") {
+      return { embarque: null, desembarque };
+    }
+
+    return { embarque, desembarque };
+  }
+
+  async criar(dados: Partial<Aluno> & any, usuarioLogado?: UsuarioLogado) {
     this.limparCamposAntigos(dados);
 
     if (!dados.nome?.trim()) {
@@ -194,46 +236,42 @@ export class ServiceAluno {
 
     const turno = this.normalizarTurno(dados.turno);
     const tipoTrajeto = this.normalizarTipoTrajeto(dados.tipo_trajeto);
+    const idCondutor = await this.resolverIdCondutorParaAluno(dados, usuarioLogado);
 
     const responsavel = await this.validarResponsavel(dados.id_responsavel);
     const escola = await this.validarEscola(dados.id_escola);
+
+    const enderecos = this.aplicarRegraEnderecoPorTrajeto(
+      tipoTrajeto,
+      dados.endereco_embarque?.trim() || null,
+      dados.endereco_desembarque?.trim() || null
+    );
 
     const aluno = this.alunoRepository.create({
       nome: dados.nome.trim(),
       bairro: dados.bairro?.trim() || null,
       id_escola: escola.id_escola,
       turno,
-      endereco_embarque: dados.endereco_embarque?.trim() || null,
-      endereco_desembarque: dados.endereco_desembarque?.trim() || null,
+      endereco_embarque: enderecos.embarque,
+      endereco_desembarque: enderecos.desembarque,
       tipo_trajeto: tipoTrajeto,
       foto: dados.foto || null,
       id_responsavel: responsavel.id_responsavel,
-      id_condutor: dados.id_condutor ? Number(dados.id_condutor) : null,
+      id_condutor: idCondutor,
     });
 
     await this.alunoRepository.save(aluno);
 
-    // NOVO: gera as entradas do itinerário (ida/volta) se já tiver
+    // Gera as entradas do itinerário (ida/volta) se já tiver
     // turno + tipo_trajeto + condutor definidos no cadastro.
     // try/catch de propósito — problema no itinerário não pode
     // impedir o aluno de ser cadastrado.
-    try {
-      if (aluno.turno && aluno.tipo_trajeto && aluno.id_condutor) {
-        await criarItensItinerario(
-          aluno.id_aluno,
-          aluno.id_condutor,
-          aluno.turno as any,
-          aluno.tipo_trajeto as any
-        );
-      }
-    } catch (error) {
-      console.error("Falha ao criar itens do itinerário:", error);
-    }
+    await this.sincronizarItinerarioDoAluno(aluno);
 
     return await this.buscarPorID(aluno.id_aluno);
   }
 
-  async atualizar(id: number, dados: Partial<Aluno> & any) {
+  async atualizar(id: number, dados: Partial<Aluno> & any, usuarioLogado?: UsuarioLogado) {
     this.limparCamposAntigos(dados);
 
     const aluno = await this.alunoRepository.findOneBy({
@@ -282,12 +320,27 @@ export class ServiceAluno {
       aluno.tipo_trajeto = this.normalizarTipoTrajeto(dados.tipo_trajeto);
     }
 
+    // Reaplica a regra de endereço por trajeto sempre que o tipo_trajeto
+    // e/ou os endereços mudarem, para o dado nunca ficar inconsistente
+    // (ex.: aluno IDA com endereco_desembarque preenchido).
+    if (dados.tipo_trajeto !== undefined || dados.endereco_embarque !== undefined || dados.endereco_desembarque !== undefined) {
+      const enderecos = this.aplicarRegraEnderecoPorTrajeto(
+        aluno.tipo_trajeto,
+        aluno.endereco_embarque,
+        aluno.endereco_desembarque
+      );
+      aluno.endereco_embarque = enderecos.embarque;
+      aluno.endereco_desembarque = enderecos.desembarque;
+    }
+
     if (dados.foto !== undefined) {
       aluno.foto = dados.foto || null;
     }
 
     if (dados.id_condutor !== undefined) {
       aluno.id_condutor = dados.id_condutor ? Number(dados.id_condutor) : null;
+    } else if (usuarioLogado && aluno.id_condutor === null) {
+      aluno.id_condutor = await this.itinerarioService.resolverIdCondutor(usuarioLogado);
     }
 
     await this.alunoRepository.save(aluno);
@@ -317,7 +370,7 @@ export class ServiceAluno {
     await this.presencaRepository.delete({ id_aluno });
     await this.mensalidadeRepository.delete({ id_aluno });
     try {
-      await AppDataSource.query("DELETE FROM itinerario_aluno WHERE id_aluno = ?", [id_aluno]); // NOVO
+      await this.itinerarioService.removerPorAluno(id_aluno);
     } catch (error) {
       console.error("Falha ao limpar itinerário do aluno excluído:", error);
     }

@@ -1,6 +1,7 @@
 // Back_end/src/controllers/control_aluno.ts
 
 import { Request, Response } from "express";
+import type { AuthRequest } from "../middleware/authMiddleware";
 import { ServiceAluno } from "../services/service_aluno";
 
 const serviceAluno = new ServiceAluno();
@@ -44,7 +45,7 @@ export class ControlAluno {
     }
   }
 
-  async criar(req: Request, res: Response) {
+  async criar(req: AuthRequest, res: Response) {
     try {
       const dados = req.body;
 
@@ -52,7 +53,7 @@ export class ControlAluno {
         dados.foto = `/uploads/alunos/${req.file.filename}`;
       }
 
-      const aluno = await serviceAluno.criar(dados);
+      const aluno = await serviceAluno.criar(dados, req.user);
 
       return res.status(201).json(aluno);
     } catch (error: any) {
@@ -62,7 +63,7 @@ export class ControlAluno {
     }
   }
 
-  async atualizar(req: Request, res: Response) {
+  async atualizar(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
       const dados = req.body;
@@ -71,7 +72,7 @@ export class ControlAluno {
         dados.foto = `/uploads/alunos/${req.file.filename}`;
       }
 
-      const aluno = await serviceAluno.atualizar(Number(id), dados);
+      const aluno = await serviceAluno.atualizar(Number(id), dados, req.user);
 
       return res.status(200).json(aluno);
     } catch (error: any) {

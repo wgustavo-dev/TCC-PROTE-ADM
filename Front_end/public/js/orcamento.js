@@ -1,141 +1,163 @@
-const botao = document.getElementById("botaoNovoOrcamento");
-const modal = document.getElementById("fundoModal");
-const cancelar = document.getElementById("botaoCancelar");
-const salvarBtn = document.getElementById("botaoSalvar");
-const tabelaLinhas = document.getElementById("linhasOrcamentos");
+// Base da API do backend para todas as chamadas do front-end.
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api';
 
-const campoId = document.getElementById("campoId");
-const campoResponsavel = document.getElementById("campoResponsavel");
-const campoTelefone = document.getElementById("campoTelefone");
-const campoQuantidadeAlunos = document.getElementById("campoQuantidadeAlunos");
-const campoBairro = document.getElementById("campoBairro");
-const campoEscola = document.getElementById("campoEscola");
-const campoValor = document.getElementById("campoValor");
-const campoTurno = document.getElementById("campoTurno");
-const campoTrajeto = document.getElementById("campoTrajeto");
-const campoEmbarque = document.getElementById("campoEmbarque");
-const campoDesembarque = document.getElementById("campoDesembarque");
-const campoBusca = document.getElementById("campoBusca");
+// Elementos da tela e do formulário de orçamento.
+const botao = document.getElementById('botaoNovoOrcamento');
+const modal = document.getElementById('fundoModal');
+const cancelar = document.getElementById('botaoCancelar');
+const salvarBtn = document.getElementById('botaoSalvar');
+const formOrcamento = document.getElementById('formOrcamento');
+const tabelaLinhas = document.getElementById('linhasOrcamentos');
 
+const campoId = document.getElementById('campoId');
+const campoResponsavel = document.getElementById('campoResponsavel');
+const campoTelefone = document.getElementById('campoTelefone');
+const campoQuantidadeAlunos = document.getElementById('campoQuantidadeAlunos');
+const campoBairro = document.getElementById('campoBairro');
+const campoEscola = document.getElementById('campoEscola');
+const campoValor = document.getElementById('campoValor');
+const campoTurno = document.getElementById('campoTurno');
+const campoTrajeto = document.getElementById('campoTrajeto');
+const campoEmbarque = document.getElementById('campoEmbarque');
+const campoDesembarque = document.getElementById('campoDesembarque');
+const campoBusca = document.getElementById('campoBusca');
+
+// Estado da página: orçamentos carregados, filtro ativo e edição atual.
 let orcamentos = [];
 let escolas = [];
-let statusAtual = "pendente";
+let statusAtual = 'pendente';
 let idEmEdicao = null;
 
-/* ================================
-   ABRIR MODAL
-================================ */
-if (botao) {
-  botao.addEventListener("click", () => {
-    idEmEdicao = null;
-    limparFormularioOrcamento();
-    modal.classList.add("ativo");
-    registrarEstadoInicialFormulario(modal);
+// Faz a chamada HTTP com autenticação e tratamento de erro padrão.
+async function request(path, options = {}) {
+  const token = window.localStorage.getItem('prote_token');
+  const headers = {
+    ...(options.headers || {}),
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  if (!(options.body instanceof FormData) && options.body !== undefined && headers['Content-Type'] === undefined) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers,
+    credentials: 'include',
   });
+
+  const contentType = response.headers.get('content-type') || '';
+  const payload = contentType.includes('application/json') ? await response.json() : null;
+
+  if (!response.ok) {
+    const message = payload?.error || payload?.erro || payload?.message || `Erro HTTP ${response.status}`;
+    throw new Error(message);
+  }
+
+  return payload;
+}
+
+// Helpers para consumir as rotas do backend de forma consistente.
+const api = {
+  get: (path) => request(path, { method: 'GET' }),
+  post: (path, body) => request(path, { method: 'POST', body: JSON.stringify(body) }),
+  put: (path, body) => request(path, { method: 'PUT', body: JSON.stringify(body ?? {}) }),
+  del: (path) => request(path, { method: 'DELETE' }),
+};
+
+// Abre o modal em modo de criação.
+function abrirModalOrcamento() {
+  idEmEdicao = null;
+  limparFormularioOrcamento();
+  if (modal) modal.classList.add('ativo');
+  if (typeof registrarEstadoInicialFormulario === 'function' && modal) {
+    registrarEstadoInicialFormulario(modal);
+  }
 }
 
 function fecharModalOrcamento() {
-  modal.classList.remove("ativo");
+  if (modal) modal.classList.remove('ativo');
 }
 
 function fecharModalOrcamentoSeguro() {
-  return fecharModalSeguro(modal, fecharModalOrcamento);
+  if (typeof fecharModalSeguro === 'function') {
+    return fecharModalSeguro(modal, fecharModalOrcamento);
+  }
+
+  fecharModalOrcamento();
+  return true;
 }
 
-/* ================================
-   FECHAR MODAL
-================================ */
+if (botao) {
+  botao.addEventListener('click', abrirModalOrcamento);
+}
+
 if (cancelar) {
-  cancelar.addEventListener("click", () => {
-    fecharModalOrcamentoSeguro();
-  });
+  cancelar.addEventListener('click', fecharModalOrcamentoSeguro);
 }
 
-/* ================================
-   FECHAR CLICANDO FORA
-================================ */
 if (modal) {
-  modal.addEventListener("click", (event) => {
-    if (event.target.id === "fundoModal") {
+  modal.addEventListener('click', (event) => {
+    if (event.target.id === 'fundoModal') {
       fecharModalOrcamentoSeguro();
     }
   });
 }
 
-/* ================================
-   FUNÇÕES AUXILIARES
-================================ */
+// Limpa os campos do formulário para um novo cadastro ou edição.
 function limparFormularioOrcamento() {
-  if (campoId) campoId.value = "";
-  if (campoResponsavel) campoResponsavel.value = "";
-  if (campoTelefone) campoTelefone.value = "";
-  if (campoQuantidadeAlunos) campoQuantidadeAlunos.value = "";
-  if (campoBairro) campoBairro.value = "";
-  if (campoEscola) campoEscola.value = "";
-  if (campoValor) campoValor.value = "";
-  if (campoTurno) campoTurno.value = "";
-  if (campoTrajeto) campoTrajeto.value = "";
+  if (campoId) campoId.value = '';
+  if (campoResponsavel) campoResponsavel.value = '';
+  if (campoTelefone) campoTelefone.value = '';
+  if (campoQuantidadeAlunos) campoQuantidadeAlunos.value = '';
+  if (campoBairro) campoBairro.value = '';
+  if (campoEscola) campoEscola.value = '';
+  if (campoValor) campoValor.value = '';
+  if (campoTurno) campoTurno.value = '';
+  if (campoTrajeto) campoTrajeto.value = '';
+
   if (campoEmbarque) {
-    campoEmbarque.value = "";
+    campoEmbarque.value = '';
     campoEmbarque.disabled = true;
+    campoEmbarque.closest('.grupo-campo')?.style.setProperty('display', 'none');
   }
+
   if (campoDesembarque) {
-    campoDesembarque.value = "";
+    campoDesembarque.value = '';
     campoDesembarque.disabled = true;
+    campoDesembarque.closest('.grupo-campo')?.style.setProperty('display', 'none');
   }
 }
 
+// Ajusta os campos de embarque/desembarque conforme o tipo de trajeto escolhido.
 function atualizarCamposTrajeto() {
-  const tipoTrajeto = campoTrajeto && campoTrajeto.value ? String(campoTrajeto.value).toUpperCase() : "";
-  const permiteEmbarque = tipoTrajeto === "IDA" || tipoTrajeto === "AMBOS";
-  const permiteDesembarque = tipoTrajeto === "VOLTA" || tipoTrajeto === "AMBOS";
+  const tipoTrajeto = campoTrajeto && campoTrajeto.value ? String(campoTrajeto.value).toUpperCase() : '';
+  const permiteEmbarque = tipoTrajeto === 'IDA' || tipoTrajeto === 'AMBOS';
+  const permiteDesembarque = tipoTrajeto === 'VOLTA' || tipoTrajeto === 'AMBOS';
 
   if (campoEmbarque) {
+    const grupoEmbarque = campoEmbarque.closest('.grupo-campo');
     campoEmbarque.disabled = !permiteEmbarque;
-    if (!permiteEmbarque) {
-      campoEmbarque.value = "";
+    if (grupoEmbarque) {
+      grupoEmbarque.style.display = permiteEmbarque ? '' : 'none';
     }
+    if (!permiteEmbarque) campoEmbarque.value = '';
   }
 
   if (campoDesembarque) {
+    const grupoDesembarque = campoDesembarque.closest('.grupo-campo');
     campoDesembarque.disabled = !permiteDesembarque;
-    if (!permiteDesembarque) {
-      campoDesembarque.value = "";
+    if (grupoDesembarque) {
+      grupoDesembarque.style.display = permiteDesembarque ? '' : 'none';
     }
+    if (!permiteDesembarque) campoDesembarque.value = '';
   }
 }
 
-async function carregarEscolas() {
-  try {
-    const data = await window.API.get("/escolas");
-    escolas = Array.isArray(data) ? data : [];
-    renderizarOpcoesEscola();
-  } catch (error) {
-    console.error("Erro ao carregar escolas:", error);
-    escolas = [];
-    renderizarOpcoesEscola();
-  }
-}
-
-function renderizarOpcoesEscola() {
-  if (!campoEscola) return;
-
-  const opcoes = escolas
-    .map((escola) => `<option value="${String(escola.nome || "").trim()}">${String(escola.nome || "").trim()}</option>`)
-    .join("");
-
-  campoEscola.innerHTML = `
-    <option value="">Selecione uma escola</option>
-    ${opcoes || '<option value="" disabled>Nenhuma escola cadastrada</option>'}
-  `;
-
-  const valorAtual = campoEscola.dataset.valorSelecionado || "";
-  if (valorAtual) {
-    campoEscola.value = valorAtual;
-    delete campoEscola.dataset.valorSelecionado;
-  }
-}
-
+// Formata entradas do usuário para manter o cadastro consistente.
 function aplicarMascaraNome(valor) {
   return String(valor || '')
     .replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s'-]/g, '')
@@ -154,8 +176,7 @@ function aplicarMascaraTelefone(valor) {
 }
 
 function validarTelefone(valor) {
-  const telefone = limparMascaraTelefone(valor);
-  return /^\d{10,11}$/.test(telefone);
+  return /^\d{10,11}$/.test(String(valor || '').replace(/\D/g, ''));
 }
 
 function aplicarMascaraEndereco(valor) {
@@ -182,17 +203,14 @@ function aplicarMascaraValor(valor) {
 
   const parteInteira = Math.trunc(numero);
   const parteDecimal = Math.round((numero - parteInteira) * 100);
-  const valorFormatado = (parteInteira + (parteDecimal / 100)).toLocaleString('pt-BR', {
+  return (parteInteira + parteDecimal / 100).toLocaleString('pt-BR', {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   });
-
-  return valorFormatado;
 }
 
 function normalizarValorMonetario(valor) {
   const texto = String(valor || '').trim();
-
   if (!texto) return null;
 
   const numero = Number(
@@ -202,80 +220,66 @@ function normalizarValorMonetario(valor) {
       .replace(',', '.')
   );
 
-  if (!Number.isFinite(numero)) return null;
-
-  return numero;
+  return Number.isFinite(numero) ? numero : null;
 }
 
 function obterQuantidadeAlunos() {
   const quantidade = Number(campoQuantidadeAlunos?.value);
-
-  if (!Number.isInteger(quantidade) || quantidade < 1) {
-    return null;
-  }
-
-  return quantidade;
+  return Number.isInteger(quantidade) && quantidade >= 1 ? quantidade : null;
 }
 
+// Padroniza os status vindos do backend para texto e classe no front.
 function normalizarStatus(status) {
-  const statusRaw = String(status || "PENDENTE").toUpperCase();
+  const statusRaw = String(status || 'PENDENTE').toUpperCase();
 
-  if (statusRaw === "PENDENTE") {
-    return {
-      valor: "pendente",
-      texto: "PENDENTE",
-      classe: "pendente"
-    };
-  }
-
-  if (statusRaw === "EM_CADASTRO") {
-    return {
-      valor: "em_cadastro",
-      texto: "EM CADASTRO",
-      classe: "pendente"
-    };
-  }
-
-  if (statusRaw === "CONVERTIDO") {
-    return {
-      valor: "convertido",
-      texto: "CONVERTIDO",
-      classe: "aprovado"
-    };
-  }
-
-  if (statusRaw === "RECUSADO") {
-    return {
-      valor: "reprovado",
-      texto: "RECUSADO",
-      classe: "reprovado"
-    };
-  }
-
-  return {
-    valor: "pendente",
-    texto: statusRaw,
-    classe: "pendente"
+  const mapa = {
+    PENDENTE: { valor: 'pendente', texto: 'PENDENTE', classe: 'pendente' },
+    EM_CADASTRO: { valor: 'em_cadastro', texto: 'EM CADASTRO', classe: 'pendente' },
+    CONVERTIDO: { valor: 'convertido', texto: 'CONVERTIDO', classe: 'aprovado' },
+    RECUSADO: { valor: 'reprovado', texto: 'RECUSADO', classe: 'reprovado' },
   };
+
+  return mapa[statusRaw] || { valor: 'pendente', texto: statusRaw, classe: 'pendente' };
 }
 
-async function obterMensagemErro(response) {
+// Busca escolas no backend para preencher o select do formulário.
+async function carregarEscolas() {
   try {
-    const dados = await response.json();
-    return dados.error || dados.erro || "Erro na requisição";
-  } catch {
-    return "Erro na requisição";
+    const dados = await api.get('/escolas');
+    escolas = Array.isArray(dados) ? dados : [];
+    renderizarOpcoesEscola();
+  } catch (error) {
+    console.error('Erro ao carregar escolas:', error);
+    escolas = [];
+    renderizarOpcoesEscola();
   }
 }
 
-/* ================================
-   CARREGAR ORÇAMENTOS
-================================ */
+function renderizarOpcoesEscola() {
+  if (!campoEscola) return;
+
+  const opcoes = escolas
+    .map((escola) => `<option value="${String(escola.nome || '').trim()}">${String(escola.nome || '').trim()}</option>`)
+    .join('');
+
+  campoEscola.innerHTML = `
+    <option value="">Selecione uma escola</option>
+    ${opcoes || '<option value="" disabled>Nenhuma escola cadastrada</option>'}
+  `;
+
+  const valorAtual = campoEscola.dataset.valorSelecionado || '';
+  if (valorAtual) {
+    campoEscola.value = valorAtual;
+    delete campoEscola.dataset.valorSelecionado;
+  }
+}
+
+// Busca a lista de orçamentos do backend para exibir na tabela.
 async function carregarOrcamentos() {
   try {
-    const dados = await window.API.get("/orcamentos");
+    const dados = await api.get('/orcamentos');
 
-    orcamentos = dados.map((o) => {
+    orcamentos = Array.isArray(dados) ? dados.map((o) => {
       const statusNormalizado = normalizarStatus(o.status);
 
       return {
@@ -294,23 +298,21 @@ async function carregarOrcamentos() {
         statusTexto: statusNormalizado.texto,
         statusClasse: statusNormalizado.classe,
         convertido: !!o.convertido,
-        data_solicitacao: o.data_solicitacao
+        data_solicitacao: o.data_solicitacao,
       };
-    });
+    }) : [];
   } catch (error) {
-    console.error("Erro ao carregar orçamentos:", error);
+    console.error('Erro ao carregar orçamentos:', error);
     orcamentos = [];
   }
 }
 
-/* ================================
-   RENDERIZAR TABELA
-================================ */
+// Monta a tabela com os orçamentos filtrados e prontos para ação.
 function renderizarOrcamentos() {
-  const busca = campoBusca ? campoBusca.value.trim().toLowerCase() : "";
+  const busca = campoBusca ? campoBusca.value.trim().toLowerCase() : '';
 
   const filtrados = orcamentos.filter((o) => {
-    const nome = String(o.nome || "").toLowerCase();
+    const nome = String(o.nome || '').toLowerCase();
     const bateBusca = !busca || nome.includes(busca);
     const bateStatus = !statusAtual || o.status === statusAtual;
     return bateBusca && bateStatus;
@@ -319,47 +321,45 @@ function renderizarOrcamentos() {
   if (!tabelaLinhas) return;
 
   if (filtrados.length === 0) {
-    tabelaLinhas.innerHTML =
-      '<tr><td colspan="6" style="text-align: center; padding: 20px;">Nenhum orçamento encontrado</td></tr>';
+    tabelaLinhas.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Nenhum orçamento encontrado</td></tr>';
     return;
   }
 
   tabelaLinhas.innerHTML = filtrados.map((o) => `
     <tr>
-      <td>${o.nome || "-"}</td>
-      <td>${o.tipo_trajeto || "-"}</td>
-      <td>${o.endereco_embarque || "-"}</td>
-      <td>${o.endereco_desembarque || "-"}</td>
+      <td>${o.nome || '-'}</td>
+      <td>${o.tipo_trajeto || '-'}</td>
+      <td>${o.endereco_embarque || '-'}</td>
+      <td>${o.endereco_desembarque || '-'}</td>
       <td><span class="status-badge status-${o.statusClasse}">${o.statusTexto}</span></td>
       <td>
         <div class="coluna-acoes">
-          <button class="botao-acao editar" data-id="${o.id}" title="Editar">
-            Editar
-          </button>
-
-          <button class="botao-acao aprovar" data-id="${o.id}" title="Converter" ${o.status !== "pendente" ? "disabled" : ""}>
+          <button class="botao-acao editar" data-id="${o.id}" title="Editar">Editar</button>
+          <button class="botao-acao aprovar" data-id="${o.id}" title="Converter" ${o.status !== 'pendente' ? 'disabled' : ''}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"/>
+              <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </button>
-
           <button class="botao-acao excluir" data-id="${o.id}" title="Excluir">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-              <path d="M10 11v6"/><path d="M14 11v6"/>
-              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+              <path d="M10 11v6"></path><path d="M14 11v6"></path>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
             </svg>
           </button>
         </div>
       </td>
     </tr>
-  `).join("");
+  `).join('');
 
-  tabelaLinhas.removeEventListener("click", handleTabelaClick);
-  tabelaLinhas.addEventListener("click", handleTabelaClick);
+  tabelaLinhas.querySelectorAll('button[data-id]').forEach((button) => {
+    button.onclick = null;
+    button.addEventListener('click', handleTabelaClick);
+  });
 }
 
+// Decide qual ação executar quando o usuário clica em um botão da linha da tabela.
 async function handleTabelaClick(event) {
   const btn = event.target.closest('button');
   if (!btn) return;
@@ -367,49 +367,58 @@ async function handleTabelaClick(event) {
   const id = btn.dataset.id;
   if (!id) return;
 
-  if (btn.classList.contains("editar")) {
-    const orcamento = orcamentos.find((o) => String(o.id) === String(id));
+  if (btn.classList.contains('editar')) {
+    const orcamento = orcamentos.find((item) => String(item.id) === String(id));
+    if (!orcamento) return;
 
-    if (orcamento) {
-      idEmEdicao = orcamento.id;
+    idEmEdicao = orcamento.id;
 
-      if (campoId) campoId.value = orcamento.id;
-      if (campoResponsavel) campoResponsavel.value = orcamento.nome || "";
-      if (campoTelefone) campoTelefone.value = aplicarMascaraTelefone(orcamento.telefone || "");
-      if (campoQuantidadeAlunos) campoQuantidadeAlunos.value = orcamento.quantidade_alunos || 1;
-      if (campoBairro) campoBairro.value = orcamento.bairro || "";
-      if (campoEscola) {
-        campoEscola.dataset.valorSelecionado = orcamento.escola || "";
-        renderizarOpcoesEscola();
-        campoEscola.value = orcamento.escola || "";
-      }
-      if (campoTurno) campoTurno.value = orcamento.turno || "";
-      if (campoTrajeto) campoTrajeto.value = orcamento.tipo_trajeto || "";
-      if (campoEmbarque) {
-        campoEmbarque.value = orcamento.endereco_embarque || "";
-      }
-      if (campoDesembarque) {
-        campoDesembarque.value = orcamento.endereco_desembarque || "";
-      }
-      if (campoValor) campoValor.value = orcamento.valor !== undefined && orcamento.valor !== null ? aplicarMascaraValor(String(orcamento.valor)) : "";
-      atualizarCamposTrajeto();
-      modal.classList.add("ativo");
+    if (campoId) campoId.value = orcamento.id;
+    if (campoResponsavel) campoResponsavel.value = orcamento.nome || '';
+    if (campoTelefone) campoTelefone.value = aplicarMascaraTelefone(orcamento.telefone || '');
+    if (campoQuantidadeAlunos) campoQuantidadeAlunos.value = orcamento.quantidade_alunos || 1;
+    if (campoBairro) campoBairro.value = orcamento.bairro || '';
+    if (campoEscola) {
+      campoEscola.dataset.valorSelecionado = orcamento.escola || '';
+      renderizarOpcoesEscola();
+      campoEscola.value = orcamento.escola || '';
+    }
+    if (campoTurno) campoTurno.value = orcamento.turno || '';
+    if (campoTrajeto) campoTrajeto.value = orcamento.tipo_trajeto || '';
+    if (campoEmbarque) campoEmbarque.value = orcamento.endereco_embarque || '';
+    if (campoDesembarque) campoDesembarque.value = orcamento.endereco_desembarque || '';
+    if (campoValor) {
+      campoValor.value = orcamento.valor !== undefined && orcamento.valor !== null
+        ? aplicarMascaraValor(String(orcamento.valor))
+        : '';
+    }
+
+    atualizarCamposTrajeto();
+    if (modal) modal.classList.add('ativo');
+
+    if (typeof registrarEstadoInicialFormulario === 'function' && modal) {
       registrarEstadoInicialFormulario(modal);
     }
-  } else if (btn.classList.contains('aprovar')) {
-    if ((await showConfirm('Aprovar este orçamento e iniciar o cadastro do cliente?')).isConfirmed) {
+    return;
+  }
+
+  if (btn.classList.contains('aprovar')) {
+    const confirmado = await showConfirm('Aprovar este orçamento e iniciar o cadastro do cliente?');
+    if (confirmado.isConfirmed) {
       converterOrcamento(id);
     }
-  } else if (btn.classList.contains('excluir')) {
-    if ((await showConfirm('Excluir este orçamento?')).isConfirmed) {
+    return;
+  }
+
+  if (btn.classList.contains('excluir')) {
+    const confirmado = await showConfirm('Excluir este orçamento?');
+    if (confirmado.isConfirmed) {
       excluirOrcamento(id);
     }
   }
 }
 
-/* ================================
-   SALVAR ORÇAMENTO
-================================ */
+// Valida e salva o orçamento no backend, em edição ou criação.
 async function salvarOrcamento() {
   const nomeResponsavel = aplicarMascaraNome(campoResponsavel?.value || '').trim();
   if (!nomeResponsavel || nomeResponsavel.length < 2) {
@@ -436,13 +445,13 @@ async function salvarOrcamento() {
     return;
   }
 
-  const turno = campoTurno && campoTurno.value ? String(campoTurno.value).toUpperCase() : "";
+  const turno = campoTurno && campoTurno.value ? String(campoTurno.value).toUpperCase() : '';
   if (!['MANHA', 'TARDE'].includes(turno)) {
     showWarning('Selecione um turno válido: MANHA ou TARDE.');
     return;
   }
 
-  const tipoTrajeto = campoTrajeto && campoTrajeto.value ? String(campoTrajeto.value).toUpperCase() : "";
+  const tipoTrajeto = campoTrajeto && campoTrajeto.value ? String(campoTrajeto.value).toUpperCase() : '';
   if (!['IDA', 'VOLTA', 'AMBOS'].includes(tipoTrajeto)) {
     showWarning('Selecione um tipo de trajeto válido: IDA, VOLTA ou AMBOS.');
     return;
@@ -462,10 +471,8 @@ async function salvarOrcamento() {
       showWarning('Informe o endereço de embarque para o trajeto de ida.');
       return;
     }
-  } else {
-    if (campoEmbarque && campoEmbarque.value) {
-      campoEmbarque.value = '';
-    }
+  } else if (campoEmbarque && campoEmbarque.value) {
+    campoEmbarque.value = '';
   }
 
   if (tipoTrajeto === 'VOLTA' || tipoTrajeto === 'AMBOS') {
@@ -473,10 +480,8 @@ async function salvarOrcamento() {
       showWarning('Informe o endereço de desembarque para o trajeto de volta.');
       return;
     }
-  } else {
-    if (campoDesembarque && campoDesembarque.value) {
-      campoDesembarque.value = '';
-    }
+  } else if (campoDesembarque && campoDesembarque.value) {
+    campoDesembarque.value = '';
   }
 
   const payload = {
@@ -490,35 +495,33 @@ async function salvarOrcamento() {
     tipo_trajeto: tipoTrajeto,
     endereco_embarque: tipoTrajeto === 'IDA' || tipoTrajeto === 'AMBOS' ? embarque : null,
     endereco_desembarque: tipoTrajeto === 'VOLTA' || tipoTrajeto === 'AMBOS' ? desembarque : null,
-    data_solicitacao: new Date().toISOString().split("T")[0]
+    data_solicitacao: new Date().toISOString().split('T')[0],
   };
 
   try {
     if (idEmEdicao) {
-      await window.API.put(`/orcamentos/${idEmEdicao}`, payload);
+      await api.put(`/orcamentos/${idEmEdicao}`, payload);
     } else {
-      await window.API.post("/orcamentos", payload);
+      await api.post('/orcamentos', payload);
     }
 
     await carregarOrcamentos();
     renderizarOrcamentos();
-    modal.classList.remove('ativo');
+    fecharModalOrcamento();
   } catch (error) {
     console.error(error);
     showError(error.message || 'Erro ao salvar orçamento');
   }
 }
 
-/* ================================
-   CONVERTER ORÇAMENTO
-================================ */
+// Converte o orçamento em fluxo de cadastro do responsável e redireciona.
 async function converterOrcamento(id) {
   try {
-    await window.API.put(`/orcamentos/${id}/converter`, {});
+    await api.put(`/orcamentos/${id}/converter`, {});
 
     const params = new URLSearchParams();
-    params.set("fluxo", "orcamento");
-    params.set("id_orcamento", String(id));
+    params.set('fluxo', 'orcamento');
+    params.set('id_orcamento', String(id));
     window.location.href = `responsaveis.html?${params.toString()}`;
   } catch (error) {
     console.error(error);
@@ -526,12 +529,10 @@ async function converterOrcamento(id) {
   }
 }
 
-/* ================================
-   EXCLUIR ORÇAMENTO
-================================ */
+// Remove o registro do backend e atualiza a tabela.
 async function excluirOrcamento(id) {
   try {
-    await window.API.del(`/orcamentos/${id}`);
+    await api.del(`/orcamentos/${id}`);
     await carregarOrcamentos();
     renderizarOrcamentos();
   } catch (error) {
@@ -540,46 +541,50 @@ async function excluirOrcamento(id) {
   }
 }
 
-/* ================================
-   EVENT LISTENERS
-================================ */
+if (formOrcamento) {
+  formOrcamento.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    await salvarOrcamento();
+  });
+}
+
 if (salvarBtn) {
-  salvarBtn.addEventListener("click", salvarOrcamento);
+  salvarBtn.type = 'submit';
 }
 
 if (campoResponsavel) {
-  campoResponsavel.addEventListener("input", () => {
+  campoResponsavel.addEventListener('input', () => {
     campoResponsavel.value = aplicarMascaraNome(campoResponsavel.value);
   });
 }
 
 if (campoTelefone) {
-  campoTelefone.addEventListener("input", () => {
+  campoTelefone.addEventListener('input', () => {
     campoTelefone.value = aplicarMascaraTelefone(campoTelefone.value);
   });
 }
 
 if (campoBairro) {
-  campoBairro.addEventListener("input", () => {
+  campoBairro.addEventListener('input', () => {
     campoBairro.value = aplicarMascaraEndereco(campoBairro.value);
   });
 }
 
 if (campoEscola) {
-  campoEscola.addEventListener("change", () => {
-    campoEscola.value = String(campoEscola.value || "").trim();
+  campoEscola.addEventListener('change', () => {
+    campoEscola.value = String(campoEscola.value || '').trim();
   });
 }
 
 if (campoTrajeto) {
-  campoTrajeto.addEventListener("change", () => {
-    campoTrajeto.value = String(campoTrajeto.value || "").trim();
+  campoTrajeto.addEventListener('change', () => {
+    campoTrajeto.value = String(campoTrajeto.value || '').trim();
     atualizarCamposTrajeto();
   });
 }
 
 if (campoValor) {
-  campoValor.addEventListener("input", () => {
+  campoValor.addEventListener('input', () => {
     const valorAtual = campoValor.value;
     const valorNumerico = valorAtual.replace(/[^\d,]/g, '');
 
@@ -593,70 +598,71 @@ if (campoValor) {
 }
 
 if (campoEmbarque) {
-  campoEmbarque.addEventListener("input", () => {
+  campoEmbarque.addEventListener('input', () => {
     campoEmbarque.value = aplicarMascaraEndereco(campoEmbarque.value);
   });
 }
 
 if (campoDesembarque) {
-  campoDesembarque.addEventListener("input", () => {
+  campoDesembarque.addEventListener('input', () => {
     campoDesembarque.value = aplicarMascaraEndereco(campoDesembarque.value);
   });
 }
 
 if (campoBusca) {
-  campoBusca.addEventListener("input", renderizarOrcamentos);
+  campoBusca.addEventListener('input', renderizarOrcamentos);
 }
 
-/* Tabs de status */
-const abasStatus = document.querySelectorAll(".aba-status");
+// Filtra a tabela pelo status selecionado nas abas da página.
+const abasStatus = document.querySelectorAll('.aba-status');
 abasStatus.forEach((aba) => {
-  aba.addEventListener("click", () => {
-    abasStatus.forEach((item) => item.classList.remove("active"));
-    aba.classList.add("active");
-    statusAtual = aba.dataset.status || "pendente";
+  aba.addEventListener('click', () => {
+    abasStatus.forEach((item) => item.classList.remove('active'));
+    aba.classList.add('active');
+    statusAtual = aba.dataset.status || 'pendente';
     renderizarOrcamentos();
   });
 });
 
+// Controla a abertura/fechamento do menu lateral da interface.
 function initMenu() {
-  const botaoMenu = document.getElementById("botaoMenu");
-  const sidebar = document.getElementById("sidebar");
-  const fundoEscuro = document.getElementById("fundoEscuro");
+  const botaoMenu = document.getElementById('botaoMenu');
+  const sidebar = document.getElementById('sidebar');
+  const fundoEscuro = document.getElementById('fundoEscuro');
+
   if (!botaoMenu || !sidebar || !fundoEscuro) return;
 
-  botaoMenu.addEventListener("click", () => {
-    sidebar.classList.toggle("aberta");
-    fundoEscuro.classList.toggle("visivel");
-    botaoMenu.classList.toggle("aberto");
+  botaoMenu.addEventListener('click', () => {
+    sidebar.classList.toggle('aberta');
+    fundoEscuro.classList.toggle('visivel');
+    botaoMenu.classList.toggle('aberto');
   });
 
-  fundoEscuro.addEventListener("click", () => {
-    sidebar.classList.remove("aberta");
-    fundoEscuro.classList.remove("visivel");
-    botaoMenu.classList.remove("aberto");
+  fundoEscuro.addEventListener('click', () => {
+    sidebar.classList.remove('aberta');
+    fundoEscuro.classList.remove('visivel');
+    botaoMenu.classList.remove('aberto');
   });
 }
 
-/* ================================
-   INICIALIZA
-================================ */
-document.addEventListener("DOMContentLoaded", () => {
+// Inicializa os recursos da página quando o DOM estiver pronto.
+document.addEventListener('DOMContentLoaded', () => {
   initMenu();
   carregarEscolas();
   carregarOrcamentos().then(() => renderizarOrcamentos());
 });
 
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && modal?.classList.contains('ativo')) {
+  if (event.key === 'Escape' && modal && modal.classList.contains('ativo')) {
     fecharModalOrcamentoSeguro();
   }
 });
 
-const botaoFecharModal = document.getElementById("botaoFecharModal");
+const botaoFecharModal = document.getElementById('botaoFecharModal');
 
 if (botaoFecharModal) {
-  botaoFecharModal.addEventListener("click", () => {
+  botaoFecharModal.addEventListener('click', () => {
     fecharModalOrcamentoSeguro();
   });
 }
+

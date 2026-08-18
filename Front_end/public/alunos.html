@@ -173,15 +173,17 @@
 
       <div class="painel-filtros hidden" id="painelFiltrosAluno">
         <div class="campos-filtro">
-          <div class="grupo-filtro">
-            <label class="label-filtro" for="filtroVencimentoAluno">Data de vencimento</label>
-            <input type="date" id="filtroVencimentoAluno" class="input-filtro">
-          </div>
+          <!--
+            REMOVIDO: filtro "Data de vencimento" que existia aqui nunca
+            funcionou de verdade — a listagem de alunos (/alunos) não traz
+            esse dado (é de mensalidade, tabela separada), então o campo
+            filtrava contra um valor sempre vazio. Vencimento se filtra na
+            tela de Mensalidades.
+          -->
           <div class="grupo-filtro">
             <label class="label-filtro" for="filtroOrdemAluno">Ordem</label>
             <select id="filtroOrdemAluno" class="input-filtro">
               <option value="alfabetica">Ordem alfabética</option>
-              <option value="vencimento">Data de vencimento</option>
             </select>
           </div>
           <div class="grupo-filtro">
@@ -398,10 +400,12 @@
           </select>
         </div>
 
-        <div class="grupo-filtro campo-data-vencimento-aluno" id="grupoDataVencimentoAluno">
-          <label class="label-filtro" for="vencimentoAluno">Data de vencimento</label>
-          <input type="date" id="vencimentoAluno" class="input-filtro" required />
-        </div>
+        <!--
+          REMOVIDO: campo "Data de vencimento" que estava aqui não fazia
+          sentido no cadastro de aluno — vencimento é dado de mensalidade,
+          não do aluno. Passou a existir só no formulário de mensalidade
+          (mensalidade.html), como "dia de vencimento".
+        -->
 
         <div class="grupo-filtro">
           <label class="label-filtro" for="turnoAluno">Turno</label>

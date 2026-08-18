@@ -12,7 +12,6 @@ let idOrcamentoFluxo = null;
 let idAlunoFluxo = null;
 let alunoAtualFluxo = 1;
 let totalAlunosFluxo = 1;
-let vencimentoFluxo = "";
 
 function emFluxoCadastro() {
   return Boolean(fluxoCadastro && idAlunoFluxo);
@@ -31,7 +30,6 @@ function obterParametrosFluxo() {
   idOrcamentoFluxo = params.get("id_orcamento") ? Number(params.get("id_orcamento")) : null;
   alunoAtualFluxo = Number(params.get("alunoAtual") || 1);
   totalAlunosFluxo = Number(params.get("totalAlunos") || 1);
-  vencimentoFluxo = params.get("vencimento") || "";
   return true;
 }
 
@@ -88,9 +86,11 @@ async function iniciarFluxoCadastro() {
   definirValorCampo("campoResponsavelMensalidade", aluno.responsavel?.nome || "", true);
   definirValorCampo("campoContatoMensalidade", aluno.responsavel?.telefone || "", true);
   definirValorCampo("campoEscolaMensalidade", aluno.escola?.nome || "", true);
-  definirValorCampo("campoPagamentoMensalidade", "");
-  definirValorCampo("campoVencimentoMensalidade", vencimentoFluxo, false);
-  definirValorCampo("campoStatusMensalidade", "PENDENTE", true);
+  // Sugere o dia de hoje como ponto de partida; o usuário ajusta se quiser.
+  definirValorCampo("campoVencimentoMensalidade", String(new Date().getDate()), false);
+  // Status e data de pagamento saíram do formulário: toda mensalidade
+  // nova já nasce PENDENTE (o backend garante isso), e marcar como paga
+  // é feito depois, pelo botão "Marcar como paga" na listagem.
 
   const nomeAlunoSpan = document.getElementById("nomeAlunoModalInfo");
   const responsavelSpan = document.getElementById("responsavelModalInfo");
@@ -223,6 +223,60 @@ function validarDataISO(dataTexto) {
   return !Number.isNaN(data.getTime()) && data.getFullYear() === ano && data.getMonth() + 1 === mes && data.getDate() === dia;
 }
 
+/*
+  NOVO: o campo de vencimento do formulário agora só pede o DIA
+  ("todo dia X"), não mais uma data completa. Essas funções cuidam da
+  conversão dia <-> data ISO completa (usando o mês/ano atual como
+  referência) e da checagem de que o dia é válido (1 a 31).
+*/
+function validarDiaVencimento(diaTexto) {
+  const dia = Number(diaTexto);
+  return Number.isInteger(dia) && dia >= 1 && dia <= 31;
+}
+
+function ultimoDiaDoMes(ano, mesIndexado1) {
+  return new Date(ano, mesIndexado1, 0).getDate();
+}
+
+// Monta "YYYY-MM-DD" para o mês/ano de referência, usando o dia
+// desejado (limitado ao último dia real daquele mês).
+function montarDataVencimento(diaDesejado, referencia = new Date()) {
+  const ano = referencia.getFullYear();
+  const mesIndexado1 = referencia.getMonth() + 1;
+  const dia = Math.min(Math.max(1, Number(diaDesejado)), ultimoDiaDoMes(ano, mesIndexado1));
+  const mesTexto = String(mesIndexado1).padStart(2, "0");
+  const diaTexto = String(dia).padStart(2, "0");
+  return `${ano}-${mesTexto}-${diaTexto}`;
+}
+
+// Extrai só o dia (número) de uma data ISO "YYYY-MM-DD" já existente,
+// para preencher o campo "Todo dia X" ao editar uma mensalidade.
+function extrairDiaDeDataISO(dataISO) {
+  if (!dataISO) return "";
+  const partes = String(dataISO).split("-");
+  if (partes.length !== 3) return "";
+  return String(Number(partes[2]));
+}
+
+const NOMES_MESES = [
+  "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
+  "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO",
+];
+
+// "2026-08" -> "AGOSTO" "2026"
+function formatarMesAnoFiltro(mesAno) {
+  const partes = String(mesAno || "").split("-");
+  if (partes.length !== 2) return "";
+  const [ano, mes] = partes;
+  const nomeMes = NOMES_MESES[Number(mes) - 1] || "";
+  return `${nomeMes} ${ano}`;
+}
+
+function mesAnoAtual() {
+  const hoje = new Date();
+  return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+}
+
 /* =========================================================
    INICIALIZAÇÃO DO MENU
    ========================================================= */
@@ -325,14 +379,34 @@ function configurarFiltros() {
     botaoFiltroMensalidade.classList.toggle("aberto");
   });
 
-  if (filtroVencimento) filtroVencimento.addEventListener("change", renderizarTabela);
+  // NOVO: filtro de mês parte sempre no mês atual, mostrado como
+  // "AGOSTO" "2026" no label ao lado do seletor nativo.
+  const labelMesVencimento = document.getElementById("labelMesVencimentoMensalidade");
+  const atualizarLabelMes = () => {
+    if (!labelMesVencimento) return;
+    const valor = filtroVencimento ? filtroVencimento.value : "";
+    labelMesVencimento.textContent = valor ? formatarMesAnoFiltro(valor) : "TODOS OS MESES";
+  };
+
+  if (filtroVencimento && !filtroVencimento.value) {
+    filtroVencimento.value = mesAnoAtual();
+  }
+  atualizarLabelMes();
+
+  if (filtroVencimento) {
+    filtroVencimento.addEventListener("change", () => {
+      atualizarLabelMes();
+      renderizarTabela();
+    });
+  }
   if (filtroOrdem) filtroOrdem.addEventListener("change", renderizarTabela);
   if (filtroEscola) filtroEscola.addEventListener("change", renderizarTabela);
   if (campoBusca) campoBusca.addEventListener("input", renderizarTabela);
 
   if (btnLimparFiltros) {
     btnLimparFiltros.addEventListener("click", () => {
-      if (filtroVencimento) filtroVencimento.value = "";
+      if (filtroVencimento) filtroVencimento.value = mesAnoAtual();
+      atualizarLabelMes();
       if (filtroOrdem) filtroOrdem.value = "alfabetica";
       if (filtroEscola) filtroEscola.value = "";
       renderizarTabela();
@@ -525,9 +599,10 @@ function preencherDadosModal(item) {
   setValue("campoIdMensalidade", item?.id);
   setValue("campoAlunoMensalidade", idAluno);
   setValue("campoValorMensalidade", item?.valor !== undefined && item?.valor !== null ? aplicarMascaraValorMensalidade(String(item.valor)) : "");
-  setValue("campoPagamentoMensalidade", item?.pagamento || "");
-  setValue("campoVencimentoMensalidade", item?.vencimento || "");
-  setValue("campoStatusMensalidade", (item?.status || "PENDENTE").toUpperCase());
+  setValue("campoVencimentoMensalidade", extrairDiaDeDataISO(item?.vencimento));
+  // Status e data de pagamento não fazem mais parte deste formulário
+  // (ver comentário em abrirModalNovo / mensalidade.html) — quem muda
+  // isso é o botão "Marcar como paga" na listagem.
 
   const aluno = alunos.find((registro) => Number(registro.id_aluno) === Number(idAluno));
   const campoEscola = document.getElementById("campoEscolaMensalidade");
@@ -603,9 +678,7 @@ async function salvarMensalidade() {
   const idAlunoSelecionado = document.getElementById("campoAlunoMensalidade")?.value || "";
   const valorTexto = document.getElementById("campoValorMensalidade")?.value || "";
   const valorNumerico = normalizarValorMensalidade(valorTexto);
-  const pagamento = document.getElementById("campoPagamentoMensalidade")?.value || "";
-  const vencimento = document.getElementById("campoVencimentoMensalidade")?.value || "";
-  const statusSelecionado = document.getElementById("campoStatusMensalidade")?.value || "PENDENTE";
+  const diaVencimento = document.getElementById("campoVencimentoMensalidade")?.value || "";
   const mensalidadeEditando = mensalidades.find((item) => item.id === idEditando);
   const idAlunoFinal = idAlunoFluxo || Number(idAlunoSelecionado) || mensalidadeEditando?.idAluno || null;
 
@@ -619,26 +692,35 @@ async function salvarMensalidade() {
     return;
   }
 
-  if (!validarDataISO(vencimento)) {
-    showWarning("Informe uma data de vencimento válida no formato YYYY-MM-DD.");
+  if (!validarDiaVencimento(diaVencimento)) {
+    showWarning("Informe um dia de vencimento válido, de 1 a 31.");
     return;
   }
 
-  if (statusSelecionado === "PAGO" && !pagamento) {
-    showWarning("Para status pago, informe a data de pagamento.");
-    return;
-  }
+  /*
+    Ao EDITAR: mantém o mês/ano originais da mensalidade e só troca o
+    dia (senão editar o dia de uma mensalidade de um mês passado a
+    empurraria para o mês atual). Ao CRIAR: usa o mês/ano atuais, já
+    que é uma mensalidade nova sendo gerada agora.
+  */
+  const referenciaMesAno = mensalidadeEditando?.vencimento
+    ? new Date(`${mensalidadeEditando.vencimento}T12:00:00`)
+    : new Date();
+  const vencimento = montarDataVencimento(diaVencimento, referenciaMesAno);
 
-  if (statusSelecionado !== "PAGO" && pagamento) {
-    showWarning("A data de pagamento será removida porque o status não é PAGO.");
-  }
-
+  /*
+    REMOVIDO: status e data de pagamento não fazem mais parte deste
+    formulário. Toda mensalidade nova é criada como PENDENTE (o
+    backend garante isso independente do que for enviado — ver
+    service_mensalidade.ts). Ao editar, como esses dois campos não
+    entram no payload, o backend simplesmente não mexe neles (só
+    atualiza o que veio no corpo da requisição); mudar para PAGO
+    continua sendo feito só pelo botão "Marcar como paga" da listagem.
+  */
   const payload = {
     id_aluno: Number(idAlunoFinal),
     valor: valorNumerico,
     data_vencimento: vencimento,
-    data_pagamento: statusSelecionado === "PAGO" ? pagamento : null,
-    status: statusSelecionado,
   };
 
   try {
