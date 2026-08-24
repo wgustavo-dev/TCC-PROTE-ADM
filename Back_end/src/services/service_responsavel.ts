@@ -5,6 +5,7 @@ import { Aluno } from "../models/model_aluno";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Presenca } from "../models/model_presenca";
 import { Responsavel } from "../models/model_responsavel";
+import { ItinerarioAluno } from "../models/model_itinerario";
 
 type ResponsavelResumo = Responsavel & {
   alunos: Array<{
@@ -244,25 +245,28 @@ export class ServiceResponsavel {
   }
 
   async deletar(id_responsavel: number) {
-    const responsavel = await this.responsavelRepository.findOneBy({
-      id_responsavel,
+    await AppDataSource.transaction(async (manager) => {
+      const responsavelRepository = manager.getRepository(Responsavel);
+      const responsavel = await responsavelRepository.findOneBy({ id_responsavel });
+
+      if (!responsavel) {
+        throw new Error("Responsável não encontrado");
+      }
+
+      const alunos = await manager.getRepository(Aluno).find({
+        where: { id_responsavel },
+        select: { id_aluno: true },
+      });
+
+      for (const aluno of alunos) {
+        await manager.getRepository(Presenca).delete({ id_aluno: aluno.id_aluno });
+        await manager.getRepository(Mensalidade).delete({ id_aluno: aluno.id_aluno });
+        await manager.getRepository(ItinerarioAluno).delete({ id_aluno: aluno.id_aluno });
+      }
+
+      await manager.getRepository(Aluno).delete({ id_responsavel });
+      await responsavelRepository.delete({ id_responsavel });
     });
-
-    if (!responsavel) {
-      throw new Error("Responsável não encontrado");
-    }
-
-    const alunos = await this.alunoRepository.find({
-      where: { id_responsavel },
-    });
-
-    for (const aluno of alunos) {
-      await this.presencaRepository.delete({ id_aluno: aluno.id_aluno });
-      await this.mensalidadeRepository.delete({ id_aluno: aluno.id_aluno });
-    }
-
-    await this.alunoRepository.delete({ id_responsavel });
-    await this.responsavelRepository.remove(responsavel);
 
     return {
       message: "Responsável excluído com sucesso",

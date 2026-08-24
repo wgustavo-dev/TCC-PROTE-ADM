@@ -4,6 +4,7 @@ import { Responsavel } from "../models/model_responsavel";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Presenca } from "../models/model_presenca";
 import { Escola } from "../models/model_escola";
+import { ItinerarioAluno } from "../models/model_itinerario";
 import { ServiceItinerario } from "./service_itinerario";
 
 interface UsuarioLogado {
@@ -354,28 +355,21 @@ export class ServiceAluno {
   }
 
   async deletar(id_aluno: number) {
-    const aluno = await this.alunoRepository.findOne({
-      where: { id_aluno },
+    await AppDataSource.transaction(async (manager) => {
+      const alunoRepository = manager.getRepository(Aluno);
+      const aluno = await alunoRepository.findOneBy({ id_aluno });
+
+      if (!aluno) {
+        throw new Error("Aluno não encontrado");
+      }
+
+      // A remoção é atômica: ou toda a árvore é excluída, ou nada muda.
+      // Isso também protege instalações com esquema antigo, sem CASCADE.
+      await manager.getRepository(Presenca).delete({ id_aluno });
+      await manager.getRepository(Mensalidade).delete({ id_aluno });
+      await manager.getRepository(ItinerarioAluno).delete({ id_aluno });
+      await alunoRepository.delete({ id_aluno });
     });
-
-    if (!aluno) {
-      throw new Error("Aluno não encontrado");
-    }
-
-    /*
-      Mantido por segurança:
-      Mesmo com FK cascade no banco, apagamos dependências diretas antes
-      para evitar conflito em ambientes onde o schema esteja diferente.
-    */
-    await this.presencaRepository.delete({ id_aluno });
-    await this.mensalidadeRepository.delete({ id_aluno });
-    try {
-      await this.itinerarioService.removerPorAluno(id_aluno);
-    } catch (error) {
-      console.error("Falha ao limpar itinerário do aluno excluído:", error);
-    }
-
-    await this.alunoRepository.remove(aluno);
 
     return {
       message: "Aluno excluído com sucesso",
