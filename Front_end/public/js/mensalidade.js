@@ -84,7 +84,7 @@ async function iniciarFluxoCadastro() {
   definirValorCampo("campoIdMensalidade", "");
   definirValorCampo("campoAlunoMensalidade", String(aluno.id_aluno || ""), true);
   definirValorCampo("campoResponsavelMensalidade", aluno.responsavel?.nome || "", true);
-  definirValorCampo("campoContatoMensalidade", aluno.responsavel?.telefone || "", true);
+  definirValorCampo("campoContatoMensalidade", aplicarMascaraTelefoneMensalidade(aluno.responsavel?.telefone || ""), true);
   definirValorCampo("campoEscolaMensalidade", aluno.escola?.nome || "", true);
   // Sugere o dia de hoje como ponto de partida; o usuário ajusta se quiser.
   definirValorCampo("campoVencimentoMensalidade", String(new Date().getDate()), false);
@@ -347,7 +347,7 @@ function mapearMensalidade(item) {
     vencimento: String(item.data_vencimento || "").slice(0, 10),
     pagamento: item.data_pagamento ? String(item.data_pagamento).slice(0, 10) : "",
     status: (item.status || "PENDENTE").toLowerCase(),
-    contato: [item.aluno?.responsavel?.telefone].filter(Boolean),
+    contato: [aplicarMascaraTelefoneMensalidade(item.aluno?.responsavel?.telefone)].filter(Boolean),
     escola: item.aluno?.escola?.nome || "",
     foto: item.aluno?.foto ? `http://localhost:3000${item.aluno.foto}` : "",
   };

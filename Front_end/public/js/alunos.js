@@ -171,7 +171,7 @@ function mapearAlunoApi(item) {
     id: item.id_aluno,
     nome: item.nome || "",
     responsavel1: item.responsavel?.nome || "",
-    telefone1: item.responsavel?.telefone || "",
+    telefone1: aplicarMascaraTelefone(item.responsavel?.telefone || ""),
     embarque: item.endereco_embarque || "",
     desembarque: item.endereco_desembarque || "",
     foto: toUrlFoto(item.foto),
