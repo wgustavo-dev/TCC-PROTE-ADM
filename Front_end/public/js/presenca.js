@@ -28,7 +28,19 @@ function initMenu() {
 }
 
 function definirDataAtual() {
-  campoData.value = new Date().toISOString().split("T")[0];
+  const hoje = new Date();
+  const hojeISO = [
+    hoje.getFullYear(),
+    String(hoje.getMonth() + 1).padStart(2, "0"),
+    String(hoje.getDate()).padStart(2, "0"),
+  ].join("-");
+
+  campoData.max = hojeISO;
+  campoData.value = hojeISO;
+}
+
+function dataEhFutura(data) {
+  return Boolean(data && campoData.max && data > campoData.max);
 }
 
 function formatarDataBR(data) {
@@ -126,9 +138,22 @@ botaoDesmarcarTodos.addEventListener("click", () => {
   atualizarResumo();
 });
 
-campoData.addEventListener("change", atualizarDadosTela);
+campoData.addEventListener("change", () => {
+  if (dataEhFutura(campoData.value)) {
+    campoData.value = campoData.max;
+    showError("Não é possível consultar ou criar uma presença com data futura.");
+    return;
+  }
+
+  atualizarDadosTela();
+});
 
 botaoSalvar.addEventListener("click", async () => {
+  if (dataEhFutura(campoData.value)) {
+    showError("Não é possível criar uma presença com data futura.");
+    return;
+  }
+
   try {
     const porAluno = new Map(registrosExistentes.map((item) => [item.id_aluno, item]));
     const operacoes = registros.map((item) => {
@@ -147,7 +172,7 @@ botaoSalvar.addEventListener("click", async () => {
     showSuccess("Registro da chamada salvo com sucesso!");
   } catch (error) {
     console.error(error);
-    showError("Não foi possível salvar a chamada.");
+    showError(error.message || "Não foi possível salvar a chamada.");
   }
 });
 
