@@ -276,11 +276,11 @@ export class ServiceMensalidade {
       throw new Error("Mensalidade não encontrada");
     }
 
-    await this.mensalidadeRepository.remove(mensalidade);
-
-    return {
-      message: "Mensalidade removida com sucesso",
-    };
+    // A mensalidade compõe o histórico financeiro do aluno. Ela só é
+    // removida na exclusão transacional do aluno ou do responsável.
+    throw new Error(
+      "Não é permitido excluir uma mensalidade isoladamente. Exclua o aluno ou o responsável para remover todos os registros vinculados."
+    );
   }
 
   async marcarComoPago(id: number) {

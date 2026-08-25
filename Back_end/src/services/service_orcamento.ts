@@ -2,6 +2,69 @@ import { AppDataSource } from '../config/database';
 import { Orcamento } from '../models/model_orcamento';
 
 export class ServiceOrcamento {
+  private normalizarTextoCurto(
+    valor: unknown,
+    campo: string,
+    limite: number
+  ): string {
+    const texto = String(valor ?? '').trim();
+
+    if (!texto) {
+      throw new Error(`${campo} não pode ficar vazio`);
+    }
+
+    if (texto.length > limite) {
+      throw new Error(`${campo} deve ter no máximo ${limite} caracteres`);
+    }
+
+    return texto;
+  }
+
+  private normalizarTurno(valor: unknown): 'MANHA' | 'TARDE' | null {
+    const turno = String(valor ?? '').trim().toUpperCase();
+
+    if (!turno) return null;
+    if (turno === 'MANHA' || turno === 'TARDE') return turno;
+
+    throw new Error('Turno inválido. Use MANHA ou TARDE.');
+  }
+
+  private normalizarTipoTrajeto(
+    valor: unknown
+  ): 'IDA' | 'VOLTA' | 'AMBOS' | null {
+    const tipo = String(valor ?? '').trim().toUpperCase();
+
+    if (!tipo) return null;
+    if (tipo === 'IDA' || tipo === 'VOLTA' || tipo === 'AMBOS') return tipo;
+
+    throw new Error('Tipo de trajeto inválido. Use IDA, VOLTA ou AMBOS.');
+  }
+
+  private normalizarEndereco(valor: unknown, campo: string): string | null {
+    const endereco = String(valor ?? '').trim();
+
+    if (!endereco) return null;
+    if (endereco.length > 255) {
+      throw new Error(`${campo} deve ter no máximo 255 caracteres`);
+    }
+
+    return endereco;
+  }
+
+  private normalizarValor(valor: unknown): number | null {
+    if (valor === undefined || valor === null || valor === '') return null;
+
+    const numero = typeof valor === 'string'
+      ? Number(valor.replace(',', '.'))
+      : Number(valor);
+
+    if (!Number.isFinite(numero) || numero < 0) {
+      throw new Error('Valor inválido');
+    }
+
+    return numero;
+  }
+
   async listar() {
     const orcamentoRepository =
       AppDataSource.getRepository(Orcamento);
@@ -73,16 +136,16 @@ export class ServiceOrcamento {
     const valor = this.normalizarValor(dados.valor);
 
     const orcamento = orcamentoRepository.create({
-      nome_responsavel: dados.nome_responsavel,
+      nome_responsavel: dados.nome_responsavel.trim(),
       telefone: dados.telefone,
-      bairro: dados.bairro,
-      escola: dados.escola,
-      turno: dados.turno,
+      bairro,
+      escola,
+      turno,
       quantidade_alunos: dados.quantidade_alunos,
-      tipo_trajeto: dados.tipo_trajeto,
-      endereco_embarque: dados.endereco_embarque,
-      endereco_desembarque: dados.endereco_desembarque,
-      valor: dados.valor,
+      tipo_trajeto: tipoTrajeto,
+      endereco_embarque: embarque,
+      endereco_desembarque: desembarque,
+      valor,
       status: 'PENDENTE',
       convertido: false,
       data_solicitacao: dados.data_solicitacao || new Date(),

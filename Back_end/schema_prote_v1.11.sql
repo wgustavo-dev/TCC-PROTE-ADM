@@ -445,8 +445,8 @@ VALUES
 
 INSERT INTO documento (tipo_documento, data_emissao, data_validade, status, id_condutor) VALUES
 ('CNH',                        '2021-06-15', '2031-06-15', 'VALIDO',  1),
-('CRLV do veículo',             '2025-08-20', '2026-08-20', 'VALIDO',  1),
-('Vistoria/Inspeção Veicular',  '2025-07-01', '2026-07-01', 'VENCIDO', 1);
+('CRLV Perua',             '2025-08-20', '2026-08-20', 'VALIDO',  1),
+('Vistoria Inspeção DETRAN',  '2025-07-01', '2026-07-01', 'VENCIDO', 1);
 
 -- =====================================================
 -- DESPESAS 

@@ -171,7 +171,7 @@ function mapearAlunoApi(item) {
     id: item.id_aluno,
     nome: item.nome || "",
     responsavel1: item.responsavel?.nome || "",
-    telefone1: item.responsavel?.telefone || "",
+    telefone1: aplicarMascaraTelefone(item.responsavel?.telefone || ""),
     embarque: item.endereco_embarque || "",
     desembarque: item.endereco_desembarque || "",
     foto: toUrlFoto(item.foto),
@@ -423,11 +423,6 @@ async function salvarAluno(payload, idResponsavel) {
 function configurarModal() {
   if (el.btnFecharModal) el.btnFecharModal.addEventListener("click", fecharModalSeguroAluno);
   if (el.btnCancelar) el.btnCancelar.addEventListener("click", fecharModalSeguroAluno);
-  if (el.modalOverlay) {
-    el.modalOverlay.addEventListener("click", (event) => {
-      if (event.target === el.modalOverlay) fecharModalSeguroAluno();
-    });
-  }
 
   // Esconde/mostra embarque e desembarque toda vez que o trajeto muda.
   if (el.tipoTrajetoAluno) {
@@ -849,7 +844,9 @@ function configurarTabela() {
 
     if (botao.dataset.action !== "excluir") return;
 
-    const resposta = await showConfirm("Tem certeza que deseja excluir este aluno?");
+    const resposta = await showConfirm(
+      "Esta ação também excluirá as mensalidades, presenças e itens de itinerário vinculados ao aluno. Deseja continuar?"
+    );
     if (!resposta.isConfirmed) return;
 
     try {
