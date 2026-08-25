@@ -2,11 +2,13 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>PROTE — Redefinir Senha</title>
-    <link rel="stylesheet" href="css/login.css" />
-  <link rel="stylesheet" href="core/alerts.css" />
+
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="core/alerts.css">
 </head>
 
 <body>
@@ -14,136 +16,345 @@
     <div class="pagina-fundo"></div>
 
     <div class="modal-login" role="dialog" aria-modal="true">
+
         <div class="tela">
 
-            <!-- Painel esquerdo: formulário -->
+            <!-- PAINEL ESQUERDO -->
             <div class="painel-formulario">
-                <a href="esqueceu_senha.html" class="botao-voltar" aria-label="Voltar">←</a>
-                <button class="botao-fechar" id="botaoFechar" aria-label="Fechar">✕</button>
 
-                <h1 class="titulo-modal">Redefinir sua senha</h1>
+                <a href="esqueceu_senha.html"
+                    class="botao-voltar"
+                    aria-label="Voltar">
+                    ←
+                </a>
+
+                <h1 class="titulo-modal">
+                    Redefinir sua senha
+                </h1>
+
                 <p class="subtitulo-modal">
-                    Crie uma nova senha segura para sua conta e acesse todos os recursos da plataforma.
+                    Crie uma nova senha segura para sua conta e acesse todos
+                    os recursos da plataforma.
                 </p>
 
+
+                <!-- NOVA SENHA -->
                 <div class="grupo-campo">
+
                     <div class="input-com-icone">
-                        <svg class="icone-input" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" />
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+
+                        <svg class="icone-input"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2">
+
+                            <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+
                         </svg>
-                        <input type="password" class="input-login" id="campNovaSenha" placeholder="Nova senha"
-                            autocomplete="new-password" />
-                        <button class="botao-ver-senha" id="botaoVerNovaSenha" aria-label="Mostrar senha" tabindex="-1">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                <circle cx="12" cy="12" r="3" />
+
+                        <input
+                            type="password"
+                            class="input-login"
+                            id="campNovaSenha"
+                            placeholder="Nova senha"
+                            autocomplete="new-password">
+
+                        <button
+                            type="button"
+                            class="botao-ver-senha"
+                            id="botaoVerNovaSenha"
+                            aria-label="Mostrar senha">
+
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2">
+
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+
                             </svg>
+
                         </button>
+
                     </div>
-                    <p class="hint-campo">Mínimo 8 caracteres, com letra e número</p>
+
+                    <p class="hint-campo">
+                        Mínimo 8 caracteres, com letra e número
+                    </p>
+
                 </div>
 
+
+                <!-- CONFIRMAR SENHA -->
                 <div class="grupo-campo">
+
                     <div class="input-com-icone">
-                        <svg class="icone-input" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" />
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+
+                        <svg class="icone-input"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2">
+
+                            <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+
                         </svg>
-                        <input type="password" class="input-login" id="campConfirmarSenha"
-                            placeholder="Confirmar nova senha" autocomplete="new-password" />
-                        <button class="botao-ver-senha" id="botaoVerConfirmarSenha" aria-label="Mostrar senha"
-                            tabindex="-1">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                <circle cx="12" cy="12" r="3" />
+
+                        <input
+                            type="password"
+                            class="input-login"
+                            id="campConfirmarSenha"
+                            placeholder="Confirmar nova senha"
+                            autocomplete="new-password">
+
+                        <button
+                            type="button"
+                            class="botao-ver-senha"
+                            id="botaoVerConfirmarSenha"
+                            aria-label="Mostrar senha">
+
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2">
+
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+
                             </svg>
+
                         </button>
+
                     </div>
+
                 </div>
 
-                <!-- Checklist de requisitos da senha -->
+
+                <!-- CHECKLIST -->
                 <ul class="checklist-senha">
+
                     <li id="reqMinimo">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <circle cx="12" cy="12" r="10" />
+
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5">
+
+                            <circle cx="12" cy="12" r="10"></circle>
+
                         </svg>
-                        Mínimo de 8 caracteres
+
+                        <span>Mínimo de 8 caracteres</span>
+
                     </li>
+
+
                     <li id="reqLetra">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <circle cx="12" cy="12" r="10" />
+
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5">
+
+                            <circle cx="12" cy="12" r="10"></circle>
+
                         </svg>
-                        Pelo menos uma letra
+
+                        <span>Pelo menos uma letra</span>
+
                     </li>
+
+
                     <li id="reqNumero">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <circle cx="12" cy="12" r="10" />
+
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5">
+
+                            <circle cx="12" cy="12" r="10"></circle>
+
                         </svg>
-                        Pelo menos um número
+
+                        <span>Pelo menos um número</span>
+
                     </li>
+
+
                     <li id="reqIguais">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <circle cx="12" cy="12" r="10" />
+
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5">
+
+                            <circle cx="12" cy="12" r="10"></circle>
+
                         </svg>
-                        As senhas devem ser iguais
+
+                        <span>As senhas devem ser iguais</span>
+
                     </li>
+
                 </ul>
 
-                <span class="mensagem-erro" id="erroRedefinir"></span>
 
-                <button class="botao-primario" id="botaoSalvarSenha">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <!-- MENSAGEM DE ERRO -->
+                <span
+                    class="mensagem-erro"
+                    id="erroRedefinir">
+                </span>
+
+
+                <!-- SALVAR SENHA -->
+                <button
+                    type="button"
+                    class="botao-primario"
+                    id="botaoSalvarSenha">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
                         style="width:16px;height:16px;margin-right:8px">
-                        <rect x="3" y="11" width="18" height="11" rx="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+
+                        <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+
                     </svg>
-                    Salvar nova senha
+
+                    <span id="textoBotaoSalvar">
+                        Salvar nova senha
+                    </span>
+
                 </button>
 
-                <div class="divisor-ou"><span>ou</span></div>
-                <a href="login.html" class="botao-contorno-escuro">← Voltar para o Login</a>
+
+                <div class="divisor-ou">
+                    <span>ou</span>
+                </div>
+
+
+                <a
+                    href="login.html"
+                    class="botao-contorno-escuro">
+
+                    ← Voltar para o Login
+
+                </a>
+
             </div>
 
-            <!-- Painel direito azul: dicas de segurança -->
+
+            <!-- PAINEL DIREITO -->
             <div class="painel-azul painel-azul-info">
-                <div class="icone-escudo">🔒</div>
-                <p class="painel-azul-pergunta">Proteja sua conta</p>
+
+                <div class="icone-escudo">
+                    🔒
+                </div>
+
+                <p class="painel-azul-pergunta">
+                    Proteja sua conta
+                </p>
+
                 <p class="painel-azul-descricao">
                     Sua nova senha garante a segurança dos seus dados e informações.
                 </p>
+
+
                 <ul class="lista-dicas">
+
                     <li>
-                        <span class="icone-dica">🔑</span>
+
+                        <span class="icone-dica">
+                            🔑
+                        </span>
+
                         <div>
-                            <p class="dica-titulo">Use uma senha forte</p>
-                            <p class="dica-desc">Combine letras, números e símbolos para mais segurança.</p>
+
+                            <p class="dica-titulo">
+                                Use uma senha forte
+                            </p>
+
+                            <p class="dica-desc">
+                                Combine letras, números e símbolos para mais segurança.
+                            </p>
+
                         </div>
+
                     </li>
+
+
                     <li>
-                        <span class="icone-dica">🔄</span>
+
+                        <span class="icone-dica">
+                            🔄
+                        </span>
+
                         <div>
-                            <p class="dica-titulo">Evite reutilizar senhas</p>
-                            <p class="dica-desc">Não use senhas antigas ou usadas em outros sites.</p>
+
+                            <p class="dica-titulo">
+                                Evite reutilizar senhas
+                            </p>
+
+                            <p class="dica-desc">
+                                Não use senhas antigas ou utilizadas em outros sites.
+                            </p>
+
                         </div>
+
                     </li>
+
+
                     <li>
-                        <span class="icone-dica">🛡️</span>
+
+                        <span class="icone-dica">
+                            🛡️
+                        </span>
+
                         <div>
-                            <p class="dica-titulo">Mantenha sua conta segura</p>
-                            <p class="dica-desc">Nunca compartilhe sua senha com outras pessoas.</p>
+
+                            <p class="dica-titulo">
+                                Mantenha sua conta segura
+                            </p>
+
+                            <p class="dica-desc">
+                                Nunca compartilhe sua senha com outras pessoas.
+                            </p>
+
                         </div>
+
                     </li>
+
                 </ul>
+
             </div>
 
         </div>
+
     </div>
 
+
+    <!-- SCRIPTS -->
     <script src="core/api.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="core/alerts.js"></script>
+
+    <script src="core/alerts.js"></script>
+
     <script src="js/redefinir_senha.js"></script>
+
 </body>
 
 </html>
