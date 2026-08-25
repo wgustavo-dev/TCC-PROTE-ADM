@@ -13,6 +13,29 @@ export class ServiceEscola {
     return AppDataSource.getRepository(Aluno);
   }
 
+  private async validarNomeDisponivel(nome: string, idEscolaAtual?: number) {
+    const consulta = this.escolaRepository
+      .createQueryBuilder("escola")
+      .where(
+        "LOWER(REPLACE(escola.nome, ' ', '')) = LOWER(REPLACE(:nome, ' ', ''))",
+        { nome }
+      );
+
+    if (idEscolaAtual !== undefined) {
+      consulta.andWhere("escola.id_escola <> :idEscolaAtual", {
+        idEscolaAtual,
+      });
+    }
+
+    const escolaExistente = await consulta.getOne();
+
+    if (escolaExistente) {
+      throw new Error(
+        "Não é possível cadastrar uma escola mais de uma vez"
+      );
+    }
+  }
+
   async listar() {
     const escolas = await this.escolaRepository.find({
       order: {
@@ -53,8 +76,11 @@ export class ServiceEscola {
       throw new Error("Nome da escola é obrigatório");
     }
 
+    const nome = dados.nome.trim();
+    await this.validarNomeDisponivel(nome);
+
     const escola = this.escolaRepository.create({
-      nome: dados.nome.trim(),
+      nome,
       endereco: dados.endereco?.trim() || null,
     });
 
@@ -76,7 +102,10 @@ export class ServiceEscola {
       if (!dados.nome.trim()) {
         throw new Error("Nome da escola é obrigatório");
       }
-      escola.nome = dados.nome.trim();
+
+      const nome = dados.nome.trim();
+      await this.validarNomeDisponivel(nome, id);
+      escola.nome = nome;
     }
 
     if (dados.endereco !== undefined) {

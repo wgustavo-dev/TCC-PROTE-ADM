@@ -34,6 +34,8 @@
       renderizarTudo(dados);
     } catch (erro) {
       console.error('Erro ao carregar itinerários:', erro);
+      // Mantém as colunas vazias (com o placeholder "Nenhum aluno neste período")
+      // em vez de travar a tela — assim o painel continua utilizável.
       renderizarTudo({ manha: [], tarde: [], noite: [] });
     }
   }
@@ -47,13 +49,16 @@
     li.dataset.itemId = item.itemId;   // entrada específica (ida OU volta)
     li.dataset.alunoId = item.alunoId; // aluno real (pode se repetir em 2 entradas)
     li.dataset.tipo = item.tipo;
+    // Escola aparece antes do endereço, pra identificar o destino mais rápido
+    // (útil quando o mesmo turno atende mais de uma escola).
+    const linhaSecundaria = item.escola ? (item.escola + ' • ' + item.endereco) : item.endereco;
     li.innerHTML =
       '<span class="drag-handle">' + iconeGrip + '</span>' +
       '<span class="ordem-badge">0</span>' +
       '<span class="aluno-avatar">' + iconeUsuario + '</span>' +
       '<span class="aluno-info">' +
         '<span class="aluno-nome">' + item.nome + '</span>' +
-        '<span class="aluno-endereco">' + item.endereco + '</span>' +
+        '<span class="aluno-endereco">' + linhaSecundaria + '</span>' +
       '</span>' +
       '<span class="tipo-badge tipo-badge--' + item.tipo + '">' + rotuloTipo[item.tipo] + '</span>';
     return li;

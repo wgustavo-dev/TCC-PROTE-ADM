@@ -29,6 +29,7 @@
   <link rel="stylesheet" href="css/globalcss.css" />
   <link rel="stylesheet" href="css/escolas.css" />
   <link rel="stylesheet" href="core/alerts.css" />
+  <link rel="stylesheet" href="../css/perfil-widget.css">
 </head>
 
 <body>
@@ -52,25 +53,15 @@
       </div>
 
       <nav class="nav">
+        <span class="nav-section-title">Geral</span>
         <a href="index.html" class="nav-item" data-page="dashboard">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
           Dashboard
         </a>
+        <span class="nav-section-title">Financeiro</span>
         <a href="despesas.html" class="nav-item" data-page="despesas">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
           Despesas
-        </a>
-        <a href="documentos.html" class="nav-item" data-page="documentos">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8"></path><path d="M8 17h5"></path></svg>
-          Documentos
-        </a>
-        <a href="responsaveis.html" class="nav-item" data-page="responsaveis">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-          Responsáveis
-        </a>
-        <a href="alunos.html" class="nav-item" data-page="alunos">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          Alunos
         </a>
         <a href="orcamento.html" class="nav-item" data-page="orcamento">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 18v-6"></path><path d="M9 15h6"></path></svg>
@@ -80,9 +71,23 @@
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path><path d="M6 15h4"></path></svg>
           Mensalidades
         </a>
+        <span class="nav-section-title">Pessoas</span>
+        <a href="responsaveis.html" class="nav-item" data-page="responsaveis">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Responsáveis
+        </a>
+        <a href="alunos.html" class="nav-item" data-page="alunos">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Alunos
+        </a>
         <a href="presenca.html" class="nav-item" data-page="presenca">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
           Presença
+        </a>
+        <span class="nav-section-title">Gerenciamento</span>
+        <a href="documentos.html" class="nav-item" data-page="documentos">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8"></path><path d="M8 17h5"></path></svg>
+          Documentos
         </a>
         <a href="acessos.html" class="nav-item" data-page="acessos">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path><circle cx="12" cy="16" r="1"></circle></svg>
@@ -92,7 +97,17 @@
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V9l7-5 7 5v12"></path><path d="M9 21v-6h6v6"></path><path d="M9 9h.01"></path><path d="M15 9h.01"></path></svg>
           Escolas
         </a>
+
       </nav>
+
+      <!-- PERFIL -->
+
+      <div class="sidebar-footer">
+
+        <div id="perfil-widget-root"></div>
+
+      </div>
+
     </aside>
 
     <main class="main">
@@ -222,7 +237,7 @@
           />
         </div>
 
-        <div class="grupo-filtro">
+        <!-- <div class="grupo-filtro">
           <label class="label-filtro" for="alunosCampo">Alunos</label>
 
           <input
@@ -231,7 +246,7 @@
             class="input-filtro"
             disabled
           />
-        </div>
+        </div> -->
 
         <div class="info-box">
           A quantidade de alunos é calculada automaticamente pelos alunos vinculados a esta escola no módulo Alunos.
@@ -261,5 +276,7 @@
   <script src="core/alerts.js"></script>
 
   <script type="module" src="js/escolas.js"></script>
+  <script src="js/perfil-widget.js"></script>
+  <script src="js/perfil-init.js"></script>
 </body>
 </html>
