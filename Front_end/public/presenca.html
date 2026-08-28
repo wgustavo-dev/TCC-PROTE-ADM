@@ -208,6 +208,31 @@
         </button>
       </section>
 
+      <section class="card trajeto-card">
+        <div class="trajeto-cabecalho">
+          <div class="trajeto-titulos">
+            <h2>Linha de Trajeto</h2>
+            <p class="sub-lista">
+              Ordem de embarque definida no
+              <a href="alunos.html">Itinerário</a> — apenas alunos presentes aparecem na linha
+              <span class="trajeto-badge" id="trajetoBadgeAlunos">0 alunos</span>
+            </p>
+          </div>
+
+          <div class="trajeto-tabs" id="trajetoTabs">
+            <button type="button" class="trajeto-tab ativo" data-periodo="manha">Manhã</button>
+            <button type="button" class="trajeto-tab" data-periodo="tarde">Tarde</button>
+            <button type="button" class="trajeto-tab" data-periodo="noite">Noite</button>
+          </div>
+        </div>
+
+        <div class="trajeto-linha-scroll">
+          <div class="trajeto-linha" id="trajetoLinha"></div>
+        </div>
+
+        <p class="trajeto-dica">Clique duas vezes no aluno atual da linha para marcar como embarcado e avançar.</p>
+      </section>
+
     </main>
   </div>
 
