@@ -84,7 +84,7 @@ async function iniciarFluxoCadastro() {
   definirValorCampo("campoIdMensalidade", "");
   definirValorCampo("campoAlunoMensalidade", String(aluno.id_aluno || ""), true);
   definirValorCampo("campoResponsavelMensalidade", aluno.responsavel?.nome || "", true);
-  definirValorCampo("campoContatoMensalidade", aluno.responsavel?.telefone || "", true);
+  definirValorCampo("campoContatoMensalidade", aplicarMascaraTelefoneMensalidade(aluno.responsavel?.telefone || ""), true);
   definirValorCampo("campoEscolaMensalidade", aluno.escola?.nome || "", true);
   // Sugere o dia de hoje como ponto de partida; o usuário ajusta se quiser.
   definirValorCampo("campoVencimentoMensalidade", String(new Date().getDate()), false);
@@ -347,7 +347,7 @@ function mapearMensalidade(item) {
     vencimento: String(item.data_vencimento || "").slice(0, 10),
     pagamento: item.data_pagamento ? String(item.data_pagamento).slice(0, 10) : "",
     status: (item.status || "PENDENTE").toLowerCase(),
-    contato: [item.aluno?.responsavel?.telefone].filter(Boolean),
+    contato: [aplicarMascaraTelefoneMensalidade(item.aluno?.responsavel?.telefone)].filter(Boolean),
     escola: item.aluno?.escola?.nome || "",
     foto: item.aluno?.foto ? `http://localhost:3000${item.aluno.foto}` : "",
   };
@@ -546,15 +546,6 @@ function renderizarTabela() {
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </button>
-          <button class="botao-acao" data-acao="excluir" data-id="${item.id}" title="Excluir" aria-label="Excluir mensalidade">
-            <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6l-1 14H6L5 6"></path>
-              <path d="M10 11v6"></path>
-              <path d="M14 11v6"></path>
-              <path d="M9 6V4h6v2"></path>
-            </svg>
-          </button>
         </div>
       </td>
     </tr>
@@ -667,6 +658,24 @@ function fecharModal() {
   if (fundoModal) fundoModal.classList.remove("ativo");
 }
 
+async function fecharModalSeguroMensalidade() {
+  if (typeof showConfirm !== "function") {
+    fecharModal();
+    return true;
+  }
+
+  const confirmacao = await showConfirm(
+    "Deseja realmente fechar este formulário?",
+    {
+      confirmButtonText: "Fechar mesmo assim",
+      cancelButtonText: "Continuar editando"
+    }
+  );
+
+  if (confirmacao.isConfirmed) fecharModal();
+  return confirmacao.isConfirmed;
+}
+
 function idAlunoPorNome(nomeAluno) {
   const aluno = alunos.find(
     (item) => item.nome?.trim().toLowerCase() === nomeAluno.trim().toLowerCase()
@@ -776,12 +785,6 @@ function configurarEventosTabela() {
         await showSuccess("Mensalidade marcada como paga!");
       }
 
-      if (acao === "excluir") {
-        const confirm = await showConfirm("Tem certeza que deseja excluir esta mensalidade?");
-        if (!confirm.isConfirmed) return;
-        await window.API.del(`/mensalidades/${id}`);
-        await showSuccess("Mensalidade excluída com sucesso!");
-      }
 
       await carregarDados();
       atualizarOpcoesEscola();
@@ -799,8 +802,8 @@ function configurarEventosTabela() {
    ========================================================= */
 
 function configurarBotoes() {
-  if (botaoCancelar) botaoCancelar.addEventListener("click", fecharModal);
-  if (botaoFecharTopo) botaoFecharTopo.addEventListener("click", fecharModal);
+  if (botaoCancelar) botaoCancelar.addEventListener("click", fecharModalSeguroMensalidade);
+  if (botaoFecharTopo) botaoFecharTopo.addEventListener("click", fecharModalSeguroMensalidade);
 
   const campoAluno = document.getElementById("campoAlunoMensalidade");
   const campoValor = document.getElementById("campoValorMensalidade");
@@ -824,11 +827,6 @@ function configurarBotoes() {
     });
   }
 
-  if (fundoModal) {
-    fundoModal.addEventListener("click", (event) => {
-      if (event.target === fundoModal) fecharModal();
-    });
-  }
 }
 
 /* =========================================================
@@ -852,5 +850,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   } catch (error) {
     console.error(error);
     showError("Não foi possível carregar as mensalidades.");
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && fundoModal?.classList.contains("ativo")) {
+    fecharModalSeguroMensalidade();
   }
 });

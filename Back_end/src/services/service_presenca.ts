@@ -4,6 +4,27 @@ import {AppDataSource} from "../config/database";
 import {Presenca} from "../models/model_presenca";
 
 export class ServicePresenca{
+    private validarDataNaoFutura(data: Partial<Presenca>["data"]) {
+        const valor = String(data ?? "");
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+            return;
+        }
+
+        const hoje = new Date();
+        const hojeISO = [
+            hoje.getFullYear(),
+            String(hoje.getMonth() + 1).padStart(2, "0"),
+            String(hoje.getDate()).padStart(2, "0"),
+        ].join("-");
+
+        if (valor > hojeISO) {
+            throw new Error(
+                "Não é possível criar uma presença com data futura"
+            );
+        }
+    }
+
 //listar
     async listar(){
         const repo = AppDataSource. getRepository(Presenca);
@@ -33,6 +54,8 @@ export class ServicePresenca{
 
 //criar
     async criar(dados: Partial<Presenca>){
+        this.validarDataNaoFutura(dados.data);
+
         const repo=AppDataSource.getRepository(Presenca)
 
         const existente = await repo.findOne({

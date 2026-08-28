@@ -20,8 +20,7 @@ const btnNovaEscola = document.getElementById('btnNovaEscola');
 
 const camposForm = {
   nome: document.getElementById('nome'),
-  endereco: document.getElementById('endereco'),
-  alunos: document.getElementById('alunosCampo')
+  endereco: document.getElementById('endereco')
 };
 
 function normalizarEscola(item) {
@@ -29,7 +28,7 @@ function normalizarEscola(item) {
     id: item.id_escola,
     nome: item.nome || '',
     endereco: item.endereco || '',
-    quantidade: Number(item.quantidade_alunos || 0)
+    quantidade: Number(item.quantidade_alunos ?? item.quantidade ?? 0),
   };
 }
 
@@ -69,7 +68,7 @@ function renderTabela() {
       <td>
         <div class="acoes">
           <button class="acao-btn" data-ac="editar" data-id="${e.id}" title="Editar" aria-label="Editar escola">
-            <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            Editar
               <path d="M12 20h9"></path>
               <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
             </svg>
@@ -106,9 +105,6 @@ function abrirModal(edicao = false, item = null) {
   if (item) {
     camposForm.nome.value = item.nome;
     camposForm.endereco.value = item.endereco || '';
-    camposForm.alunos.value = String(item.quantidade);
-  } else {
-    camposForm.alunos.value = '0';
   }
 
   modalOverlay.classList.remove('hidden');
