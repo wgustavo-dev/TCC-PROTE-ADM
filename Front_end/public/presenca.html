@@ -155,9 +155,20 @@
       </div>
 
       <section class="card barra-data">
-        <div>
-          <label class="label-data" for="campoData">Data de registro</label>
-          <input type="date" id="campoData" class="input-data" />
+        <div class="filtros-presenca">
+          <div>
+            <label class="label-data" for="campoData">Data de registro</label>
+            <input type="date" id="campoData" class="input-data" />
+          </div>
+
+          <div class="grupo-turno-presenca">
+            <span class="label-data">Turno da chamada</span>
+            <div class="presenca-turnos" id="presencaTurnos">
+              <button type="button" class="presenca-turno ativo" data-turno="MANHA">Manhã</button>
+              <button type="button" class="presenca-turno" data-turno="TARDE">Tarde</button>
+              <button type="button" class="presenca-turno" data-turno="NOITE">Noite</button>
+            </div>
+          </div>
         </div>
 
         <div class="acoes-topo">
@@ -206,6 +217,22 @@
         <button class="botao-salvar" id="botaoSalvarChamada">
           Salvar registro da chamada
         </button>
+      </section>
+
+      <section class="card trajeto-card">
+        <div class="trajeto-cabecalho">
+          <div class="trajeto-titulos">
+            <h2>Linha de Trajeto</h2>
+            <p class="sub-lista">
+              Alunos presentes, na ordem definida pelo Itinerário.
+              <span class="trajeto-badge" id="trajetoBadgeAlunos">0 alunos</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="trajeto-linha-scroll">
+          <div class="trajeto-linha" id="trajetoLinha"></div>
+        </div>
       </section>
 
     </main>
