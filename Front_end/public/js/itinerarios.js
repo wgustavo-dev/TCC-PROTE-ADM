@@ -1,8 +1,8 @@
 (function () {
   'use strict';
 
-  const ROTA_BUSCAR = '/api/itinerarios';
-  const ROTA_SALVAR = '/api/itinerarios/ordem';
+  const ROTA_BUSCAR = '/itinerarios';
+  const ROTA_SALVAR = '/itinerarios/ordem';
 
   const rotuloTipo = { ida: 'IDA', volta: 'VOLTA' };
   const rotuloPeriodo = { manha: 'matutino', tarde: 'vespertino', noite: 'noturno' };
@@ -28,9 +28,7 @@
      ========================================================= */
   async function buscarItinerario() {
     try {
-      const resposta = await fetch(ROTA_BUSCAR);
-      if (!resposta.ok) throw new Error('Falha ao buscar itinerários');
-      const dados = await resposta.json();
+      const dados = await window.API.get(ROTA_BUSCAR);
       renderizarTudo(dados);
     } catch (erro) {
       console.error('Erro ao carregar itinerários:', erro);
@@ -192,12 +190,7 @@
     btnSalvar.textContent = 'Salvando...';
 
     try {
-      const resposta = await fetch(ROTA_SALVAR, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!resposta.ok) throw new Error('Falha ao salvar ordem');
+      await window.API.put(ROTA_SALVAR, payload);
 
       mostrarToast('Ordem salva com sucesso!');
       emEdicao = false;

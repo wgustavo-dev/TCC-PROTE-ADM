@@ -1,32 +1,27 @@
 -- =====================================================
--- SCHEMA PROTE ADM - v1.11
+-- SCHEMA PROTE ADM - v1.12
 -- =====================================================
--- ALTERAÇÕES NESTA VERSÃO EM RELAÇÃO À v1.10:
+-- ALTERAÇÕES NESTA VERSÃO EM RELAÇÃO À v1.11:
 --
--- 1) aluno.dia_vencimento (NOVO)
---    - Dia do mês ("todo dia X") em que a mensalidade do aluno vence.
---    - Preenchido/atualizado automaticamente a partir do formulário de
---      mensalidade (campo de vencimento passou a pedir só o dia, não
---      mais dd/mm/aaaa).
---    - Usado pela rotina de renovação mensal para saber que dia usar
---      ao gerar a mensalidade do mês seguinte de cada aluno.
+-- 1) presenca.turno (NOVO)
+--    - Diferencia as chamadas de MANHA, TARDE e NOITE.
+--    - A identificação lógica de uma presença passa a considerar
+--      id_aluno + data + turno.
+--    - Permite que o mesmo aluno tenha registros de presença em
+--      turnos diferentes no mesmo dia.
 --
--- 2) mensalidade.mes_referencia (NOVO)
---    - Formato "YYYY-MM", derivado de data_vencimento.
---    - UNIQUE (id_aluno, mes_referencia): impede duas mensalidades do
---      mesmo aluno no mesmo mês, mesmo se a rotina de renovação rodar
---      mais de uma vez.
---    - Mensalidades antigas nunca são apagadas pela rotina — o
---      histórico financeiro é sempre preservado.
+-- 2) Restrição UNIQUE em presenca
+--    - Impede mais de um registro para o mesmo aluno, data e turno.
 --
--- 3) Correção de lógica no módulo de Itinerários (sem mudança de
---    schema): a coluna itinerario_aluno.turno já suportava
---    MANHA/TARDE/NOITE desde a v1.9, mas o backend só gerava
---    MANHA/TARDE. Agora ela é preenchida corretamente com o PERÍODO da
---    viagem (derivado do turno do aluno + tipo_trajeto), podendo gerar
---    NOITE. Ver Back_end/src/services/service_itinerario.ts.
+-- 3) Não há migração de dados antigos neste schema.
+--    - Conforme definido para esta versão, não é necessário preservar
+--      registros antigos de presença sem turno.
 --
--- (changelog das versões anteriores mantido abaixo para referência)
+-- =====================================================
+-- HISTÓRICO
+-- =====================================================
+-- As alterações das versões anteriores permanecem incorporadas
+-- à estrutura abaixo.
 --
 -- =====================================================
 -- SCHEMA PROTE ADM - v1.10
@@ -252,7 +247,10 @@ CREATE TABLE presenca (
     id_presenca INT AUTO_INCREMENT PRIMARY KEY,
     id_aluno INT NOT NULL,
     data DATE NOT NULL,
+    turno ENUM('MANHA','TARDE','NOITE') NOT NULL,
     status ENUM('PRESENTE','AUSENTE') NOT NULL,
+
+    UNIQUE KEY uk_presenca_aluno_data_turno (id_aluno, data, turno),
 
     FOREIGN KEY (id_aluno)
     REFERENCES aluno(id_aluno)

@@ -480,3 +480,62 @@
 .swal2-backdrop-show {
   z-index: 999998 !important;
 }
+.filtros-presenca {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.grupo-turno-presenca {
+  display: flex;
+  flex-direction: column;
+}
+
+.presenca-turnos {
+  display: flex;
+  gap: 4px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: var(--arredondamento-medio);
+}
+
+.presenca-turno {
+  border: none;
+  background: transparent;
+  padding: 7px 14px;
+  border-radius: var(--arredondamento-pequeno);
+  color: var(--texto-secundario);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.presenca-turno.ativo {
+  background: var(--fundo-card);
+  color: var(--cor-principal);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.lista-vazia-presenca {
+  padding: 20px 18px;
+  color: var(--texto-secundario);
+  font-size: 13px;
+}
+
+.trajeto-ordem {
+  font-size: 10px;
+  color: var(--texto-secundario);
+}
+
+@media (max-width: 800px) {
+  .filtros-presenca {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .presenca-turnos {
+    width: fit-content;
+  }
+}
