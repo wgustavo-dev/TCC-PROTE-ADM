@@ -40,6 +40,8 @@
   }
 
   function definirDataAtual() {
+    if (!campoData) return;
+
     const hoje = new Date();
     const hojeISO = [
       hoje.getFullYear(),
@@ -52,12 +54,14 @@
   }
 
   function dataEhFutura(data) {
-    return Boolean(data && campoData.max && data > campoData.max);
+    return Boolean(data && campoData?.max && data > campoData.max);
   }
 
   function formatarDataBR(data) {
     if (!data) return "";
+
     const partes = data.split("-");
+
     return partes.length === 3
       ? `${partes[2]}/${partes[1]}/${partes[0]}`
       : data;
@@ -77,19 +81,64 @@
     });
   }
 
+  /*
+   * IMPORTANTE:
+   *
+   * O turno usado pela chamada NÃO vem de aluno.turno.
+   *
+   * aluno.turno = turno escolar do aluno.
+   * itinerario_aluno.turno = período em que o transporte acontece.
+   *
+   * A Lista de Presença precisa usar o segundo.
+   *
+   * A rota /itinerarios já chama sincronizarTodos() no backend antes de
+   * devolver os dados. Assim, esta função também garante que alunos novos
+   * sejam incorporados ao itinerário antes de aparecerem na chamada.
+   */
   async function carregarAlunosDoTurno() {
-    const resposta = await window.API.get("/alunos");
-    const alunos = Array.isArray(resposta) ? resposta : [];
+    const resposta = await window.API.get("/itinerarios");
 
-    return alunos
-      .filter((aluno) => String(aluno.turno || "").toUpperCase() === turnoAtivo)
-      .map((aluno) => ({
-        id: Number(aluno.id_aluno),
-        nome: aluno.nome || "Aluno",
-        foto: aluno.foto || null,
-        escola: aluno.escola?.nome || null,
-      }))
-      .filter((aluno) => Number.isFinite(aluno.id));
+    if (!resposta || typeof resposta !== "object") {
+      return [];
+    }
+
+    const chaveTurno = turnoAtivo.toLowerCase();
+    const itens = Array.isArray(resposta[chaveTurno])
+      ? resposta[chaveTurno]
+      : [];
+
+    /*
+     * Um mesmo aluno pode possuir IDA e VOLTA no mesmo período em casos
+     * válidos. Para a chamada de presença ele deve aparecer uma única vez.
+     * Usamos a menor ordem do itinerário como ordem de exibição.
+     */
+    const alunosPorId = new Map();
+
+    for (const item of itens) {
+      const id = Number(item.alunoId ?? item.id_aluno);
+
+      if (!Number.isFinite(id)) continue;
+
+      const ordem = Number(item.ordem);
+      const existente = alunosPorId.get(id);
+
+      const aluno = {
+        id,
+        nome: item.nome || item.aluno?.nome || "Aluno",
+        foto: item.foto || item.aluno?.foto || null,
+        escola: item.escola || item.aluno?.escola?.nome || null,
+        ordem: Number.isFinite(ordem) ? ordem : Number.MAX_SAFE_INTEGER,
+      };
+
+      if (!existente || aluno.ordem < existente.ordem) {
+        alunosPorId.set(id, aluno);
+      }
+    }
+
+    return Array.from(alunosPorId.values()).sort((a, b) => {
+      if (a.ordem !== b.ordem) return a.ordem - b.ordem;
+      return String(a.nome).localeCompare(String(b.nome), "pt-BR");
+    });
   }
 
   async function carregarPresencas() {
@@ -111,7 +160,7 @@
   }
 
   async function atualizarDadosTela() {
-    if (!campoData.value) return;
+    if (!campoData?.value) return;
 
     try {
       const [alunos, presencas, linha] = await Promise.all([
@@ -141,6 +190,7 @@
       renderizarLinhaTrajeto();
     } catch (error) {
       console.error("Erro ao carregar dados da Presença:", error);
+
       registros = [];
       registrosExistentes = [];
       linhaTrajetoAtual = {
@@ -148,6 +198,7 @@
         turno: turnoAtivo,
         alunos: [],
       };
+
       renderizarLista();
       atualizarResumo();
       renderizarLinhaTrajeto();
@@ -160,19 +211,23 @@
     const ausentes = registros.length - presentes;
     const taxa = registros.length ? (presentes / registros.length) * 100 : 0;
 
-    totalPresentes.textContent = String(presentes);
-    totalAusentes.textContent = String(ausentes);
-    taxaPresenca.textContent = `${taxa.toFixed(1)}%`;
-    barraTaxa.style.width = `${taxa}%`;
+    if (totalPresentes) totalPresentes.textContent = String(presentes);
+    if (totalAusentes) totalAusentes.textContent = String(ausentes);
+    if (taxaPresenca) taxaPresenca.textContent = `${taxa.toFixed(1)}%`;
+    if (barraTaxa) barraTaxa.style.width = `${taxa}%`;
   }
 
   function renderizarLista() {
-    textoDataLista.textContent =
-      `Registro de presença do dia ${formatarDataBR(campoData.value)} — ${rotuloTurno(turnoAtivo)}`;
+    if (textoDataLista) {
+      textoDataLista.textContent =
+        `Registro de presença do dia ${formatarDataBR(campoData.value)} — ${rotuloTurno(turnoAtivo)}`;
+    }
+
+    if (!listaAlunos) return;
 
     if (!registros.length) {
       listaAlunos.innerHTML =
-        `<p class="lista-vazia-presenca">Nenhum aluno cadastrado para este turno.</p>`;
+        `<p class="lista-vazia-presenca">Nenhum aluno cadastrado no itinerário deste turno.</p>`;
       return;
     }
 
@@ -235,6 +290,8 @@
   }
 
   function renderizarLinhaTrajeto() {
+    if (!trajetoBadge || !trajetoLinha) return;
+
     const alunos = Array.isArray(linhaTrajetoAtual.alunos)
       ? linhaTrajetoAtual.alunos
       : [];
@@ -261,107 +318,119 @@
     trajetoLinha.innerHTML = partes.join("");
   }
 
-  listaAlunos.addEventListener("click", (event) => {
-    const botao = event.target.closest(".botao-status");
-    if (!botao) return;
+  if (listaAlunos) {
+    listaAlunos.addEventListener("click", (event) => {
+      const botao = event.target.closest(".botao-status");
+      if (!botao) return;
 
-    const id = Number(botao.dataset.id);
+      const id = Number(botao.dataset.id);
 
-    registros = registros.map((aluno) =>
-      aluno.id === id
-        ? { ...aluno, presente: !aluno.presente }
-        : aluno
-    );
-
-    renderizarLista();
-    atualizarResumo();
-  });
-
-  botaoMarcarTodos.addEventListener("click", () => {
-    registros = registros.map((aluno) => ({
-      ...aluno,
-      presente: true,
-    }));
-
-    renderizarLista();
-    atualizarResumo();
-  });
-
-  botaoDesmarcarTodos.addEventListener("click", () => {
-    registros = registros.map((aluno) => ({
-      ...aluno,
-      presente: false,
-    }));
-
-    renderizarLista();
-    atualizarResumo();
-  });
-
-  presencaTurnos.addEventListener("click", async (event) => {
-    const botao = event.target.closest(".presenca-turno");
-    if (!botao) return;
-
-    const novoTurno = String(botao.dataset.turno || "").toUpperCase();
-
-    if (!TURNOS.includes(novoTurno) || novoTurno === turnoAtivo) {
-      return;
-    }
-
-    turnoAtivo = novoTurno;
-    atualizarBotoesTurno();
-    await atualizarDadosTela();
-  });
-
-  campoData.addEventListener("change", async () => {
-    if (dataEhFutura(campoData.value)) {
-      campoData.value = campoData.max;
-      showError("Não é possível consultar ou criar uma presença com data futura.");
-      return;
-    }
-
-    await atualizarDadosTela();
-  });
-
-  botaoSalvar.addEventListener("click", async () => {
-    if (dataEhFutura(campoData.value)) {
-      showError("Não é possível criar uma presença com data futura.");
-      return;
-    }
-
-    try {
-      const existentesPorAluno = new Map(
-        registrosExistentes.map((item) => [Number(item.id_aluno), item])
+      registros = registros.map((aluno) =>
+        aluno.id === id
+          ? { ...aluno, presente: !aluno.presente }
+          : aluno
       );
 
-      await Promise.all(
-        registros.map((aluno) => {
-          const payload = {
-            id_aluno: aluno.id,
-            data: campoData.value,
-            turno: turnoAtivo,
-            status: aluno.presente ? "PRESENTE" : "AUSENTE",
-          };
+      renderizarLista();
+      atualizarResumo();
+    });
+  }
 
-          const existente = existentesPorAluno.get(aluno.id);
+  if (botaoMarcarTodos) {
+    botaoMarcarTodos.addEventListener("click", () => {
+      registros = registros.map((aluno) => ({
+        ...aluno,
+        presente: true,
+      }));
 
-          if (existente?.id_presenca) {
-            return window.API.put(
-              `/presencas/${existente.id_presenca}`,
-              payload
-            );
-          }
+      renderizarLista();
+      atualizarResumo();
+    });
+  }
 
-          return window.API.post("/presencas", payload);
-        })
-      );
+  if (botaoDesmarcarTodos) {
+    botaoDesmarcarTodos.addEventListener("click", () => {
+      registros = registros.map((aluno) => ({
+        ...aluno,
+        presente: false,
+      }));
+
+      renderizarLista();
+      atualizarResumo();
+    });
+  }
+
+  if (presencaTurnos) {
+    presencaTurnos.addEventListener("click", async (event) => {
+      const botao = event.target.closest(".presenca-turno");
+      if (!botao) return;
+
+      const novoTurno = String(botao.dataset.turno || "").toUpperCase();
+
+      if (!TURNOS.includes(novoTurno) || novoTurno === turnoAtivo) {
+        return;
+      }
+
+      turnoAtivo = novoTurno;
+      atualizarBotoesTurno();
+      await atualizarDadosTela();
+    });
+  }
+
+  if (campoData) {
+    campoData.addEventListener("change", async () => {
+      if (dataEhFutura(campoData.value)) {
+        campoData.value = campoData.max;
+        showError("Não é possível consultar ou criar uma presença com data futura.");
+        return;
+      }
 
       await atualizarDadosTela();
-      showSuccess("Registro da chamada salvo com sucesso!");
-    } catch (error) {
-      console.error("Erro ao salvar chamada:", error);
-      showError(error.message || "Não foi possível salvar a chamada.");
-    }
-  });
+    });
+  }
+
+  if (botaoSalvar) {
+    botaoSalvar.addEventListener("click", async () => {
+      if (dataEhFutura(campoData.value)) {
+        showError("Não é possível criar uma presença com data futura.");
+        return;
+      }
+
+      try {
+        const existentesPorAluno = new Map(
+          registrosExistentes.map((item) => [Number(item.id_aluno), item])
+        );
+
+        await Promise.all(
+          registros.map((aluno) => {
+            const payload = {
+              id_aluno: aluno.id,
+              data: campoData.value,
+              turno: turnoAtivo,
+              status: aluno.presente ? "PRESENTE" : "AUSENTE",
+            };
+
+            const existente = existentesPorAluno.get(aluno.id);
+
+            if (existente?.id_presenca) {
+              return window.API.put(
+                `/presencas/${existente.id_presenca}`,
+                payload
+              );
+            }
+
+            return window.API.post("/presencas", payload);
+          })
+        );
+
+        await atualizarDadosTela();
+        showSuccess("Registro da chamada salvo com sucesso!");
+      } catch (error) {
+        console.error("Erro ao salvar chamada:", error);
+        showError(error.message || "Não foi possível salvar a chamada.");
+      }
+    });
+  }
 
   window.addEventListener("DOMContentLoaded", async () => {
     initMenu();

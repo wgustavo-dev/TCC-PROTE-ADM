@@ -177,7 +177,7 @@ function mapearAlunoApi(item) {
     foto: toUrlFoto(item.foto),
     idEscola: item.escola ? item.escola.id_escola : null,
     escola: item.escola ? item.escola.nome : "",
-    vencimento: item.vencimento || "",
+    // vencimento: item.vencimento || "",
     tipoTrajeto: item.tipo_trajeto === "IDA" ? "ir" : item.tipo_trajeto === "VOLTA" ? "voltar" : "ambos",
     periodo: item.turno ? item.turno.toLowerCase() : "manha"
   };
@@ -594,11 +594,11 @@ function obterAlunosFiltrados() {
     );
   });
 
-  if (ordem === "vencimento") {
-    lista.sort((a, b) => (a.vencimento || "").localeCompare(b.vencimento || ""));
-  } else {
-    lista.sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"));
-  }
+  // if (ordem === "vencimento") {
+  //   lista.sort((a, b) => (a.vencimento || "").localeCompare(b.vencimento || ""));
+  // } else {
+  //   lista.sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"));
+  // }
 
   return lista;
 }
@@ -625,7 +625,7 @@ function renderizarTabela(lista) {
       <td><div class="celula-aluno">${aluno.foto ? `<img src="${aluno.foto}" alt="Foto de ${aluno.nome}" class="foto-aluno">` : `<div class="foto-placeholder">SEM FOTO</div>`}</div></td>
       <td><span class="nome-aluno">${aluno.nome || "-"}</span></td>
       <td>${aluno.escola || "-"}</td>
-      <td>${aluno.vencimento || "-"}</td>
+      
       <td>${obterDescricaoTrajeto(aluno.tipoTrajeto)}</td>
       <td>
         <span class="linha-texto">${aluno.responsavel1 || "-"}</span>
