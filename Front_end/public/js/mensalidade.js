@@ -847,6 +847,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     configurarBotoes();
     configurarEventosTabela();
     await iniciarFluxoCadastro();
+    abrirMensalidadeDaNotificacao();
   } catch (error) {
     console.error(error);
     showError("Não foi possível carregar as mensalidades.");
@@ -858,3 +859,31 @@ document.addEventListener("keydown", (event) => {
     fecharModalSeguroMensalidade();
   }
 });
+<<<<<<< HEAD
+=======
+
+
+function abrirMensalidadeDaNotificacao() {
+  const params = new URLSearchParams(window.location.search);
+  const id = Number(params.get("notificacao_mensalidade"));
+
+  if (!id) return;
+
+  const mensalidade = mensalidades.find((item) => Number(item.id) === id);
+
+  if (!mensalidade) {
+    console.warn("[mensalidade] Mensalidade da notificação não encontrada:", id);
+    return;
+  }
+
+  abrirModalEditar(id);
+
+  params.delete("notificacao_mensalidade");
+  const novaQuery = params.toString();
+  const novaUrl =
+    window.location.pathname +
+    (novaQuery ? `?${novaQuery}` : "");
+
+  window.history.replaceState({}, document.title, novaUrl);
+}
+>>>>>>> 7422557 (Atualiza sistema de notificações)
