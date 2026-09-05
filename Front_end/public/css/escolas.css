@@ -14,6 +14,17 @@
   flex-wrap: wrap;
 }
 
+.escolas-cabecalho {
+  align-items: flex-start;
+}
+
+.escolas-cabecalho-conteudo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
 .alunos-titulos {
   display: flex;
   flex-direction: column;
