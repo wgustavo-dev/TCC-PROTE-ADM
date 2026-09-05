@@ -12,6 +12,11 @@
   // mesmo turno (ex.: TARDE).
   let itensChamada = [];
 
+  const pesquisasPresenca = {
+    ida: "",
+    volta: "",
+  };
+
   let linhaTrajetoAtual = {
     data: "",
     turno: "MANHA",
@@ -33,6 +38,7 @@
   const presencaTurnos = document.getElementById("presencaTurnos");
   const trajetoBadge = document.getElementById("trajetoBadgeAlunos");
   const trajetoLinha = document.getElementById("trajetoLinha");
+  const avisoTextoLista = document.getElementById("avisoTextoLista");
 
   // ============================================================
   // MENU
@@ -95,9 +101,9 @@
 
   function rotuloTurno(turno) {
     return {
-      MANHA: "manhã",
-      TARDE: "tarde",
-      NOITE: "noite",
+      MANHA: "Manhã",
+      TARDE: "Tarde",
+      NOITE: "Noite",
     }[turno] || turno;
   }
 
@@ -384,6 +390,22 @@
   // LISTA DE CHAMADA
   // ============================================================
 
+  function normalizarTextoPesquisa(valor) {
+    return String(valor || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  function escaparAtributoHTML(valor) {
+    return String(valor || "")
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
   function linhaAlunoHTML(item) {
     const desabilitado = item.salvando ? "disabled" : "";
 
@@ -400,7 +422,7 @@
         : "";
 
     return `
-      <div class="aluno-presenca">
+      <div class="aluno-presenca" data-nome-pesquisa="${escaparAtributoHTML(normalizarTextoPesquisa(item.nome))}">
         <div class="linha-principal-presenca">
           <div class="info-aluno-presenca">
             <div class="avatar-presenca">
@@ -435,18 +457,81 @@
     `;
   }
 
-  function blocoChamadaHTML(titulo, itens) {
+  function blocoChamadaHTML(titulo, itens, chavePesquisa, aviso) {
     return `
-      <div class="bloco-chamada">
-        ${titulo ? `<h3 class="titulo-bloco-chamada">${titulo}</h3>` : ""}
+      <div class="bloco-chamada" data-bloco-pesquisa="${chavePesquisa}">
+        <div class="cabecalho-bloco-chamada">
+          ${
+            titulo
+              ? `<div class="titulo-bloco-grupo">
+                  <h3 class="titulo-bloco-chamada">${titulo}</h3>
+                  ${aviso ? `<p class="aviso-chamada">${aviso}</p>` : ""}
+                </div>`
+              : ""
+          }
+          <div class="campo-busca pesquisa-presenca">
+            <span class="sr-only">Pesquisar aluno por nome</span>
+            <svg class="icone-busca" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              class="input-busca"
+              data-chave-pesquisa="${chavePesquisa}"
+              value="${escaparAtributoHTML(pesquisasPresenca[chavePesquisa])}"
+              placeholder="Buscar por aluno..."
+              autocomplete="off"
+            />
+          </div>
+        </div>
         ${itens.map(linhaAlunoHTML).join("")}
+        <p class="lista-vazia-presenca pesquisa-sem-resultado" data-pesquisa-vazia="${chavePesquisa}" hidden>
+          Nenhum aluno encontrado com esse nome.
+        </p>
       </div>
     `;
   }
 
+  function aplicarPesquisaPresenca(chavePesquisa) {
+    if (!listaAlunos) {
+      return;
+    }
+
+    const bloco = listaAlunos.querySelector(`[data-bloco-pesquisa="${chavePesquisa}"]`);
+
+    if (!bloco) {
+      return;
+    }
+
+    const termo = normalizarTextoPesquisa(pesquisasPresenca[chavePesquisa]);
+    let quantidadeVisivel = 0;
+
+    bloco.querySelectorAll(".aluno-presenca").forEach((aluno) => {
+      const corresponde = !termo || aluno.dataset.nomePesquisa.includes(termo);
+      aluno.hidden = !corresponde;
+      quantidadeVisivel += corresponde ? 1 : 0;
+    });
+
+    const mensagemVazia = bloco.querySelector(`[data-pesquisa-vazia="${chavePesquisa}"]`);
+
+    if (mensagemVazia) {
+      mensagemVazia.hidden = quantidadeVisivel > 0;
+    }
+  }
+
   function renderizarLista() {
     if (textoDataLista) {
-      textoDataLista.textContent = `Registro de presença do dia ${formatarDataBR(campoData.value)} — ${rotuloTurno(turnoAtivo)}`;
+      textoDataLista.textContent = `Lista de presença do dia ${formatarDataBR(campoData.value)} — Turma da ${rotuloTurno(turnoAtivo)}`;
+    }
+
+    if (avisoTextoLista) {
+      avisoTextoLista.textContent = {
+        MANHA: "Faça essa chamada após recolher todos os alunos da turma da manhã!",
+        TARDE: "",
+        NOITE: "Faça essa chamada antes de iniciar o trajeto da noite!",
+      }[turnoAtivo] || "";
+      avisoTextoLista.hidden = !avisoTextoLista.textContent;
     }
 
     if (!listaAlunos) {
@@ -470,12 +555,26 @@
     // única lista, sem cabeçalhos.
     if (itensVolta.length && itensIda.length) {
       listaAlunos.innerHTML =
-        blocoChamadaHTML("Chamada — Volta", itensVolta) +
-        blocoChamadaHTML("Chamada — Ida", itensIda);
+        blocoChamadaHTML(
+          turnoAtivo === "TARDE" ? "Turma da Tarde - Alunos que voltam para casa." : "Chamada — Volta",
+          itensVolta,
+          "volta",
+          turnoAtivo === "TARDE" ? "Faça essa chamada antes de iniciar o trajeto da tarde!" : ""
+        ) +
+        blocoChamadaHTML(
+          turnoAtivo === "TARDE" ? "Turma da Tarde - Alunos que vão para a escola." : "Chamada — Ida",
+          itensIda,
+          "ida",
+          turnoAtivo === "TARDE" ? "Faça essa chamada após recolher todos os alunos da turma da tarde!" : ""
+        );
+      aplicarPesquisaPresenca("volta");
+      aplicarPesquisaPresenca("ida");
       return;
     }
 
-    listaAlunos.innerHTML = blocoChamadaHTML(null, itensChamada);
+    const chavePesquisa = itensChamada[0]?.tipo === "volta" ? "volta" : "ida";
+    listaAlunos.innerHTML = blocoChamadaHTML(null, itensChamada, chavePesquisa);
+    aplicarPesquisaPresenca(chavePesquisa);
   }
 
   // ============================================================
@@ -541,6 +640,11 @@
       >
         <div class="trajeto-avatar">
           ${fotoHTML}
+          <span class="trajeto-avatar-check" aria-label="Aluno pego">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m5 12 4 4L19 6"></path>
+            </svg>
+          </span>
         </div>
 
         <div class="trajeto-parada-legenda">
@@ -560,10 +664,6 @@
 
           <span class="tipo-badge tipo-badge--${aluno.tipo}">
             ${ROTULO_TIPO[aluno.tipo] || aluno.tipo}
-          </span>
-
-          <span class="trajeto-ordem">
-            Ordem ${numero}
           </span>
 
           ${
@@ -612,6 +712,22 @@
     renderizarLinhaTrajeto();
   }
 
+  function animarChegadaProximoAluno() {
+    const alunos = Array.isArray(linhaTrajetoAtual.alunos) ? linhaTrajetoAtual.alunos : [];
+
+    if (!trajetoLinha || progressoLinha >= alunos.length) {
+      return;
+    }
+
+    trajetoLinha.classList.remove("animando-proximo");
+    void trajetoLinha.offsetWidth;
+    trajetoLinha.classList.add("animando-proximo");
+
+    window.setTimeout(() => {
+      trajetoLinha.classList.remove("animando-proximo");
+    }, 700);
+  }
+
   // ============================================================
   // RENDERIZAR LINHA DE TRAJETO
   // ============================================================
@@ -620,6 +736,8 @@
     if (!trajetoBadge || !trajetoLinha) {
       return;
     }
+
+    trajetoLinha.dataset.turno = turnoAtivo;
 
     const alunos = Array.isArray(linhaTrajetoAtual.alunos) ? linhaTrajetoAtual.alunos : [];
 
@@ -699,6 +817,7 @@
     // REGRA DO AVANÇO: Se clicou duas vezes no próximo aluno, avança uma posição.
     if (indiceClicado === progressoLinha) {
       avancarProgresso();
+      animarChegadaProximoAluno();
       return;
     }
 
@@ -824,6 +943,18 @@
   // ============================================================
 
   if (listaAlunos) {
+    listaAlunos.addEventListener("input", function (evento) {
+      const campo = evento.target.closest(".input-busca");
+
+      if (!campo) {
+        return;
+      }
+
+      const chavePesquisa = campo.dataset.chavePesquisa;
+      pesquisasPresenca[chavePesquisa] = campo.value;
+      aplicarPesquisaPresenca(chavePesquisa);
+    });
+
     listaAlunos.addEventListener("click", function (evento) {
       const botao = evento.target.closest(".botao-status");
 

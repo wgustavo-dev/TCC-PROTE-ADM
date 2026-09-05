@@ -1,0 +1,153 @@
+/*
+   PROTE - CAMADA COMPARTILHADA DE COMPONENTES
+   Ordem: globalcss.css -> CSS do modulo -> ui-padrao.css
+*/
+
+:root {
+  --ui-espaco-secao: 24px;
+  --ui-raio-card: 12px;
+  --ui-sombra-card: 0 2px 8px rgba(15, 23, 42, 0.05);
+  --ui-sombra-hover: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.main {
+  max-width: 1280px;
+  padding: 32px;
+}
+
+.cabecalho-pagina {
+  gap: 5px;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 24px !important;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.page-sub {
+  font-size: 13px !important;
+  line-height: 1.5;
+}
+
+.card,
+.card-acessos,
+.card-resumo,
+.table-card,
+.painel-filtros,
+.itinerarios-card {
+  border-radius: var(--ui-raio-card);
+  box-shadow: var(--ui-sombra-card);
+}
+
+.card:hover,
+.card-acessos:hover,
+.card-resumo:hover,
+.table-card:hover {
+  box-shadow: var(--ui-sombra-hover);
+}
+
+.campo-busca,
+.campo-busca-acessos,
+.campo-busca-com-icone {
+  position: relative;
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.input-busca,
+.input-busca-acessos,
+.input-busca-mensalidade,
+.input-busca-orcamento {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  background: var(--fundo-card);
+  color: var(--texto-primario);
+  font: inherit;
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-busca,
+.input-busca-acessos {
+  padding: 10px 14px 10px 40px;
+}
+
+.input-busca-mensalidade,
+.input-busca-orcamento {
+  padding: 10px 14px 10px 40px;
+}
+
+.input-busca::placeholder,
+.input-busca-acessos::placeholder,
+.input-busca-mensalidade::placeholder,
+.input-busca-orcamento::placeholder {
+  color: var(--texto-suave);
+}
+
+.input-busca:focus,
+.input-busca-acessos:focus,
+.input-busca-mensalidade:focus,
+.input-busca-orcamento:focus {
+  border-color: var(--cor-principal);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.icone-busca,
+.icone-busca-acessos,
+.icone-busca-mensalidade,
+.icone-busca-orcamento {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  color: var(--texto-suave);
+  stroke: currentColor;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.btn-primary,
+.btn-secondary,
+.botao-filtro,
+.botao-limpar-filtros,
+.botao-cadastrar,
+.botao-salvar,
+.botao-cancelar {
+  min-height: 38px;
+  border-radius: var(--arredondamento-medio);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.botao-filtro:focus-visible,
+.botao-limpar-filtros:focus-visible,
+.input-filtro:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .main {
+    padding: 24px 16px;
+  }
+
+  .cabecalho-pagina {
+    margin-bottom: 20px;
+  }
+
+  .page-title {
+    font-size: 21px !important;
+  }
+}

@@ -625,33 +625,22 @@ function renderizarTabela(lista) {
       <td><div class="celula-aluno">${aluno.foto ? `<img src="${aluno.foto}" alt="Foto de ${aluno.nome}" class="foto-aluno">` : `<div class="foto-placeholder">SEM FOTO</div>`}</div></td>
       <td><span class="nome-aluno">${aluno.nome || "-"}</span></td>
       <td>${aluno.escola || "-"}</td>
-      
       <td>${obterDescricaoTrajeto(aluno.tipoTrajeto)}</td>
-      <td>
-        <span class="linha-texto">${aluno.responsavel1 || "-"}</span>
-      </td>
-      <td>
-        <span class="linha-texto">${aluno.telefone1 || "-"}</span>
-      </td>
+      <td><span class="linha-texto">${aluno.responsavel1 || "-"}</span></td>
+      <td><span class="linha-texto">${aluno.telefone1 || "-"}</span></td>
       <td>${aluno.embarque || "-"}</td>
       <td>${aluno.desembarque || "-"}</td>
       <td>
         ${usuarioEhMonitor() ? `<span class="texto-somente-leitura">Somente visualização</span>` : `
         <div class="actions">
-          <button class="icon-btn edit" data-id="${aluno.id}" data-action="editar" aria-label="Editar aluno">
-            Editar
-          </button>
+          <button class="icon-btn edit" data-id="${aluno.id}" data-action="editar" aria-label="Editar aluno">Editar</button>
           <button class="icon-btn delete" data-id="${aluno.id}" data-action="excluir" aria-label="Excluir aluno">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6l-1 14H6L5 6"></path>
-              <path d="M10 11v6"></path>
-              <path d="M14 11v6"></path>
-              <path d="M9 6V4h6v2"></path>
+              <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14H6L5 6"></path>
+              <path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path>
             </svg>
           </button>
-        </div>
-        `}
+        </div>`}
       </td>
     </tr>
     `
@@ -829,7 +818,7 @@ function configurarFormulario() {
 
 function configurarTabela() {
   if (!el.tbodyAlunos) return;
-  
+
   el.tbodyAlunos.addEventListener("click", async (event) => {
     const botao = event.target.closest("button[data-action]");
     if (!botao) return;
@@ -838,22 +827,17 @@ function configurarTabela() {
     const aluno = alunos.find((item) => String(item.id) === String(id));
     if (!aluno) return;
 
-    if (botao.dataset.action === "editar") {
-      return abrirModalEditar(aluno);
-    }
-
+    if (botao.dataset.action === "editar") return abrirModalEditar(aluno);
     if (botao.dataset.action !== "excluir") return;
 
-    const resposta = await showConfirm(
-      "Esta ação também excluirá as mensalidades, presenças e itens de itinerário vinculados ao aluno. Deseja continuar?"
-    );
+    const resposta = await showConfirm("Esta ação também excluirá as mensalidades, presenças e itens de itinerário vinculados ao aluno. Deseja continuar?");
     if (!resposta.isConfirmed) return;
 
     try {
       await window.API.del(`/alunos/${id}`);
       alunos = alunos.filter((item) => String(item.id) !== String(id));
       atualizarOpcoesEscola();
-  atualizarOpcoesTurma();
+      atualizarOpcoesTurma();
       renderizar();
       showSuccess("Aluno excluído com sucesso!");
     } catch (error) {
