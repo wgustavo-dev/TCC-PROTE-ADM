@@ -133,10 +133,33 @@
   padding: 0 18px 14px;
 }
 
+.sub-lista-aviso {
+  padding-top: 0;
+  margin-top: -8px;
+  font-style: italic;
+}
+
+.bloco-chamada {
+  margin-bottom: 8px;
+}
+
+.titulo-bloco-chamada {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cor-principal);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 4px 18px 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--borda);
+}
+
+.bloco-chamada:first-child .titulo-bloco-chamada {
+  border-top: none;
+  padding-top: 0;
+}
+
 .aluno-presenca {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   background: var(--fundo-card);
   margin: 0 18px 12px;
   padding: 14px 18px;
@@ -144,10 +167,40 @@
   border: 1px solid var(--borda);
 }
 
+.linha-principal-presenca {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .info-aluno-presenca {
   display: flex;
   align-items: center;
   gap: 14px;
+}
+
+.escola-aluno-presenca {
+  font-size: 12px;
+  color: var(--texto-secundario);
+}
+
+.campo-observacao {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-pequeno);
+  font-size: 12px;
+  font-family: inherit;
+  color: inherit;
+  resize: vertical;
+  min-height: 44px;
+}
+
+.campo-observacao:disabled {
+  opacity: 0.6;
 }
 
 .avatar-presenca {
@@ -189,21 +242,9 @@
   color: var(--vermelho);
 }
 
-.botao-salvar {
-  display: block;
-  width: calc(100% - 36px);
-  margin: 18px;
-  height: 40px;
-  border: none;
-  border-radius: var(--arredondamento-medio);
-  background: var(--cor-principal);
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.botao-salvar:hover {
-  background: var(--cor-principal-escura);
+.botao-status:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .filtros-presenca {

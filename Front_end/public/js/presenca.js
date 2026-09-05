@@ -2,10 +2,15 @@
   "use strict";
 
   const TURNOS = ["MANHA", "TARDE", "NOITE"];
+  const ROTULO_TIPO = { ida: "Ida", volta: "Volta" };
 
   let turnoAtivo = "MANHA";
-  let registros = [];
-  let registrosExistentes = [];
+
+  // Cada item representa UMA entrada da chamada (aluno + tipo), com seu
+  // próprio status e observação — nunca deduplicado por alunoId, porque
+  // um mesmo aluno pode ter uma entrada de IDA e outra de VOLTA no
+  // mesmo turno (ex.: TARDE).
+  let itensChamada = [];
 
   let linhaTrajetoAtual = {
     data: "",
@@ -25,7 +30,6 @@
   const textoDataLista = document.getElementById("textoDataLista");
   const botaoMarcarTodos = document.getElementById("botaoMarcarTodos");
   const botaoDesmarcarTodos = document.getElementById("botaoDesmarcarTodos");
-  const botaoSalvar = document.getElementById("botaoSalvarChamada");
   const presencaTurnos = document.getElementById("presencaTurnos");
   const trajetoBadge = document.getElementById("trajetoBadgeAlunos");
   const trajetoLinha = document.getElementById("trajetoLinha");
@@ -104,7 +108,7 @@
   }
 
   // ============================================================
-  // LOCALSTORAGE
+  // LOCALSTORAGE (progresso da rota)
   // ============================================================
 
   function getChaveProgresso() {
@@ -151,10 +155,15 @@
   }
 
   // ============================================================
-  // CARREGAR ALUNOS DO TURNO
+  // CARREGAR ITENS DO ITINERÁRIO DO TURNO
   // ============================================================
+  //
+  // IMPORTANTE: aqui NÃO deduplicamos por alunoId. Cada entrada do
+  // itinerário (itemId + alunoId + tipo + ordem) é uma linha de chamada
+  // independente — a rota física pode conter o mesmo aluno duas vezes
+  // (uma vez como IDA, outra como VOLTA) no mesmo turno.
 
-  async function carregarAlunosDoTurno() {
+  async function carregarItensItinerario() {
     const resposta = await window.API.get("/itinerarios");
 
     if (!resposta || typeof resposta !== "object") {
@@ -163,45 +172,35 @@
 
     const chaveTurno = turnoAtivo.toLowerCase();
     const itens = Array.isArray(resposta[chaveTurno]) ? resposta[chaveTurno] : [];
-    const alunosPorId = new Map();
 
-    for (const item of itens) {
-      const id = Number(item.alunoId ?? item.id_aluno ?? item.id);
+    return itens
+      .map((item) => {
+        const alunoId = Number(item.alunoId ?? item.id_aluno ?? item.id);
+        const tipo = String(item.tipo || "ida").toLowerCase();
 
-      if (!Number.isFinite(id)) {
-        continue;
-      }
+        if (!Number.isFinite(alunoId) || !item.itemId) {
+          return null;
+        }
 
-      const ordem = Number(item.ordem);
-      const existente = alunosPorId.get(id);
-
-      const aluno = {
-        id,
-        nome: item.nome || item.aluno?.nome || "Aluno",
-        foto: item.foto || item.aluno?.foto || null,
-        escola: item.escola || item.aluno?.escola?.nome || null,
-        ordem: Number.isFinite(ordem) ? ordem : Number.MAX_SAFE_INTEGER,
-      };
-
-      if (!existente || aluno.ordem < existente.ordem) {
-        alunosPorId.set(id, aluno);
-      }
-    }
-
-    return Array.from(alunosPorId.values()).sort((a, b) => {
-      if (a.ordem !== b.ordem) {
-        return a.ordem - b.ordem;
-      }
-
-      return String(a.nome).localeCompare(String(b.nome), "pt-BR");
-    });
+        return {
+          itemId: String(item.itemId),
+          alunoId,
+          nome: item.nome || "Aluno",
+          foto: item.foto || null,
+          escola: item.escola || null,
+          tipo,
+          ordem: Number.isFinite(Number(item.ordem)) ? Number(item.ordem) : Number.MAX_SAFE_INTEGER,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.ordem - b.ordem);
   }
 
   // ============================================================
-  // CARREGAR PRESENÇAS
+  // CARREGAR PRESENÇAS DO TURNO (todos os tipos de uma vez)
   // ============================================================
 
-  async function carregarPresencas() {
+  async function carregarPresencasTurno() {
     const resposta = await window.API.get(
       `/presencas/data/${encodeURIComponent(campoData.value)}/turno/${encodeURIComponent(turnoAtivo)}`
     );
@@ -227,23 +226,22 @@
     }
 
     const alunosNormalizados = resposta.alunos
-      .map((aluno, index) => {
-        const id = Number(aluno.id ?? aluno.alunoId ?? aluno.id_aluno);
+      .map((item, index) => {
+        const alunoId = Number(item.alunoId ?? item.id_aluno ?? item.id);
 
-        if (!Number.isFinite(id)) {
+        if (!item.itemId || !Number.isFinite(alunoId)) {
           return null;
         }
 
-        const ordem = Number(aluno.ordem);
+        const ordem = Number(item.ordem);
 
         return {
-          ...aluno,
-          id,
-          alunoId: id,
-          id_aluno: id,
-          nome: aluno.nome || aluno.aluno?.nome || "Aluno",
-          foto: aluno.foto || aluno.aluno?.foto || null,
-          escola: aluno.escola || aluno.aluno?.escola?.nome || null,
+          itemId: String(item.itemId),
+          alunoId,
+          nome: item.nome || "Aluno",
+          foto: item.foto || null,
+          escola: item.escola || null,
+          tipo: String(item.tipo || "ida").toLowerCase(),
           ordem: Number.isFinite(ordem) ? ordem : index + 1,
         };
       })
@@ -258,7 +256,37 @@
   }
 
   // ============================================================
-  // ATUALIZAR DADOS DA TELA
+  // MONTAR A CHAMADA (junta itinerário + presenças)
+  // ============================================================
+  //
+  // SEM REGISTRO = PRESENTE. A chave de correspondência é
+  // alunoId + tipo (nunca só alunoId), para não misturar a presença de
+  // IDA com a de VOLTA do mesmo aluno.
+
+  function montarChamada(itensItinerario, presencas) {
+    const presencasPorChave = new Map();
+
+    presencas.forEach((registro) => {
+      const chave = `${Number(registro.id_aluno)}_${String(registro.tipo || "").toUpperCase()}`;
+      presencasPorChave.set(chave, registro);
+    });
+
+    return itensItinerario.map((item) => {
+      const chave = `${item.alunoId}_${item.tipo.toUpperCase()}`;
+      const presenca = presencasPorChave.get(chave);
+
+      return {
+        ...item,
+        idPresenca: presenca ? presenca.id_presenca : null,
+        status: presenca && String(presenca.status).toUpperCase() === "AUSENTE" ? "AUSENTE" : "PRESENTE",
+        observacao: presenca && presenca.observacao ? presenca.observacao : "",
+        salvando: false,
+      };
+    });
+  }
+
+  // ============================================================
+  // ATUALIZAR DADOS DA TELA (carga completa: troca de turno/data)
   // ============================================================
 
   async function atualizarDadosTela() {
@@ -267,23 +295,13 @@
     }
 
     try {
-      const [alunos, presencas, linha] = await Promise.all([
-        carregarAlunosDoTurno(),
-        carregarPresencas(),
+      const [itensItinerario, presencas, linha] = await Promise.all([
+        carregarItensItinerario(),
+        carregarPresencasTurno(),
         carregarLinhaTrajeto(),
       ]);
 
-      registrosExistentes = presencas;
-
-      const statusPorAluno = new Map(
-        presencas.map((item) => [Number(item.id_aluno), String(item.status || "").toUpperCase()])
-      );
-
-      registros = alunos.map((aluno) => ({
-        ...aluno,
-        presente: statusPorAluno.get(Number(aluno.id)) === "PRESENTE",
-      }));
-
+      itensChamada = montarChamada(itensItinerario, presencas);
       linhaTrajetoAtual = linha;
 
       carregarProgressoLocalStorage();
@@ -299,8 +317,7 @@
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
 
-      registros = [];
-      registrosExistentes = [];
+      itensChamada = [];
 
       linhaTrajetoAtual = {
         data: campoData.value,
@@ -318,14 +335,33 @@
     }
   }
 
+  // Recarrega só a Linha de Trajeto (usada após cada alteração de
+  // presença), sem tocar na lista de chamada nem exigir refresh da
+  // página.
+  async function atualizarSomenteLinhaTrajeto() {
+    try {
+      linhaTrajetoAtual = await carregarLinhaTrajeto();
+
+      if (progressoLinha > linhaTrajetoAtual.alunos.length) {
+        progressoLinha = linhaTrajetoAtual.alunos.length;
+        salvarProgressoLocalStorage();
+      }
+
+      renderizarLinhaTrajeto();
+    } catch (error) {
+      console.error("Erro ao atualizar a Linha de Trajeto:", error);
+      showError(error.message || "Não foi possível atualizar a Linha de Trajeto.");
+    }
+  }
+
   // ============================================================
   // RESUMO
   // ============================================================
 
   function atualizarResumo() {
-    const presentes = registros.filter((aluno) => aluno.presente).length;
-    const ausentes = registros.length - presentes;
-    const taxa = registros.length ? (presentes / registros.length) * 100 : 0;
+    const presentes = itensChamada.filter((item) => item.status === "PRESENTE").length;
+    const ausentes = itensChamada.length - presentes;
+    const taxa = itensChamada.length ? (presentes / itensChamada.length) * 100 : 0;
 
     if (totalPresentes) {
       totalPresentes.textContent = String(presentes);
@@ -348,6 +384,66 @@
   // LISTA DE CHAMADA
   // ============================================================
 
+  function linhaAlunoHTML(item) {
+    const desabilitado = item.salvando ? "disabled" : "";
+
+    const observacaoHTML =
+      item.status === "AUSENTE"
+        ? `
+          <textarea
+            class="campo-observacao"
+            data-item-id="${item.itemId}"
+            placeholder="Observação (opcional). Ex.: Não volta com a gente hoje porque o pai buscou."
+            ${desabilitado}
+          >${item.observacao || ""}</textarea>
+        `
+        : "";
+
+    return `
+      <div class="aluno-presenca">
+        <div class="linha-principal-presenca">
+          <div class="info-aluno-presenca">
+            <div class="avatar-presenca">
+              ${String(item.nome).charAt(0).toUpperCase()}
+            </div>
+
+            <div>
+              <div class="nome-aluno-presenca">
+                ${item.nome}
+              </div>
+
+              ${
+                item.escola
+                  ? `<div class="escola-aluno-presenca">${item.escola}</div>`
+                  : ""
+              }
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="botao-status ${item.status === "PRESENTE" ? "presente" : "ausente"}"
+            data-item-id="${item.itemId}"
+            ${desabilitado}
+          >
+            ${item.status === "PRESENTE" ? "Presente" : "Ausente"}
+          </button>
+        </div>
+
+        ${observacaoHTML}
+      </div>
+    `;
+  }
+
+  function blocoChamadaHTML(titulo, itens) {
+    return `
+      <div class="bloco-chamada">
+        ${titulo ? `<h3 class="titulo-bloco-chamada">${titulo}</h3>` : ""}
+        ${itens.map(linhaAlunoHTML).join("")}
+      </div>
+    `;
+  }
+
   function renderizarLista() {
     if (textoDataLista) {
       textoDataLista.textContent = `Registro de presença do dia ${formatarDataBR(campoData.value)} — ${rotuloTurno(turnoAtivo)}`;
@@ -357,7 +453,7 @@
       return;
     }
 
-    if (!registros.length) {
+    if (!itensChamada.length) {
       listaAlunos.innerHTML = `<p class="lista-vazia-presenca">
           Nenhum aluno cadastrado no itinerário deste turno.
         </p>`;
@@ -365,37 +461,21 @@
       return;
     }
 
-    listaAlunos.innerHTML = registros
-      .map(
-        (aluno) => `
-            <div class="aluno-presenca">
-              <div class="info-aluno-presenca">
-                <div class="avatar-presenca">
-                  ${String(aluno.nome).charAt(0).toUpperCase()}
-                </div>
+    const itensVolta = itensChamada.filter((item) => item.tipo === "volta");
+    const itensIda = itensChamada.filter((item) => item.tipo === "ida");
 
-                <div>
-                  <div class="nome-aluno-presenca">
-                    ${aluno.nome}
-                  </div>
+    // Só existem DUAS chamadas independentes (VOLTA e IDA) quando o
+    // turno realmente mistura os dois tipos (caso típico da TARDE). Se
+    // o turno tiver só um tipo (ex.: MANHÃ = só IDA), mostramos uma
+    // única lista, sem cabeçalhos.
+    if (itensVolta.length && itensIda.length) {
+      listaAlunos.innerHTML =
+        blocoChamadaHTML("Chamada — Volta", itensVolta) +
+        blocoChamadaHTML("Chamada — Ida", itensIda);
+      return;
+    }
 
-                  <div class="id-aluno-presenca">
-                    ID: ${aluno.id}
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                class="botao-status ${aluno.presente ? "presente" : "ausente"}"
-                data-id="${aluno.id}"
-              >
-                ${aluno.presente ? "Presente" : "Ausente"}
-              </button>
-            </div>
-          `
-      )
-      .join("");
+    listaAlunos.innerHTML = blocoChamadaHTML(null, itensChamada);
   }
 
   // ============================================================
@@ -456,7 +536,7 @@
     return `
       <div
         class="trajeto-parada ${classes.join(" ")}"
-        data-id="${Number(aluno.id)}"
+        data-item-id="${aluno.itemId}"
         data-ordem="${ordem}"
       >
         <div class="trajeto-avatar">
@@ -477,6 +557,10 @@
               `
               : ""
           }
+
+          <span class="tipo-badge tipo-badge--${aluno.tipo}">
+            ${ROTULO_TIPO[aluno.tipo] || aluno.tipo}
+          </span>
 
           <span class="trajeto-ordem">
             Ordem ${numero}
@@ -598,15 +682,15 @@
       return;
     }
 
-    const id = Number(parada.dataset.id);
+    const itemId = parada.dataset.itemId;
 
-    if (!Number.isFinite(id)) {
+    if (!itemId) {
       return;
     }
 
     const alunos = Array.isArray(linhaTrajetoAtual.alunos) ? linhaTrajetoAtual.alunos : [];
 
-    const indiceClicado = alunos.findIndex((aluno) => Number(aluno.id) === id);
+    const indiceClicado = alunos.findIndex((aluno) => aluno.itemId === itemId);
 
     if (indiceClicado === -1) {
       return;
@@ -625,6 +709,117 @@
   }
 
   // ============================================================
+  // SALVAMENTO AUTOMÁTICO INDIVIDUAL
+  // ============================================================
+  //
+  // Envia SOMENTE a alteração daquele aluno/tipo para o backend —
+  // nunca reenvia a chamada inteira. Cria o registro se ainda não
+  // existir (aluno "sem registro" = PRESENTE) ou atualiza o existente.
+
+  async function salvarItem(item) {
+    const payload = {
+      id_aluno: item.alunoId,
+      data: campoData.value,
+      turno: turnoAtivo,
+      tipo: item.tipo.toUpperCase(),
+      status: item.status,
+      observacao: item.status === "AUSENTE" ? item.observacao || "" : "",
+    };
+
+    if (item.idPresenca) {
+      const atualizado = await window.API.put(`/presencas/${item.idPresenca}`, payload);
+      item.idPresenca = atualizado?.id_presenca || item.idPresenca;
+      return atualizado;
+    }
+
+    const criado = await window.API.post("/presencas", payload);
+
+    if (criado?.id_presenca) {
+      item.idPresenca = criado.id_presenca;
+    }
+
+    return criado;
+  }
+
+  function encontrarItemPorId(itemId) {
+    return itensChamada.find((item) => item.itemId === itemId) || null;
+  }
+
+  // Alterna PRESENTE/AUSENTE de um único aluno: atualiza a interface
+  // imediatamente, salva no backend imediatamente e atualiza a Linha
+  // de Trajeto, sem recarregar a página.
+  async function alternarStatus(itemId) {
+    const item = encontrarItemPorId(itemId);
+
+    if (!item || item.salvando) {
+      return;
+    }
+
+    const statusAnterior = item.status;
+    const observacaoAnterior = item.observacao;
+
+    item.status = item.status === "PRESENTE" ? "AUSENTE" : "PRESENTE";
+
+    // Ao voltar para PRESENTE, não faz sentido manter uma observação de
+    // ausência pendurada na tela.
+    if (item.status === "PRESENTE") {
+      item.observacao = "";
+    }
+
+    item.salvando = true;
+
+    renderizarLista();
+    atualizarResumo();
+
+    try {
+      await salvarItem(item);
+      item.salvando = false;
+      renderizarLista();
+      await atualizarSomenteLinhaTrajeto();
+    } catch (error) {
+      console.error("Erro ao salvar presença:", error);
+
+      // Reverte a alteração otimista para não deixar a tela mostrando
+      // um estado que não foi de fato salvo.
+      item.status = statusAnterior;
+      item.observacao = observacaoAnterior;
+      item.salvando = false;
+
+      renderizarLista();
+      atualizarResumo();
+
+      showError(error.message || "Não foi possível salvar a presença. Tente novamente.");
+    }
+  }
+
+  // Salva a observação (só existe para alunos AUSENTES).
+  async function salvarObservacao(itemId, texto) {
+    const item = encontrarItemPorId(itemId);
+
+    if (!item || item.status !== "AUSENTE") {
+      return;
+    }
+
+    const observacaoAnterior = item.observacao;
+    item.observacao = texto;
+    item.salvando = true;
+
+    try {
+      await salvarItem(item);
+      item.salvando = false;
+    } catch (error) {
+      console.error("Erro ao salvar observação:", error);
+
+      item.observacao = observacaoAnterior;
+      item.salvando = false;
+
+      renderizarLista();
+
+      showError(error.message || "Não foi possível salvar a observação. Tente novamente.");
+    }
+  }
+
+  // ============================================================
   // EVENTOS DA LISTA DE CHAMADA
   // ============================================================
 
@@ -636,57 +831,79 @@
         return;
       }
 
-      const id = Number(botao.dataset.id);
+      alternarStatus(botao.dataset.itemId);
+    });
 
-      registros = registros.map(function (aluno) {
-        if (Number(aluno.id) === id) {
-          return {
-            ...aluno,
-            presente: !aluno.presente,
-          };
-        }
+    // "focusout" (e não "blur") porque precisamos que o evento suba até
+    // o container via delegação.
+    listaAlunos.addEventListener("focusout", function (evento) {
+      const campo = evento.target.closest(".campo-observacao");
 
-        return aluno;
-      });
+      if (!campo) {
+        return;
+      }
 
-      renderizarLista();
-      atualizarResumo();
+      salvarObservacao(campo.dataset.itemId, campo.value);
     });
   }
 
   // ============================================================
-  // MARCAR TODOS
+  // MARCAR TODOS / DESMARCAR TODOS
   // ============================================================
+  //
+  // Não alteram mais só o estado local: cada aluno alterado é salvo
+  // individualmente no backend, respeitando o mesmo mecanismo de
+  // salvamento automático usado nos cliques individuais.
+
+  async function definirTodos(novoStatus) {
+    const alterados = itensChamada.filter((item) => item.status !== novoStatus);
+
+    if (!alterados.length) {
+      return;
+    }
+
+    alterados.forEach((item) => {
+      item.status = novoStatus;
+      if (novoStatus === "PRESENTE") {
+        item.observacao = "";
+      }
+      item.salvando = true;
+    });
+
+    renderizarLista();
+    atualizarResumo();
+
+    const resultados = await Promise.allSettled(alterados.map((item) => salvarItem(item)));
+
+    let algumFalhou = false;
+
+    resultados.forEach((resultado, indice) => {
+      alterados[indice].salvando = false;
+
+      if (resultado.status === "rejected") {
+        algumFalhou = true;
+      }
+    });
+
+    renderizarLista();
+    atualizarResumo();
+
+    await atualizarSomenteLinhaTrajeto();
+
+    if (algumFalhou) {
+      showError("Algumas presenças não foram salvas. Verifique a lista e tente novamente.");
+    }
+  }
 
   if (botaoMarcarTodos) {
     botaoMarcarTodos.addEventListener("click", function () {
-      registros = registros.map(function (aluno) {
-        return {
-          ...aluno,
-          presente: true,
-        };
-      });
-
-      renderizarLista();
-      atualizarResumo();
+      definirTodos("PRESENTE");
     });
   }
 
-  // ============================================================
-  // DESMARCAR TODOS
-  // ============================================================
-
   if (botaoDesmarcarTodos) {
     botaoDesmarcarTodos.addEventListener("click", function () {
-      registros = registros.map(function (aluno) {
-        return {
-          ...aluno,
-          presente: false,
-        };
-      });
-
-      renderizarLista();
-      atualizarResumo();
+      definirTodos("AUSENTE");
     });
   }
 
@@ -731,55 +948,6 @@
       }
 
       await atualizarDadosTela();
-    });
-  }
-
-  // ============================================================
-  // SALVAR CHAMADA
-  // ============================================================
-
-  if (botaoSalvar) {
-    botaoSalvar.addEventListener("click", async function () {
-      if (dataEhFutura(campoData.value)) {
-        showError("Nao e possivel criar uma presenca com data futura.");
-
-        return;
-      }
-
-      try {
-        const existentesPorAluno = new Map(
-          registrosExistentes.map(function (item) {
-            return [Number(item.id_aluno), item];
-          })
-        );
-
-        await Promise.all(
-          registros.map(function (aluno) {
-            const payload = {
-              id_aluno: aluno.id,
-              data: campoData.value,
-              turno: turnoAtivo,
-              status: aluno.presente ? "PRESENTE" : "AUSENTE",
-            };
-
-            const existente = existentesPorAluno.get(Number(aluno.id));
-
-            if (existente && existente.id_presenca) {
-              return window.API.put(`/presencas/${existente.id_presenca}`, payload);
-            }
-
-            return window.API.post("/presencas", payload);
-          })
-        );
-
-        await atualizarDadosTela();
-
-        showSuccess("Registro da chamada salvo com sucesso!");
-      } catch (error) {
-        console.error("Erro ao salvar:", error);
-
-        showError(error.message || "Nao foi possivel salvar a chamada.");
-      }
     });
   }
 

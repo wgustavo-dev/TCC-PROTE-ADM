@@ -859,8 +859,6 @@ document.addEventListener("keydown", (event) => {
     fecharModalSeguroMensalidade();
   }
 });
-<<<<<<< HEAD
-=======
 
 
 function abrirMensalidadeDaNotificacao() {
@@ -886,4 +884,3 @@ function abrirMensalidadeDaNotificacao() {
 
   window.history.replaceState({}, document.title, novaUrl);
 }
->>>>>>> 7422557 (Atualiza sistema de notificações)

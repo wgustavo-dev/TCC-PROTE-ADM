@@ -1,9 +1,16 @@
 -- =====================================================
--- SCHEMA PROTE ADM - v1.12
+-- SCHEMA PROTE ADM - v1.13
 -- =====================================================
 -- Estrutura completa + seed de testes
 --
--- Alterações da v1.12:
+-- Alterações da v1.13:
+-- 1) Adicionada tabela de notificações.
+-- 2) Notificações vinculadas ao condutor responsável.
+-- 3) Suporte a notificações lidas e resolvidas.
+-- 4) Suporte a vínculo da notificação com registros
+--    específicos do sistema.
+--
+-- v1.12:
 -- 1) presenca.turno diferencia MANHA, TARDE e NOITE.
 -- 2) presença é única por id_aluno + data + turno.
 -- 3) não há migração de registros antigos sem turno.
@@ -223,12 +230,15 @@ CREATE TABLE presenca (
     id_aluno INT NOT NULL,
     data DATE NOT NULL,
     turno ENUM('MANHA','TARDE','NOITE') NOT NULL,
+    tipo ENUM('IDA','VOLTA') NOT NULL,
     status ENUM('PRESENTE','AUSENTE') NOT NULL,
+    observacao TEXT,
 
-    UNIQUE KEY uk_presenca_aluno_data_turno (
+    UNIQUE KEY uk_presenca_aluno_data_turno_tipo (
         id_aluno,
         data,
-        turno
+        turno,
+        tipo
     ),
 
     FOREIGN KEY (id_aluno)
@@ -274,25 +284,6 @@ CREATE TABLE mensalidade (
 
 
 -- =====================================================
--- TABELA: DESPESA
--- =====================================================
-
-CREATE TABLE despesa (
-    id_despesa INT AUTO_INCREMENT PRIMARY KEY,
-    tipo VARCHAR(100) NOT NULL,
-    descricao TEXT,
-    valor DECIMAL(10,2) NOT NULL,
-    data DATE NOT NULL,
-    id_condutor INT,
-
-    FOREIGN KEY (id_condutor)
-        REFERENCES condutor(id_condutor)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-);
-
-
--- =====================================================
 -- TABELA: DOCUMENTO
 -- =====================================================
 
@@ -305,6 +296,79 @@ CREATE TABLE documento (
         'VALIDO',
         'VENCIDO'
     ) DEFAULT 'VALIDO',
+    id_condutor INT,
+
+    FOREIGN KEY (id_condutor)
+        REFERENCES condutor(id_condutor)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+
+-- =====================================================
+-- TABELA: NOTIFICACAO
+-- =====================================================
+-- Armazena notificações individuais do sistema.
+--
+-- A notificação pode ser vinculada a um registro específico
+-- através de entidade_tipo + entidade_id.
+--
+-- Exemplos:
+--
+-- DOCUMENTO_VENCIDO
+-- entidade_tipo = 'documento'
+-- entidade_id   = 3
+--
+-- NOVO_ORCAMENTO
+-- entidade_tipo = 'orcamento'
+-- entidade_id   = 5
+-- =====================================================
+
+CREATE TABLE notificacao (
+    id_notificacao INT AUTO_INCREMENT PRIMARY KEY,
+
+    id_condutor INT NOT NULL,
+
+    tipo VARCHAR(50) NOT NULL,
+
+    titulo VARCHAR(150) NOT NULL,
+    mensagem TEXT NOT NULL,
+
+    prioridade ENUM(
+        'BAIXA',
+        'MEDIA',
+        'ALTA',
+        'CRITICA'
+    ) NOT NULL DEFAULT 'MEDIA',
+
+    lida BOOLEAN NOT NULL DEFAULT FALSE,
+    resolvida BOOLEAN NOT NULL DEFAULT FALSE,
+
+    entidade_tipo VARCHAR(50),
+    entidade_id INT,
+
+    data_criacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_leitura DATETIME NULL,
+    data_resolucao DATETIME NULL,
+    data_expiracao DATETIME NULL,
+
+    FOREIGN KEY (id_condutor)
+        REFERENCES condutor(id_condutor)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+
+-- =====================================================
+-- TABELA: DESPESA
+-- =====================================================
+
+CREATE TABLE despesa (
+    id_despesa INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    valor DECIMAL(10,2) NOT NULL,
+    data DATE NOT NULL,
     id_condutor INT,
 
     FOREIGN KEY (id_condutor)
@@ -653,12 +717,6 @@ INSERT INTO aluno (
 -- =====================================================
 -- ITINERÁRIOS
 -- =====================================================
--- A ordem NÃO segue o id_aluno.
--- Isso permite verificar se a Linha de Trajeto
--- realmente respeita itinerario_aluno.ordem.
--- =====================================================
-
--- MANHÃ - IDA
 
 INSERT INTO itinerario_aluno (
     id_aluno,
@@ -723,64 +781,57 @@ INSERT INTO itinerario_aluno (
 -- =====================================================
 -- PRESENÇA
 -- =====================================================
--- Data principal de teste: 2026-08-31
---
--- MANHÃ:
--- 4  presente
--- 1  presente
--- 7  ausente
--- 6  presente
--- 2  ausente
--- 5  presente
---
--- Resultado esperado da Linha de Trajeto:
--- ordem 1 -> aluno 4
--- ordem 2 -> aluno 1
--- ordem 4 -> aluno 6
--- ordem 6 -> aluno 5
--- =====================================================
 
 INSERT INTO presenca (
     id_aluno,
     data,
     turno,
+    tipo,
     status
 ) VALUES
-(4, '2026-08-31', 'MANHA', 'PRESENTE'),
-(1, '2026-08-31', 'MANHA', 'PRESENTE'),
-(7, '2026-08-31', 'MANHA', 'AUSENTE'),
-(6, '2026-08-31', 'MANHA', 'PRESENTE'),
-(2, '2026-08-31', 'MANHA', 'AUSENTE'),
-(5, '2026-08-31', 'MANHA', 'PRESENTE');
+(4, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
+(1, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
+(7, '2026-08-31', 'MANHA', 'IDA', 'AUSENTE'),
+(6, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
+(2, '2026-08-31', 'MANHA', 'IDA', 'AUSENTE'),
+(5, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE');
 
 
 -- TARDE
+-- Repare nos alunos 10 e 13: cada um aparece nas DUAS chamadas da
+-- tarde (IDA e VOLTA, conforme o itinerário misto acima) e cada
+-- chamada tem seu próprio status independente — é exatamente o caso
+-- que a Linha de Trajeto precisa tratar entrada a entrada.
 
 INSERT INTO presenca (
     id_aluno,
     data,
     turno,
-    status
+    tipo,
+    status,
+    observacao
 ) VALUES
-(10, '2026-08-31', 'TARDE', 'PRESENTE'),
-(13, '2026-08-31', 'TARDE', 'AUSENTE'),
-(9, '2026-08-31', 'TARDE', 'PRESENTE'),
-(11, '2026-08-31', 'TARDE', 'PRESENTE'),
-(12, '2026-08-31', 'TARDE', 'AUSENTE'),
-(8, '2026-08-31', 'TARDE', 'PRESENTE');
+(10, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE', NULL),
+(10, '2026-08-31', 'TARDE', 'VOLTA', 'AUSENTE', 'Não volta com a gente hoje porque o pai buscou.'),
+(13, '2026-08-31', 'TARDE', 'IDA', 'AUSENTE', 'Falta médica, atestado entregue.'),
+(13, '2026-08-31', 'TARDE', 'VOLTA', 'PRESENTE', NULL),
+(9, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE', NULL),
+(11, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE', NULL),
+(12, '2026-08-31', 'TARDE', 'VOLTA', 'AUSENTE', 'Foi buscado pela mãe na escola.'),
+(8, '2026-08-31', 'TARDE', 'VOLTA', 'PRESENTE', NULL);
 
 
 -- TESTE CRÍTICO:
 -- MESMO ALUNO + MESMA DATA + TURNOS DIFERENTES
--- O aluno 1 já possui presença na MANHÃ.
--- Aqui ele também possui presença na TARDE.
+
 INSERT INTO presenca (
     id_aluno,
     data,
     turno,
+    tipo,
     status
 ) VALUES
-(1, '2026-08-31', 'TARDE', 'PRESENTE');
+(1, '2026-08-31', 'TARDE', 'VOLTA', 'PRESENTE');
 
 
 -- OUTRA DATA
@@ -789,13 +840,14 @@ INSERT INTO presenca (
     id_aluno,
     data,
     turno,
+    tipo,
     status
 ) VALUES
-(4, '2026-08-29', 'MANHA', 'PRESENTE'),
-(1, '2026-08-29', 'MANHA', 'AUSENTE'),
-(7, '2026-08-29', 'MANHA', 'PRESENTE'),
-(10, '2026-08-29', 'TARDE', 'PRESENTE'),
-(9, '2026-08-29', 'TARDE', 'AUSENTE');
+(4, '2026-08-29', 'MANHA', 'IDA', 'PRESENTE'),
+(1, '2026-08-29', 'MANHA', 'IDA', 'AUSENTE'),
+(7, '2026-08-29', 'MANHA', 'IDA', 'PRESENTE'),
+(10, '2026-08-29', 'TARDE', 'IDA', 'PRESENTE'),
+(9, '2026-08-29', 'TARDE', 'IDA', 'AUSENTE');
 
 
 -- =====================================================
@@ -1004,82 +1056,64 @@ SELECT * FROM mensalidade;
 
 SELECT * FROM orcamento;
 
-SELECT * FROM despesa;
-
 SELECT * FROM documento;
+
+SELECT * FROM notificacao;
+
+SELECT * FROM despesa;
 
 
 -- =====================================================
 -- TESTE DA LINHA DE TRAJETO
 -- =====================================================
--- O resultado deve respeitar a ordem de itinerario_aluno,
--- e NÃO a ordem dos registros de presenca.
---
--- Para MANHA em 31/08/2026, o resultado esperado é:
---
--- ordem 1 -> Isabela Lima
--- ordem 2 -> Sofia Souza
--- ordem 4 -> Theo Alves
--- ordem 6 -> Gabriel Rocha
--- =====================================================
+
+-- Esta consulta reproduz o que service_linha_trajeto.ts faz: parte do
+-- Itinerário (ordem física, podendo misturar IDA e VOLTA) e busca a
+-- presença de cada entrada por aluno + data + turno + tipo. Sem
+-- registro de presença, COALESCE assume PRESENTE por padrão.
 
 SELECT
-    p.data,
-    p.turno,
+    ia.ordem,
     a.id_aluno,
     a.nome,
-    a.id_escola,
     e.nome AS escola,
     ia.tipo,
-    ia.ordem,
-    p.status
-FROM presenca p
+    COALESCE(p.status, 'PRESENTE') AS status
+FROM itinerario_aluno ia
 INNER JOIN aluno a
-    ON a.id_aluno = p.id_aluno
+    ON a.id_aluno = ia.id_aluno
 INNER JOIN escola e
     ON e.id_escola = a.id_escola
-INNER JOIN itinerario_aluno ia
-    ON ia.id_aluno = p.id_aluno
-    AND ia.turno = p.turno
-INNER JOIN (
-    SELECT
-        id_aluno,
-        turno,
-        MIN(id_itinerario) AS id_itinerario
-    FROM itinerario_aluno
-    GROUP BY id_aluno, turno
-) primeira_rota
-    ON primeira_rota.id_itinerario = ia.id_itinerario
+LEFT JOIN presenca p
+    ON p.id_aluno = ia.id_aluno
+    AND p.data = '2026-08-31'
+    AND p.turno = ia.turno
+    AND p.tipo = ia.tipo
 WHERE
-    p.data = '2026-08-31'
-    AND p.turno = 'MANHA'
-    AND p.status = 'PRESENTE'
+    ia.turno = 'TARDE'
 ORDER BY
     ia.ordem ASC;
 
 
 -- =====================================================
--- TESTE DA SEPARAÇÃO DE TURNOS DA PRESENÇA
+-- TESTE DA SEPARAÇÃO DE TURNO + TIPO DA PRESENÇA
 -- =====================================================
--- O aluno 1 deve aparecer duas vezes:
---
--- 31/08/2026 | MANHA | PRESENTE
--- 31/08/2026 | TARDE | PRESENTE
---
--- Isso comprova que a chave lógica é:
--- id_aluno + data + turno
--- =====================================================
+-- Mostra o mesmo aluno com registros independentes de IDA e VOLTA no
+-- mesmo turno (aluno 10, tarde de 2026-08-31: presente na ida, ausente
+-- na volta).
 
 SELECT
     id_aluno,
     data,
     turno,
-    status
+    tipo,
+    status,
+    observacao
 FROM presenca
 WHERE
-    id_aluno = 1
+    id_aluno = 10
     AND data = '2026-08-31'
-ORDER BY turno;
+ORDER BY turno, tipo;
 
 
 -- =====================================================
