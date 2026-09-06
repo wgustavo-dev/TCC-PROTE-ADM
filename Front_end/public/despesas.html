@@ -52,7 +52,7 @@
       </div>
 
       <nav class="nav">
-        <span class="nav-section-title">Geral</span>
+        <span class="nav-section-title">Resumo</span>
         <a href="index.html" class="nav-item" data-page="dashboard">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
@@ -60,7 +60,7 @@
             <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
             <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
           </svg>
-          Dashboard
+          Painel
         </a>
         <span class="nav-section-title">Financeiro</span>
         <a href="despesas.html" class="nav-item active" data-page="despesas">
@@ -87,7 +87,7 @@
           </svg>
           Mensalidades
         </a>
-        <span class="nav-section-title">Pessoas</span>
+        <span class="nav-section-title">Clientes</span>
         <a href="responsaveis.html" class="nav-item" data-page="responsaveis">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -111,7 +111,7 @@
           </svg>
           Presença
         </a>
-        <span class="nav-section-title">Gerenciamento</span>
+        <span class="nav-section-title">Administração</span>
         <a href="documentos.html" class="nav-item" data-page="documentos">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -193,7 +193,7 @@
 
         <div>
           <h1 class="page-title">Controle de Despesas</h1>
-          <p class="page-sub">Gerencie todas as despesas operacionais</p>
+          <p class="page-sub">Acompanhe custos operacionais, lançamentos e resultados financeiros</p>
         </div>
         <button class="botao-nova-despesa" id="botaoNovaDespesa">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -207,14 +207,7 @@
       <!-- Cards de resumo: total no mês e média por despesa -->
       <div class="resumo-financeiro">
 
-        <div class="card cartao-resumo">
-          <!-- Classe "rosa" adicionada para aplicar o fundo pastel e ícone magenta/vermelho -->
-          <div class="icone-resumo rosa">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="12" y1="1" x2="12" y2="23" />
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
-          </div>
+        <div class="card cartao-resumo card-acento-rosa">
           <div>
             <p class="rotulo-resumo">Total Mensal</p>
             <p class="valor-resumo" id="totalMensal">R$ 0,00</p>
@@ -222,14 +215,7 @@
           </div>
         </div>
 
-        <div class="card cartao-resumo">
-          <!-- Classe "azul" adicionada para aplicar o fundo pastel e ícone azul -->
-          <div class="icone-resumo azul">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="12" y1="1" x2="12" y2="23" />
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
-          </div>
+        <div class="card cartao-resumo card-acento-azul">
           <div>
             <p class="rotulo-resumo">Média de Gastos</p>
             <p class="valor-resumo" id="mediaDespesas">R$ 0,00</p>

@@ -62,7 +62,7 @@
             <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
             <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
           </svg>
-          Dashboard
+          Painel
         </a>
         <span class="nav-section-title">Financeiro</span>
         <a href="despesas.html" class="nav-item" data-page="despesas">
@@ -192,7 +192,7 @@
 
         <div>
           <h1 class="page-title">Documentos Obrigatórios</h1>
-          <p class="page-sub">Controle de validade e alertas de vencimento</p>
+          <p class="page-sub">Acompanhe documentos, prazos de validade e pendências importantes</p>
         </div>
 
         <button class="btn-primary" id="btnAbrirModal" type="button">
@@ -204,28 +204,19 @@
       <div id="alertasContainer"></div>
 
       <div class="documentos-stats">
-        <div class="card documento-card-resumo">
-          <div class="documento-card-topo">
-            <div class="documento-card-icon azul"></div>
-          </div>
+        <div class="card documento-card-resumo card-acento-azul">
           <p class="rotulo-indicador">Total</p>
           <p class="valor-indicador" id="totalDocs">0</p>
           <p class="detalhe-indicador">Documentos cadastrados</p>
         </div>
 
-        <div class="card documento-card-resumo">
-          <div class="documento-card-topo">
-            <div class="documento-card-icon verde"></div>
-          </div>
+        <div class="card documento-card-resumo card-acento-verde">
           <p class="rotulo-indicador">Válidas</p>
           <p class="valor-indicador" id="validosDocs">0</p>
           <p class="detalhe-indicador">Dentro do prazo</p>
         </div>
 
-        <div class="card documento-card-resumo">
-          <div class="documento-card-topo">
-            <div class="documento-card-icon vermelho"></div>
-          </div>
+        <div class="card documento-card-resumo card-acento-vermelho">
           <p class="rotulo-indicador">Vencidas</p>
           <p class="valor-indicador" id="vencidosDocs">0</p>
           <p class="detalhe-indicador">Atenção necessária</p>

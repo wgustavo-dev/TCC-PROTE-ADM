@@ -987,6 +987,16 @@
   white-space: nowrap;
 }
 
+.trajeto-parada--casa .trajeto-parada-titulo {
+  width: 124px;
+  max-width: 124px;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
 .trajeto-parada .tipo-badge {
   margin-top: 5px;
   padding: 3px 9px;

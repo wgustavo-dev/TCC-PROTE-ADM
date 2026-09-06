@@ -695,6 +695,10 @@
 
     salvarProgressoLocalStorage();
     renderizarLinhaTrajeto();
+
+    if (progressoLinha === alunos.length && typeof showSuccess === "function") {
+      showSuccess(`Fim da linha: o turno da ${rotuloTurno(turnoAtivo).toLowerCase()} acabou.`);
+    }
   }
 
   // ============================================================

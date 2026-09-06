@@ -35,17 +35,174 @@
 .card-acessos,
 .card-resumo,
 .table-card,
+.tabela-mensalidades-card,
 .painel-filtros,
-.itinerarios-card {
+.itinerarios-card,
+.lista-chamada,
+.trajeto-card,
+.detalhes,
+.caixa-busca-mensalidade,
+.caixa-busca-orcamento,
+.card-indicador-presenca {
+  border: 1px solid var(--borda);
   border-radius: var(--ui-raio-card);
+  background: var(--fundo-card);
   box-shadow: var(--ui-sombra-card);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.card-acento-verde,
+.card-acento-vermelho,
+.card-acento-amarelo,
+.card-acento-azul,
+.card-acento-rosa,
+.card-acento-roxo,
+.card-acento-azul-claro,
+.card-acento-laranja {
+  position: relative;
+  --card-acento: var(--cor-principal);
+}
+
+.card-acento-verde::before,
+.card-acento-vermelho::before,
+.card-acento-amarelo::before,
+.card-acento-azul::before,
+.card-acento-rosa::before,
+.card-acento-roxo::before,
+.card-acento-azul-claro::before,
+.card-acento-laranja::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  height: 3px;
+  border-radius: var(--ui-raio-card) var(--ui-raio-card) 0 0;
+  background: var(--card-acento);
+  pointer-events: none;
+}
+
+.card-acento-verde { --card-acento: #10b981; }
+.card-acento-vermelho { --card-acento: #ef4444; }
+.card-acento-amarelo { --card-acento: #f59e0b; }
+.card-acento-azul { --card-acento: #2563eb; }
+.card-acento-rosa { --card-acento: #ec4899; }
+.card-acento-roxo { --card-acento: #a855f7; }
+.card-acento-azul-claro { --card-acento: #0ea5e9; }
+.card-acento-laranja { --card-acento: #f97316; }
+
+.dashboard-main .rotulo-card {
+  font-weight: 600;
+}
+
+.dashboard-main .valor-destaque {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.dashboard-main .metrica-numero {
+  font-size: 1.55rem;
+  font-weight: 700;
+}
+
+.dashboard-main .card-titulo,
+.dashboard-main .card-titulo-center {
+  font-weight: 700;
+}
+
+.dashboard-main .metrica-titulo,
+.dashboard-main .subtexto-card,
+.dashboard-main .lista-escolas li {
+  color: var(--texto-secundario);
+  font-weight: 600;
+}
+
+.dashboard-main .lista-escolas li strong {
+  color: var(--texto-primario);
+  font-weight: 600;
+}
+
+.documento-card-resumo .rotulo-indicador {
+  color: var(--texto-primario);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.documento-card-resumo .valor-indicador {
+  color: var(--texto-primario);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.documento-card-resumo .detalhe-indicador {
+  color: var(--texto-secundario);
+  font-weight: 500;
+}
+
+.resumo-mensalidades .valor-card-resumo {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.resumo-financeiro .valor-resumo {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.card-indicador-presenca strong {
+  font-size: 1.75rem;
+  font-weight: 700;
 }
 
 .card:hover,
 .card-acessos:hover,
 .card-resumo:hover,
-.table-card:hover {
+.table-card:hover,
+.tabela-mensalidades-card:hover,
+.painel-filtros:hover,
+.itinerarios-card:hover,
+.lista-chamada:hover,
+.trajeto-card:hover,
+.detalhes:hover,
+.caixa-busca-mensalidade:hover,
+.caixa-busca-orcamento:hover,
+.card-indicador-presenca:hover {
+  border-color: #d5deeb;
   box-shadow: var(--ui-sombra-hover);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card-acessos,
+  .card-resumo,
+  .table-card,
+  .tabela-mensalidades-card,
+  .painel-filtros,
+  .itinerarios-card,
+  .lista-chamada,
+  .trajeto-card,
+  .detalhes,
+  .caixa-busca-mensalidade,
+  .caixa-busca-orcamento,
+  .card-indicador-presenca {
+    transition: none;
+  }
+
+  .card:hover,
+  .card-acessos:hover,
+  .card-resumo:hover,
+  .table-card:hover,
+  .tabela-mensalidades-card:hover,
+  .painel-filtros:hover,
+  .itinerarios-card:hover,
+  .lista-chamada:hover,
+  .trajeto-card:hover,
+  .detalhes:hover,
+  .caixa-busca-mensalidade:hover,
+  .caixa-busca-orcamento:hover,
+  .card-indicador-presenca:hover {
+    transform: none;
+  }
 }
 
 .campo-busca,
@@ -126,6 +283,136 @@
   font-weight: 600;
 }
 
+/* Cabeçalho principal das páginas */
+.cabecalho-pagina {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(140px, 1fr) minmax(0, auto) minmax(180px, 1fr);
+  align-items: start !important;
+  gap: 12px 18px !important;
+  width: 100% !important;
+  min-height: 50px;
+  margin-bottom: 24px !important;
+  padding-right: 60px;
+  text-align: center;
+}
+
+.cabecalho-pagina > .notificacoes-container {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  z-index: 2000;
+}
+
+.cabecalho-pagina > :not(.notificacoes-container):not(button),
+.cabecalho-pagina > .page-title,
+.cabecalho-pagina > .page-sub,
+.cabecalho-pagina > .cabecalho-pagina-texto {
+  grid-column: 2;
+  justify-self: center;
+  max-width: 720px;
+  min-width: 0;
+  text-align: center !important;
+}
+
+.cabecalho-pagina > .page-sub {
+  margin-top: -7px;
+}
+
+.cabecalho-pagina .alunos-titulos,
+.cabecalho-pagina-texto,
+.cabecalho-pagina > div:not(.notificacoes-container) {
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.cabecalho-pagina .page-title,
+.cabecalho-pagina .page-sub {
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.escolas-cabecalho-conteudo {
+  display: contents !important;
+}
+
+.cabecalho-pagina > .escolas-cabecalho-conteudo > .alunos-titulos {
+  grid-column: 2;
+  justify-self: center;
+  max-width: 720px;
+}
+
+.cabecalho-pagina > button,
+.cabecalho-pagina > .escolas-cabecalho-conteudo > button {
+  grid-column: 3;
+  justify-self: end;
+  align-self: start;
+}
+
+/* Botões de criação no topo das páginas */
+#btnAbrirModal,
+#btnNovoAcesso,
+#btnNovaEscola,
+#botaoNovoOrcamento,
+#botaoNovaDespesa,
+#botaoNovaMensalidade,
+.botao-nova-despesa,
+.botao-primario-orcamento,
+.botao-primario-mensalidade,
+.btn-novo-acesso {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  width: 178px !important;
+  min-width: 178px !important;
+  max-width: 178px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 16px !important;
+  border: 1px solid var(--cor-principal) !important;
+  border-radius: var(--arredondamento-medio) !important;
+  background: var(--cor-principal) !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+#btnAbrirModal:hover,
+#btnNovoAcesso:hover,
+#btnNovaEscola:hover,
+#botaoNovoOrcamento:hover,
+#botaoNovaDespesa:hover,
+#botaoNovaMensalidade:hover,
+.botao-nova-despesa:hover,
+.botao-primario-orcamento:hover,
+.botao-primario-mensalidade:hover,
+.btn-novo-acesso:hover {
+  background: var(--cor-principal-escura) !important;
+  border-color: var(--cor-principal-escura) !important;
+  box-shadow: 0 5px 14px rgba(26, 86, 219, 0.18);
+}
+
+#btnAbrirModal svg,
+#btnNovoAcesso svg,
+#btnNovaEscola svg,
+#botaoNovoOrcamento svg,
+#botaoNovaDespesa svg,
+#botaoNovaMensalidade svg,
+.botao-nova-despesa svg,
+.botao-primario-orcamento svg,
+.botao-primario-mensalidade svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
 .btn-primary:focus-visible,
 .btn-secondary:focus-visible,
 .botao-filtro:focus-visible,
@@ -144,10 +431,369 @@ textarea:focus-visible {
   }
 
   .cabecalho-pagina {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
     margin-bottom: 20px;
+    padding-right: 54px;
+    text-align: center;
+  }
+
+  .cabecalho-pagina > :not(.notificacoes-container):not(button),
+  .cabecalho-pagina > .page-title,
+  .cabecalho-pagina > .page-sub,
+  .cabecalho-pagina > .cabecalho-pagina-texto,
+  .cabecalho-pagina > .escolas-cabecalho-conteudo > .alunos-titulos {
+    width: 100%;
+    max-width: 100%;
+    align-self: center;
   }
 
   .page-title {
     font-size: 21px !important;
+  }
+
+  .cabecalho-pagina > button,
+  .cabecalho-pagina > .escolas-cabecalho-conteudo > button,
+  #btnAbrirModal,
+  #btnNovoAcesso,
+  #btnNovaEscola,
+  #botaoNovoOrcamento,
+  #botaoNovaDespesa,
+  #botaoNovaMensalidade,
+  .botao-nova-despesa,
+  .botao-primario-orcamento,
+  .botao-primario-mensalidade,
+  .btn-novo-acesso {
+    width: min(100%, 320px) !important;
+    min-width: 0 !important;
+    max-width: 320px !important;
+    align-self: center !important;
+    justify-self: center !important;
+    margin-top: 4px;
+  }
+}
+
+/* Linhas expansíveis compartilhadas por Alunos e Mensalidades. */
+.aluno-resumo,
+.mensalidade-resumo {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.aluno-resumo:hover,
+.mensalidade-resumo:hover,
+.aluno-resumo:focus-visible,
+.mensalidade-resumo:focus-visible {
+  background: var(--cor-principal-clara);
+  outline: none;
+}
+
+.aviso-accordion {
+  margin: 12px 16px;
+  padding: 9px 12px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  background: var(--fundo-pagina);
+  color: var(--texto-secundario);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.responsavel-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.responsavel-resumo strong {
+  overflow: hidden;
+  color: var(--texto-primario);
+  font-size: inherit;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.responsavel-resumo span,
+.responsavel-resumo small {
+  color: var(--texto-secundario);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.aluno-detalhes > td,
+.mensalidade-detalhes > td {
+  padding: 0 !important;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--borda);
+}
+
+.accordion-detalhes-painel {
+  margin: 10px 14px 14px;
+  overflow: hidden;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: var(--fundo-card);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.accordion-detalhes-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  background: #e8edf5;
+  color: var(--cor-principal);
+  font-size: 12px;
+}
+
+.accordion-detalhes-cabecalho span {
+  overflow: hidden;
+  color: var(--texto-secundario);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aluno-detalhes-grid,
+.mensalidade-detalhes-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  padding: 16px 20px 10px;
+}
+
+.alunos-accordion-table {
+  min-width: 720px;
+  table-layout: fixed;
+}
+
+.alunos-accordion-table th:nth-child(1),
+.alunos-accordion-table td:nth-child(1) {
+  width: 86px;
+}
+
+.alunos-accordion-table th:nth-child(2),
+.alunos-accordion-table td:nth-child(2) {
+  width: 25%;
+}
+
+.alunos-accordion-table th:nth-child(3),
+.alunos-accordion-table td:nth-child(3) {
+  width: 25%;
+}
+
+.alunos-accordion-table th:nth-child(4),
+.alunos-accordion-table td:nth-child(4) {
+  width: 27%;
+}
+
+.alunos-accordion-table th:nth-child(5),
+.alunos-accordion-table td:nth-child(5) {
+  width: 15%;
+  text-align: center;
+}
+
+.alunos-accordion-table td {
+  overflow-wrap: anywhere;
+}
+
+.alunos-accordion-table .aluno-resumo > td {
+  vertical-align: middle;
+}
+
+.alunos-accordion-table .aluno-resumo .actions {
+  justify-content: center;
+}
+
+.alunos-accordion-table .icon-btn.edit {
+  width: auto;
+  min-width: 58px;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.tabela-mensalidades {
+  min-width: 760px;
+  table-layout: fixed;
+}
+
+.tabela-mensalidades th:nth-child(1),
+.tabela-mensalidades td:nth-child(1) {
+  width: 28%;
+}
+
+.tabela-mensalidades th:nth-child(2),
+.tabela-mensalidades td:nth-child(2) {
+  width: 22%;
+}
+
+.tabela-mensalidades th:nth-child(3),
+.tabela-mensalidades td:nth-child(3),
+.tabela-mensalidades th:nth-child(4),
+.tabela-mensalidades td:nth-child(4),
+.tabela-mensalidades th:nth-child(5),
+.tabela-mensalidades td:nth-child(5) {
+  width: 12%;
+}
+
+.tabela-mensalidades th:nth-child(6),
+.tabela-mensalidades td:nth-child(6) {
+  width: 14%;
+}
+
+.mensalidade-detalhes-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.aluno-detalhes-grid div,
+.mensalidade-detalhes-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.aluno-detalhes-grid strong,
+.mensalidade-detalhes-grid strong {
+  color: var(--texto-secundario);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.aluno-detalhes-grid span,
+.mensalidade-detalhes-grid span {
+  overflow-wrap: anywhere;
+}
+
+.aluno-acoes-detalhes {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 20px 16px;
+}
+
+.cards-alunos-mobile {
+  display: none;
+}
+
+.botao-ver-todos-alunos {
+  display: block;
+  width: min(100%, 260px);
+  min-height: 38px;
+  margin: 14px auto 16px;
+  padding: 8px 16px;
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  background: var(--fundo-card);
+  color: var(--cor-principal);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.botao-ver-todos-alunos:hover {
+  border-color: var(--cor-principal);
+  background: var(--cor-principal-clara);
+}
+
+.aluno-card-mobile {
+  border: 1px solid var(--borda);
+  border-radius: var(--arredondamento-medio);
+  background: var(--fundo-card);
+  overflow: hidden;
+}
+
+.aluno-card-mobile-resumo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.aluno-card-mobile-resumo > .resumo-acoes-mobile {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.aluno-card-mobile-resumo > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.aluno-card-mobile-resumo strong,
+.aluno-card-mobile-resumo span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aluno-card-mobile-resumo span {
+  color: var(--texto-secundario);
+  font-size: 12px;
+}
+
+.aluno-card-mobile-detalhes {
+  border-top: 1px solid var(--borda);
+  background: #f8fafc;
+}
+
+.aluno-card-mobile-detalhes .accordion-detalhes-cabecalho {
+  margin-bottom: 10px;
+}
+
+.aluno-card-mobile-detalhes p,
+.aluno-card-mobile-detalhes .actions,
+.aluno-card-mobile-detalhes .texto-somente-leitura {
+  margin-right: 12px;
+  margin-left: 12px;
+}
+
+.aluno-card-mobile-detalhes p {
+  margin: 0 0 7px;
+  overflow-wrap: anywhere;
+}
+
+.aluno-card-mobile-resumo .icon-btn.edit {
+  width: auto;
+  min-width: 58px;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .tabela-alunos-wrapper .table-wrapper {
+    display: none;
+  }
+
+  .tabela-alunos-wrapper .cards-alunos-mobile {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .aluno-detalhes-grid,
+  .mensalidade-detalhes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .aviso-accordion {
+    padding: 10px 12px;
+    font-size: 11.5px;
+  }
+
+  .aluno-card-mobile-resumo .icon-btn.edit {
+    min-width: 52px;
+    padding: 0 6px;
   }
 }

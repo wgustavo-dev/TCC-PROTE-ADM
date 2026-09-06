@@ -337,19 +337,36 @@ function configurarPreviewFotoMensalidade() {
    MAPEAMENTO E CARREGAMENTO DE DADOS (API)
    ========================================================= */
 
-function mapearMensalidade(item) {
+function mapearMensalidade(item, alunosPorId = new Map()) {
+  const alunoDoCadastro = alunosPorId.get(Number(item.id_aluno)) || {};
+  const alunoRelacionado = {
+    ...alunoDoCadastro,
+    ...(item.aluno || {}),
+    escola: item.aluno?.escola || alunoDoCadastro.escola,
+    responsavel: item.aluno?.responsavel || alunoDoCadastro.responsavel,
+  };
+  const escolaRelacionada = alunoRelacionado.escola || {};
+  const responsavelRelacionado = alunoRelacionado.responsavel || {};
+  const escolaNome = typeof escolaRelacionada === "string"
+    ? escolaRelacionada
+    : escolaRelacionada.nome || alunoRelacionado.escola_nome || "";
+  const escolaId = typeof escolaRelacionada === "object"
+    ? escolaRelacionada.id_escola
+    : alunoRelacionado.id_escola || item.id_escola || "";
+
   return {
     id: item.id_mensalidade,
     idAluno: item.id_aluno,
-    aluno: item.aluno?.nome || `Aluno #${item.id_aluno}`,
-    responsavel: item.aluno?.responsavel?.nome || "Responsável não informado",
+    aluno: alunoRelacionado.nome || `Aluno #${item.id_aluno}`,
+    responsavel: responsavelRelacionado.nome || "Responsável não informado",
     valor: Number(item.valor || 0),
     vencimento: String(item.data_vencimento || "").slice(0, 10),
     pagamento: item.data_pagamento ? String(item.data_pagamento).slice(0, 10) : "",
     status: (item.status || "PENDENTE").toLowerCase(),
-    contato: [aplicarMascaraTelefoneMensalidade(item.aluno?.responsavel?.telefone)].filter(Boolean),
-    escola: item.aluno?.escola?.nome || "",
-    foto: item.aluno?.foto ? `http://localhost:3000${item.aluno.foto}` : "",
+    contato: [aplicarMascaraTelefoneMensalidade(responsavelRelacionado.telefone)].filter(Boolean),
+    escola: escolaNome,
+    idEscola: escolaId,
+    foto: alunoRelacionado.foto ? `http://localhost:3000${alunoRelacionado.foto}` : "",
   };
 }
 
@@ -359,8 +376,11 @@ async function carregarDados() {
       window.API.get("/mensalidades"),
       window.API.get("/alunos")
     ]);
-    mensalidades = (respMensalidades || []).map(mapearMensalidade);
     alunos = respAlunos || [];
+    const alunosPorId = new Map(
+      alunos.map((aluno) => [Number(aluno.id_aluno), aluno])
+    );
+    mensalidades = (respMensalidades || []).map((item) => mapearMensalidade(item, alunosPorId));
   } catch (error) {
     console.error(error);
     showError("Não foi possível carregar os dados.");
@@ -417,13 +437,18 @@ function configurarFiltros() {
 function atualizarOpcoesEscola() {
   if (!filtroEscola) return;
 
-  const escolas = [...new Set(mensalidades.map((m) => m.escola).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const valorAtual = filtroEscola.value;
+  const escolas = mensalidades
+    .filter((item) => item.escola)
+    .map((item) => ({ id: String(item.idEscola || item.escola), nome: item.escola }))
+    .filter((escola, indice, lista) => lista.findIndex((item) => item.id === escola.id) === indice)
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 
   filtroEscola.innerHTML = `
     <option value="">Todas as escolas</option>
-    ${escolas.map((escola) => `<option value="${escola}">${escola}</option>`).join("")}
+    ${escolas.map((escola) => `<option value="${escola.id}">${escola.nome}</option>`).join("")}
   `;
+  filtroEscola.value = escolas.some((escola) => escola.id === valorAtual) ? valorAtual : "";
 }
 
 function renderizarOpcoesAluno() {
@@ -490,7 +515,7 @@ function renderizarTabela() {
   let listaFiltrada = mensalidades.filter((item) => {
     const matchBusca = item.aluno.toLowerCase().includes(busca);
     const matchVenc = !venc || item.vencimento.startsWith(venc);
-    const matchEscola = !escola || item.escola === escola;
+    const matchEscola = !escola || String(item.idEscola || item.escola) === String(escola);
     return matchBusca && matchVenc && matchEscola;
   });
 
@@ -517,7 +542,7 @@ function renderizarTabela() {
   linhasTabela.innerHTML = listaFiltrada
     .map(
       (item) => `
-    <tr>
+    <tr class="mensalidade-resumo" data-mensalidade-id="${item.id}" tabindex="0" aria-expanded="false">
       <td>
         <div class="celula-aluno">
           <div class="avatar-tabela">
@@ -530,12 +555,6 @@ function renderizarTabela() {
       <td>${formatarBRL(item.valor)}</td>
       <td>${formatarData(item.vencimento)}</td>
       <td>${badgeStatus(item.status)}</td>
-      <td>${formatarData(item.pagamento)}</td>
-      <td>
-        <div class="lista-contatos">
-          ${item.contato.map((fone) => `<span>${fone}</span>`).join("")}
-        </div>
-      </td>
       <td>
         <div class="area-acoes">
           <button class="botao-acao" data-acao="editar" data-id="${item.id}" title="Editar" aria-label="Editar mensalidade">Editar</button>
@@ -544,6 +563,18 @@ function renderizarTabela() {
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </button>
+        </div>
+      </td>
+    </tr>
+    <tr class="mensalidade-detalhes" data-detalhes-mensalidade="${item.id}" hidden>
+      <td colspan="6">
+        <div class="accordion-detalhes-painel">
+          <div class="accordion-detalhes-cabecalho"><strong>Detalhes da mensalidade</strong><span>${item.aluno || "Aluno"}</span></div>
+          <div class="mensalidade-detalhes-grid">
+            <div><strong>Pagamento</strong><span>${formatarData(item.pagamento)}</span></div>
+            <div><strong>Responsável</strong><span>${item.responsavel || "-"}</span></div>
+            <div><strong>Telefone</strong><span>${item.contato.join(", ") || "-"}</span></div>
+          </div>
         </div>
       </td>
     </tr>
@@ -765,7 +796,15 @@ function configurarEventosTabela() {
 
   linhasTabela.addEventListener("click", async (event) => {
     const botao = event.target.closest("[data-acao]");
-    if (!botao) return;
+    if (!botao) {
+      const resumo = event.target.closest(".mensalidade-resumo");
+      if (!resumo) return;
+      const detalhes = linhasTabela.querySelector(`[data-detalhes-mensalidade="${resumo.dataset.mensalidadeId}"]`);
+      const aberto = resumo.getAttribute("aria-expanded") === "true";
+      resumo.setAttribute("aria-expanded", String(!aberto));
+      if (detalhes) detalhes.hidden = aberto;
+      return;
+    }
 
     const id = botao.dataset.id;
     const acao = botao.dataset.acao;
@@ -801,6 +840,7 @@ function configurarEventosTabela() {
    ========================================================= */
 
 function configurarBotoes() {
+  if (botaoNova) botaoNova.addEventListener("click", abrirModalNova);
   if (botaoCancelar) botaoCancelar.addEventListener("click", fecharModalSeguroMensalidade);
   if (botaoFecharTopo) botaoFecharTopo.addEventListener("click", fecharModalSeguroMensalidade);
 

@@ -172,29 +172,31 @@ body {
   border-right: 1px solid var(--borda);
   display: flex;
   flex-direction: column;
-  padding-bottom: 1.25rem;
+  padding-bottom: 0;
   position: sticky;
   top: 0;
   height: 100vh;
-  overflow-y: auto;
+  overflow: hidden;
   z-index: 300;
   transition: transform 0.28s cubic-bezier(.4, 0, .2, 1);
+  --sidebar-footer-height: 96px;
 }
 
 .sidebar-footer{
-
-    margin-top:auto;
-
-    padding:18px;
-
-    border-top:1px solid #E2E8F0;
-
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 14px 14px 16px;
+  border-top: 1px solid #E2E8F0;
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.68), #ffffff 28%),
+    var(--fundo-sidebar);
 }
 
 .logo {
   padding: 1.5rem 1.25rem 1.1rem;
   border-bottom: 1px solid var(--borda);
   margin-bottom: 0.75rem;
+  flex-shrink: 0;
 }
 
 .logo-title {
@@ -217,6 +219,77 @@ body {
   flex-direction: column;
   gap: 4px;
   padding: 0 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.nav::-webkit-scrollbar {
+  width: 7px;
+}
+
+.nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nav::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.nav::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.nav.tem-conteudo-oculto {
+  padding-bottom: 48px;
+}
+
+.nav-scroll-hint {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(var(--sidebar-footer-height) + 10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid #dbeafe;
+  border-radius: var(--arredondamento-medio);
+  background: rgba(239, 246, 255, 0.94);
+  color: var(--cor-principal);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 2;
+}
+
+.nav-scroll-hint.visivel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.nav-scroll-hint-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: var(--cor-principal);
 }
 
 .nav-section-title {

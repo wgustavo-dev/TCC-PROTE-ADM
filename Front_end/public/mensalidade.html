@@ -63,7 +63,7 @@
             <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
             <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
           </svg>
-          Dashboard
+          Painel
         </a>
         <span class="nav-section-title">Financeiro</span>
         <a href="despesas.html" class="nav-item" data-page="despesas">
@@ -194,42 +194,38 @@
 
         <div>
           <h1 class="page-title titulo-mensalidades">Controle de mensalidades</h1>
-          <p class="page-sub">Gerencie pagamentos e comunicação com clientes</p>
+          <p class="page-sub">Acompanhe cobranças, vencimentos e pagamentos dos alunos</p>
         </div>
       </div>
 
       <!-- Cards resumo -->
       <div class="resumo-mensalidades">
-        <div class="card card-resumo">
+        <div class="card card-resumo card-acento-azul">
           <div class="linha-resumo-topo">
-            <div class="icone-resumo azul">◷</div>
             <span class="titulo-card-resumo">Total</span>
           </div>
           <p class="valor-card-resumo" id="resumoTotal">R$ 0,00</p>
           <p class="descricao-card-resumo">No mês atual</p>
         </div>
 
-        <div class="card card-resumo">
+        <div class="card card-resumo card-acento-verde">
           <div class="linha-resumo-topo">
-            <div class="icone-resumo verde">✔</div>
             <span class="titulo-card-resumo">Pago</span>
           </div>
           <p class="valor-card-resumo" id="resumoPago">0</p>
           <p class="descricao-card-resumo">Pagamentos efetuados</p>
         </div>
 
-        <div class="card card-resumo">
+        <div class="card card-resumo card-acento-vermelho">
           <div class="linha-resumo-topo">
-            <div class="icone-resumo vermelho">⚠</div>
             <span class="titulo-card-resumo">Atrasadas</span>
           </div>
           <p class="valor-card-resumo" id="resumoAtrasadas">0</p>
           <p class="descricao-card-resumo">Mensalidades vencidas</p>
         </div>
 
-        <div class="card card-resumo">
+        <div class="card card-resumo card-acento-amarelo">
           <div class="linha-resumo-topo">
-            <div class="icone-resumo amarelo">◌</div>
             <span class="titulo-card-resumo">Pendentes</span>
           </div>
           <p class="valor-card-resumo" id="resumoPendentes">0</p>
@@ -294,6 +290,7 @@
 
       <!-- Tabela -->
       <div class="card tabela-mensalidades-card">
+        <p class="aviso-accordion">Clique na mensalidade para visualizar detalhes.</p>
         <div class="tabela-responsiva">
           <table class="tabela-mensalidades" id="tabelaMensalidades">
             <thead>
@@ -303,8 +300,6 @@
                 <th>VALOR</th>
                 <th>VENCIMENTO</th>
                 <th>STATUS</th>
-                <th>PAGAMENTO</th>
-                <th>CONTATO</th>
                 <th>AÇÕES</th>
               </tr>
             </thead>

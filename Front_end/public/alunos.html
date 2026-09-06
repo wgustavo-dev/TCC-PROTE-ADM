@@ -56,7 +56,7 @@
       </div>
 
       <nav class="nav">
-        <span class="nav-section-title">Geral</span>
+        <span class="nav-section-title">Resumo</span>
         <a href="index.html" class="nav-item" data-page="dashboard">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
@@ -64,7 +64,7 @@
             <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
             <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
           </svg>
-          Dashboard
+          Painel
         </a>
         <span class="nav-section-title">Financeiro</span>
         <a href="despesas.html" class="nav-item" data-page="despesas">
@@ -91,7 +91,7 @@
           </svg>
           Mensalidades
         </a>
-        <span class="nav-section-title">Pessoas</span>
+        <span class="nav-section-title">Clientes</span>
         <a href="responsaveis.html" class="nav-item" data-page="responsaveis">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -115,7 +115,7 @@
           </svg>
           Presença
         </a>
-        <span class="nav-section-title">Gerenciamento</span>
+        <span class="nav-section-title">Administração</span>
         <a href="documentos.html" class="nav-item" data-page="documentos">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -194,8 +194,9 @@
 
         <div class="alunos-titulos">
           <h1 class="page-title">Controle de alunos</h1>
-          <p class="page-sub">Gerencie dados dos alunos e responsáveis</p>
+          <p class="page-sub">Consulte alunos, responsáveis, trajetos e informações de embarque</p>
         </div>
+
       </div>
 
       <div class="campo-busca">
@@ -261,19 +262,16 @@
       </div>
 
       <div class="card table-card tabela-alunos-wrapper">
+        <p class="aviso-accordion">Clique no aluno para visualizar detalhes.</p>
         <div id="cardsAlunosMobile" class="cards-alunos-mobile"></div>
         <div class="table-wrapper">
-          <table class="tabela-alunos">
+          <table class="tabela-alunos alunos-accordion-table">
             <thead>
               <tr>
                 <th>FOTO</th>
                 <th>ALUNO</th>
                 <th>ESCOLA</th>
-                <th>TRAJETO</th>
-                <th>RESPONSÁVEIS</th>
-                <th>CONTATOS</th>
-                <th>ENDEREÇO EMBARQUE</th>
-                <th>ENDEREÇO DESEMBARQUE</th>
+                <th>RESPONSÁVEL</th>
                 <th>AÇÕES</th>
               </tr>
             </thead>
@@ -284,6 +282,9 @@
         <div class="empty-state" id="emptyState">
           Nenhum aluno cadastrado ainda.
         </div>
+        <button type="button" class="botao-ver-todos-alunos" id="btnMostrarTodosAlunos" hidden>
+          Visualizar todos os alunos
+        </button>
       </div>
 
 
