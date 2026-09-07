@@ -9,9 +9,51 @@
 
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="core/alerts.css">
+    <link rel="stylesheet" href="css/notificacoes.css">
 </head>
 
 <body>
+
+<!-- NOTIFICAÇÕES -->
+<div class="notificacoes-container">
+  <button type="button" class="botao-notificacoes" id="botaoNotificacoes"
+    aria-label="Abrir notificações" aria-expanded="false">
+    <svg class="icone-sino" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+    <span class="contador-notificacoes" id="contadorNotificacoes" hidden>0</span>
+  </button>
+
+  <div class="painel-notificacoes" id="painelNotificacoes" hidden>
+    <div class="notificacoes-cabecalho">
+      <div>
+        <h3>Notificações</h3>
+        <span id="textoNotificacoes">Nenhuma nova notificação</span>
+      </div>
+      <button type="button" class="botao-marcar-todas" id="marcarTodasLidas">Ler todas</button>
+    </div>
+
+    <div class="filtros-notificacoes" role="tablist" aria-label="Filtros de notificações">
+      <button type="button" class="filtro-notificacao ativo" data-filtro="todas" aria-selected="true">Todas</button>
+      <button type="button" class="filtro-notificacao" data-filtro="nao-lidas" aria-selected="false">Não lidas</button>
+      <button type="button" class="filtro-notificacao" data-filtro="lidas" aria-selected="false">Lidas</button>
+      <button type="button" class="filtro-notificacao" data-filtro="criticas" aria-selected="false">Críticas</button>
+      <button type="button" class="filtro-notificacao" data-filtro="resolvidas" aria-selected="false">Resolvidas</button>
+    </div>
+
+    <div class="lista-notificacoes" id="listaNotificacoes">
+      <div class="notificacoes-vazio">
+        <div class="notificacao-vazio-icone">✓</div>
+        <strong>Tudo em dia</strong>
+        <span>Você não possui novas notificações.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
     <div class="pagina-fundo"></div>
 
@@ -355,6 +397,7 @@
 
     <script src="js/redefinir_senha.js"></script>
 
+    <script src="js/notificacoes.js"></script>
 </body>
 
 </html>

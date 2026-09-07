@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await carregarDocumentosDoBackend();
   renderizarTudo();
+  abrirDocumentoDaNotificacao();
 });
 
 function configurarMenuMobile() {
@@ -495,3 +496,28 @@ document.addEventListener('keydown', (event) => {
     fecharModalSeguroDocumento();
   }
 });
+
+
+function abrirDocumentoDaNotificacao() {
+  const params = new URLSearchParams(window.location.search);
+  const id = Number(params.get("notificacao_documento"));
+
+  if (!id) return;
+
+  const documento = documentos.find((doc) => Number(doc.id) === id);
+
+  if (!documento) {
+    console.warn("[documentos] Documento da notificação não encontrado:", id);
+    return;
+  }
+
+  abrirModalEditar(documento);
+
+  params.delete("notificacao_documento");
+  const novaQuery = params.toString();
+  const novaUrl =
+    window.location.pathname +
+    (novaQuery ? `?${novaQuery}` : "");
+
+  window.history.replaceState({}, document.title, novaUrl);
+}

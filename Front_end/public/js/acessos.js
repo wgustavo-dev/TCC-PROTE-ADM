@@ -110,9 +110,8 @@ function renderTabela() {
 
   tbody.innerHTML = dados.map((item) => `
     <tr>
-      <td>${escaparHTML(item.id)}</td>
       <td>${escaparHTML(item.nome)}</td>
-      <td>${escaparHTML(item.acesso)}</td>
+      <td><span class="badge-acesso ${item.tipo === 'monitor' ? 'badge-monitor' : 'badge-condutor'}">${escaparHTML(item.acesso)}</span></td>
       <td>${escaparHTML(item.telefone)}<br>${escaparHTML(item.email)}</td>
       <td>
         <div class="acoes-acesso">

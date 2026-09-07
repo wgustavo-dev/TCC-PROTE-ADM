@@ -1,0 +1,728 @@
+/* =========================================================
+   PROTE — SISTEMA DE NOTIFICAÇÕES
+   ========================================================= */
+
+
+/* =========================================================
+   CABEÇALHO DA PÁGINA
+   ========================================================= */
+
+.cabecalho-pagina {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 48px;
+    box-sizing: border-box;
+}
+
+.cabecalho-pagina-texto {
+    min-width: 0;
+    padding-right: 65px;
+}
+
+
+/* =========================================================
+   CONTAINER DO SINO
+   ========================================================= */
+
+.notificacoes-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2000;
+}
+
+
+/* =========================================================
+   BOTÃO DO SINO
+   ========================================================= */
+
+.botao-notificacoes {
+    position: relative;
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+
+    background: #ffffff;
+    color: #374151;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease;
+}
+
+.botao-notificacoes:hover {
+    background: #f8fafc;
+    border-color: #d9dee7;
+
+    box-shadow:
+        0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.botao-notificacoes:active {
+    transform: scale(0.96);
+}
+
+.botao-notificacoes:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.15);
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   ÍCONE DO SINO
+   ========================================================= */
+
+.icone-sino {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+
+/* =========================================================
+   CONTADOR
+   ========================================================= */
+
+.contador-notificacoes {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+
+    min-width: 19px;
+    height: 19px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 5px;
+    box-sizing: border-box;
+
+    border: 2px solid #ffffff;
+    border-radius: 999px;
+
+    background: #ef4444;
+    color: #ffffff;
+
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+
+/* =========================================================
+   PAINEL
+   ========================================================= */
+
+.painel-notificacoes {
+    position: fixed;
+
+    top: 120px;
+    right: 32px;
+
+    width: 390px;
+    max-width: calc(100vw - 32px);
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+
+    box-shadow:
+        0 20px 45px rgba(15, 23, 42, 0.14),
+        0 5px 15px rgba(15, 23, 42, 0.06);
+
+    overflow: hidden;
+
+    z-index: 3000;
+
+    animation: abrirNotificacoes 0.18s ease-out;
+}
+
+@keyframes abrirNotificacoes {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* =========================================================
+   CABEÇALHO DO PAINEL
+   ========================================================= */
+
+.notificacoes-cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    padding: 17px 18px 15px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #eef0f3;
+}
+
+.notificacoes-cabecalho h3 {
+    margin: 0 0 4px;
+
+    color: #111827;
+
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.notificacoes-cabecalho span {
+    display: block;
+
+    color: #8a94a6;
+
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   BOTÃO MARCAR TODAS
+   ========================================================= */
+
+.botao-marcar-todas {
+    flex-shrink: 0;
+
+    padding: 5px 0;
+
+    border: 0;
+
+    background: transparent;
+    color: #2563eb;
+
+    font-family: inherit;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        opacity 0.2s ease;
+}
+
+.botao-marcar-todas:hover {
+    opacity: 0.75;
+}
+
+.botao-marcar-todas:disabled {
+    color: #a1a9b5;
+    cursor: default;
+}
+
+
+/* =========================================================
+   FILTROS
+   ========================================================= */
+
+.filtros-notificacoes {
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+
+    padding: 10px 12px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #eef0f3;
+
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.filtros-notificacoes::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* =========================================================
+   BOTÕES DOS FILTROS
+   ========================================================= */
+
+.filtro-notificacao {
+    flex-shrink: 0;
+
+    padding: 6px 9px;
+
+    border: 1px solid transparent;
+    border-radius: 7px;
+
+    background: transparent;
+    color: #6b7280;
+
+    font-family: inherit;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        border-color 0.18s ease;
+}
+
+.filtro-notificacao:hover {
+    background: #f8fafc;
+    color: #374151;
+}
+
+.filtro-notificacao.ativo {
+    background: #eff6ff;
+    color: #2563eb;
+    border-color: #dbeafe;
+}
+
+.filtro-notificacao:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.2);
+    outline-offset: 1px;
+}
+
+
+/* =========================================================
+   LISTA
+   ========================================================= */
+
+.lista-notificacoes {
+    max-height: 430px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+.lista-notificacoes::-webkit-scrollbar {
+    width: 5px;
+}
+
+.lista-notificacoes::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.lista-notificacoes::-webkit-scrollbar-thumb {
+    background: #d8dde5;
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   ITEM
+   ========================================================= */
+
+.item-notificacao {
+    position: relative;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 12px;
+
+    padding: 15px 18px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #f0f2f5;
+
+    cursor: pointer;
+
+    transition:
+        background 0.18s ease,
+        transform 0.18s ease;
+}
+
+.item-notificacao:last-child {
+    border-bottom: 0;
+}
+
+.item-notificacao:hover {
+    background: #f8fafc;
+}
+
+.item-notificacao.nao-lida {
+    background: #f8fbff;
+}
+
+.item-notificacao.nao-lida:hover {
+    background: #f2f7ff;
+}
+
+
+/* =========================================================
+   NOTIFICAÇÃO RESOLVIDA
+   ========================================================= */
+
+.item-notificacao.resolvida {
+    opacity: 0.72;
+    cursor: default;
+}
+
+.item-notificacao.resolvida:hover {
+    background: #ffffff;
+}
+
+
+/* =========================================================
+   INDICADOR
+   ========================================================= */
+
+.notificacao-indicador {
+    width: 36px;
+    height: 36px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    font-size: 15px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   PRIORIDADES
+   ========================================================= */
+
+.notificacao-indicador.baixa {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.notificacao-indicador.media {
+    background: #fff7ed;
+    color: #ea580c;
+}
+
+.notificacao-indicador.alta {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.notificacao-indicador.critica {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+
+/* =========================================================
+   CONTEÚDO
+   ========================================================= */
+
+.notificacao-conteudo {
+    min-width: 0;
+    flex: 1;
+}
+
+.notificacao-titulo {
+    margin-bottom: 4px;
+
+    color: #1f2937;
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.notificacao-mensagem {
+    color: #6b7280;
+
+    font-size: 11px;
+    line-height: 1.5;
+
+    word-break: break-word;
+}
+
+.notificacao-data {
+    margin-top: 6px;
+
+    color: #9ca3af;
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   AÇÃO
+   ========================================================= */
+
+.notificacao-acao {
+    display: inline-block;
+
+    margin-top: 7px;
+
+    color: #2563eb;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    text-decoration: none;
+}
+
+.item-notificacao:hover .notificacao-acao {
+    text-decoration: underline;
+}
+
+.item-notificacao.resolvida .notificacao-acao {
+    color: #16a34a;
+}
+
+
+/* =========================================================
+   ESTADO VAZIO
+   ========================================================= */
+
+.notificacoes-vazio {
+    min-height: 210px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px;
+
+    box-sizing: border-box;
+
+    text-align: center;
+}
+
+.notificacao-vazio-icone {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 11px;
+
+    border-radius: 50%;
+
+    background: #ecfdf5;
+    color: #16a34a;
+
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.notificacoes-vazio strong {
+    margin-bottom: 5px;
+
+    color: #374151;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.notificacoes-vazio span {
+    max-width: 220px;
+
+    color: #9ca3af;
+
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   ERRO AO CARREGAR
+   ========================================================= */
+
+.notificacoes-erro {
+    min-height: 180px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    padding: 28px 24px;
+
+    box-sizing: border-box;
+
+    text-align: center;
+
+    background: #ffffff;
+}
+
+
+/* Ícone visual do erro */
+
+.notificacoes-erro::before {
+    content: "!";
+
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 12px;
+
+    border-radius: 50%;
+
+    background: #fff7ed;
+    color: #ea580c;
+
+    border: 1px solid #fed7aa;
+
+    font-size: 18px;
+    font-weight: 800;
+}
+
+
+/* Título do erro */
+
+.notificacoes-erro strong {
+    display: block;
+
+    max-width: 290px;
+
+    margin-bottom: 6px;
+
+    color: #374151;
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+
+/* Descrição do erro */
+
+.notificacoes-erro span {
+    display: block;
+
+    max-width: 280px;
+
+    color: #9ca3af;
+
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   RODAPÉ
+   ========================================================= */
+
+.notificacoes-footer {
+    padding: 11px 16px;
+
+    border-top: 1px solid #eef0f3;
+
+    text-align: center;
+}
+
+.notificacoes-footer a {
+    color: #2563eb;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    text-decoration: none;
+}
+
+.notificacoes-footer a:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   RESPONSIVO
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .painel-notificacoes {
+        top: 72px;
+        right: 16px;
+        left: 16px;
+
+        width: auto;
+        max-width: none;
+    }
+
+    .filtros-notificacoes {
+        padding: 9px 10px;
+    }
+}
+
+
+@media (max-width: 480px) {
+
+    .cabecalho-pagina-texto {
+        padding-right: 50px;
+    }
+
+    .botao-notificacoes {
+        width: 42px;
+        height: 42px;
+    }
+
+    .painel-notificacoes {
+        top: 68px;
+        right: 10px;
+        left: 10px;
+
+        border-radius: 14px;
+    }
+
+    .filtros-notificacoes {
+        gap: 4px;
+        padding: 8px;
+    }
+
+    .filtro-notificacao {
+        padding: 6px 8px;
+        font-size: 9px;
+    }
+
+    .notificacoes-erro {
+        min-height: 170px;
+        padding: 24px 18px;
+    }
+}

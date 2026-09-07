@@ -1514,6 +1514,7 @@ async function salvarOrcamento() {
     await carregarOrcamentos();
 
     renderizarOrcamentos();
+        abrirOrcamentoDaNotificacao();
 
     /*
      * Depois de salvar, fechamos o modal.
@@ -1941,4 +1942,29 @@ if (botaoFecharModal) {
       fecharModalOrcamentoSeguro();
     }
   );
+}
+
+function abrirOrcamentoDaNotificacao() {
+  const params = new URLSearchParams(window.location.search);
+  const id = Number(params.get("notificacao_orcamento"));
+
+  if (!id) return;
+
+  const botaoEditar = tabelaLinhas?.querySelector(
+    `button.editar[data-id="${id}"]`
+  );
+
+  if (botaoEditar) {
+    botaoEditar.click();
+  } else {
+    console.warn("[orcamento] Botão de edição não encontrado para:", id);
+  }
+
+  params.delete("notificacao_orcamento");
+  const novaQuery = params.toString();
+  const novaUrl =
+    window.location.pathname +
+    (novaQuery ? `?${novaQuery}` : "");
+
+  window.history.replaceState({}, document.title, novaUrl);
 }
