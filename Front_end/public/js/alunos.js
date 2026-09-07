@@ -636,8 +636,9 @@ function renderizarTabela(lista) {
       <td>${aluno.escola || "-"}</td>
       <td><div class="responsavel-resumo"><strong>${aluno.responsavel1 || "-"}</strong><span>${aluno.telefone1 || "Telefone não informado"}</span></div></td>
       <td>
-        ${usuarioEhMonitor() ? `<span class="texto-somente-leitura">Somente visualização</span>` : `
         <div class="actions">
+          <button class="detalhes-toggle" type="button" aria-label="Ver detalhes do aluno" title="Ver detalhes">▾</button>
+          ${usuarioEhMonitor() ? `<span class="texto-somente-leitura">Somente visualização</span>` : `
           <button class="icon-btn edit" data-id="${aluno.id}" data-action="editar" aria-label="Editar aluno" title="Editar aluno">Editar</button>
           <button class="icon-btn delete" data-id="${aluno.id}" data-action="excluir" aria-label="Excluir aluno" title="Excluir aluno">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -645,13 +646,14 @@ function renderizarTabela(lista) {
               <path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path>
             </svg>
           </button>
-        </div>`}
+          `}
+        </div>
       </td>
     </tr>
     <tr class="aluno-detalhes" data-detalhes-id="${aluno.id}" hidden>
       <td colspan="5">
         <div class="accordion-detalhes-painel">
-          <div class="accordion-detalhes-cabecalho"><strong>Detalhes do aluno</strong><span>${aluno.nome || "Aluno"}</span></div>
+          <div class="accordion-detalhes-cabecalho"><strong>Detalhes do aluno</strong><span>${String(aluno.nome || "Aluno").toLocaleUpperCase("pt-BR")}</span><button type="button" class="accordion-detalhes-fechar" data-fechar-detalhes aria-label="Fechar detalhes do aluno">Fechar</button></div>
           <div class="aluno-detalhes-grid">
             <div><strong>Tipo de trajeto</strong><span>${obterDescricaoTrajeto(aluno.tipoTrajeto)}</span></div>
             <div><strong>Telefone do responsável</strong><span>${aluno.telefone1 || "-"}</span></div>
@@ -692,7 +694,7 @@ function renderizarCardsMobile(lista) {
           ${usuarioEhMonitor() ? `<span class="texto-somente-leitura">Somente visualização</span>` : `<div class="actions resumo-acoes-mobile"><button class="icon-btn edit" data-id="${aluno.id}" data-action="editar" aria-label="Editar aluno" title="Editar aluno">Editar</button><button class="icon-btn delete" data-id="${aluno.id}" data-action="excluir" aria-label="Excluir aluno" title="Excluir aluno"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path></svg></button></div>`}
         </header>
         <div class="aluno-card-mobile-detalhes" hidden>
-          <div class="accordion-detalhes-cabecalho"><strong>Detalhes do aluno</strong><span>${aluno.nome || "Aluno"}</span></div>
+          <div class="accordion-detalhes-cabecalho"><strong>Detalhes do aluno</strong><span>${String(aluno.nome || "Aluno").toLocaleUpperCase("pt-BR")}</span><button type="button" class="accordion-detalhes-fechar" data-fechar-detalhes aria-label="Fechar detalhes do aluno">Fechar</button></div>
           <p><b>Trajeto:</b> ${obterDescricaoTrajeto(aluno.tipoTrajeto)}</p>
           <p><b>Telefone:</b> ${aluno.telefone1 || "-"}</p>
           <p><b>Embarque:</b> ${aluno.embarque || "-"}</p>
@@ -741,7 +743,7 @@ function renderizar() {
     el.btnMostrarTodosAlunos.hidden = !deveMostrarBotao;
     el.btnMostrarTodosAlunos.textContent = mostrarTodosAlunos
       ? "Mostrar menos alunos"
-      : "Visualizar todos os alunos";
+      : "Mostrar todos os alunos";
   }
 
   renderizarTabela(listaVisivel);
@@ -861,6 +863,15 @@ function configurarTabela() {
   if (!el.tbodyAlunos) return;
 
   el.tbodyAlunos.addEventListener("click", async (event) => {
+    const botaoFechar = event.target.closest("[data-fechar-detalhes]");
+    if (botaoFechar) {
+      const detalhes = botaoFechar.closest(".aluno-detalhes");
+      const resumo = el.tbodyAlunos.querySelector(`[data-aluno-id="${detalhes?.dataset.detalhesId}"]`);
+      if (detalhes) detalhes.hidden = true;
+      if (resumo) resumo.setAttribute("aria-expanded", "false");
+      return;
+    }
+
     const botao = event.target.closest("button[data-action]");
     if (!botao) {
       const resumo = event.target.closest(".aluno-resumo");
@@ -898,6 +909,15 @@ function configurarTabela() {
 
   if (el.cardsAlunosMobile) {
     el.cardsAlunosMobile.addEventListener("click", async (event) => {
+      const botaoFechar = event.target.closest("[data-fechar-detalhes]");
+      if (botaoFechar) {
+        const detalhes = botaoFechar.closest(".aluno-card-mobile-detalhes");
+        const resumo = detalhes?.closest("[data-mobile-aluno-id]");
+        if (detalhes) detalhes.hidden = true;
+        if (resumo) resumo.setAttribute("aria-expanded", "false");
+        return;
+      }
+
       const botao = event.target.closest("button[data-action]");
       if (botao) {
         const aluno = alunos.find((item) => String(item.id) === String(botao.dataset.id));

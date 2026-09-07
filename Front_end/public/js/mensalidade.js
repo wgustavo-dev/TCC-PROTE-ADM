@@ -557,6 +557,7 @@ function renderizarTabela() {
       <td>${badgeStatus(item.status)}</td>
       <td>
         <div class="area-acoes">
+          <button class="detalhes-toggle" type="button" aria-label="Ver detalhes da mensalidade" title="Ver detalhes">▾</button>
           <button class="botao-acao" data-acao="editar" data-id="${item.id}" title="Editar" aria-label="Editar mensalidade">Editar</button>
           <button class="botao-acao" data-acao="pagar" data-id="${item.id}" title="Marcar pago" aria-label="Marcar mensalidade como paga">
             <svg class="icone-acao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -569,7 +570,7 @@ function renderizarTabela() {
     <tr class="mensalidade-detalhes" data-detalhes-mensalidade="${item.id}" hidden>
       <td colspan="6">
         <div class="accordion-detalhes-painel">
-          <div class="accordion-detalhes-cabecalho"><strong>Detalhes da mensalidade</strong><span>${item.aluno || "Aluno"}</span></div>
+          <div class="accordion-detalhes-cabecalho"><strong>Detalhes da mensalidade</strong><span>${String(item.aluno || "Aluno").toLocaleUpperCase("pt-BR")}</span><button type="button" class="accordion-detalhes-fechar" data-fechar-detalhes aria-label="Fechar detalhes da mensalidade">Fechar</button></div>
           <div class="mensalidade-detalhes-grid">
             <div><strong>Pagamento</strong><span>${formatarData(item.pagamento)}</span></div>
             <div><strong>Responsável</strong><span>${item.responsavel || "-"}</span></div>
@@ -795,6 +796,15 @@ function configurarEventosTabela() {
   if (!linhasTabela) return;
 
   linhasTabela.addEventListener("click", async (event) => {
+    const botaoFechar = event.target.closest("[data-fechar-detalhes]");
+    if (botaoFechar) {
+      const detalhes = botaoFechar.closest(".mensalidade-detalhes");
+      const resumo = linhasTabela.querySelector(`[data-mensalidade-id="${detalhes?.dataset.detalhesMensalidade}"]`);
+      if (detalhes) detalhes.hidden = true;
+      if (resumo) resumo.setAttribute("aria-expanded", "false");
+      return;
+    }
+
     const botao = event.target.closest("[data-acao]");
     if (!botao) {
       const resumo = event.target.closest(".mensalidade-resumo");

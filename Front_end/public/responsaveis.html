@@ -274,29 +274,28 @@
       </div>
 
       <div class="card detalhes hidden" id="painelDetalhes" style="margin-top:14px;">
-        <div class="detalhes-head">
-          <span id="detNomeTopo">RESPONSÁVEL</span>
+        <div class="accordion-detalhes-painel responsavel-detalhes-painel">
+          <div class="accordion-detalhes-cabecalho">
+            <strong>Detalhes do responsável</strong>
+            <span id="detNomeTopo">RESPONSÁVEL</span>
+            <button id="btnFecharDetalhes" class="accordion-detalhes-fechar" type="button">Fechar</button>
+          </div>
 
-          <button id="btnFecharDetalhes" type="button">
-            Fechar
-          </button>
-        </div>
-
-        <div class="linha-detalhes">
-          <div class="box perfil">
-            <div class="avatar" id="detAvatar">RA</div>
+          <div class="responsavel-detalhes-grid">
+            <div class="responsavel-identificacao">
+              <div class="avatar" id="detAvatar">RA</div>
+              <div>
+                <strong>Contato principal</strong>
+                <span id="detTelefone">(00) 00000-0000</span>
+                <span id="detEmail">email@email.com</span>
+              </div>
+            </div>
 
             <div>
-              <p id="detTelefone">(00) 00000-0000</p>
-              <p id="detEmail">email@email.com</p>
+              <strong>Quantidade de alunos</strong>
+              <span id="detQtdAlunos">0</span>
             </div>
           </div>
-
-          <div class="box resumo">
-            <span>Quantidade de alunos</span>
-            <strong id="detQtdAlunos">0</strong>
-          </div>
-        </div>
 
         <div class="subsecao">
   <div class="subsecao-header">
@@ -331,6 +330,7 @@
             </div>
           </div>
         </div>
+      </div>
       </div>
     </main>
   </div>
