@@ -40,6 +40,7 @@
         !contador ||
         !lista
     ) {
+
         console.warn(
             "[notificacoes] Elementos do sistema não encontrados."
         );
@@ -53,19 +54,152 @@
     // =========================================================
 
     let notificacoes = [];
+
     let carregando = false;
 
-    /*
-     * Filtro atualmente selecionado.
-     *
-     * todas
-     * nao-lidas
-     * lidas
-     * criticas
-     * resolvidas
-     */
-
     let filtroAtual = "todas";
+
+
+    // =========================================================
+    // IDENTIFICAR PÁGINA ATUAL
+    // =========================================================
+
+    const paginaAtual =
+        window.location.pathname
+            .split("/")
+            .pop()
+            .toLowerCase();
+
+
+    // =========================================================
+    // RELAÇÃO PÁGINA → MÓDULO
+    // =========================================================
+
+    const moduloPorPagina = {
+
+        // -----------------------------------------------------
+        // DASHBOARD / PAINEL
+        // -----------------------------------------------------
+
+        "index.html": "TODOS",
+
+        "dashboard.html": "TODOS",
+
+        "painel.html": "TODOS",
+
+
+        // -----------------------------------------------------
+        // MÓDULOS
+        // -----------------------------------------------------
+
+        "presenca.html": "PRESENCA",
+
+        "mensalidade.html": "MENSALIDADE",
+
+        "orcamento.html": "ORCAMENTO",
+
+        "despesas.html": "DESPESA",
+
+        "responsaveis.html": "RESPONSAVEL",
+
+        "alunos.html": "ALUNO",
+
+        "escolas.html": "ESCOLA",
+
+        "documentos.html": "DOCUMENTO",
+
+        "acessos.html": "ACESSO"
+
+    };
+
+
+    const moduloAtual =
+        moduloPorPagina[paginaAtual] || null;
+
+
+    // =========================================================
+    // FILTRAR NOTIFICAÇÕES PELO MÓDULO
+    // =========================================================
+
+    function filtrarPorModulo(
+        listaNotificacoes
+    ) {
+
+        // -----------------------------------------------------
+        // DASHBOARD
+        // -----------------------------------------------------
+        // O Dashboard recebe TODAS as notificações.
+
+        if (
+            moduloAtual === "TODOS"
+        ) {
+
+            return listaNotificacoes;
+
+        }
+
+
+        // -----------------------------------------------------
+        // PÁGINA NÃO IDENTIFICADA
+        // -----------------------------------------------------
+
+        if (!moduloAtual) {
+
+            return [];
+
+        }
+
+
+        // -----------------------------------------------------
+        // MÓDULO ESPECÍFICO
+        // -----------------------------------------------------
+
+        return listaNotificacoes.filter(
+            notificacao => {
+
+                const entidadeTipo =
+                    String(
+                        notificacao?.entidade_tipo || ""
+                    )
+                    .trim()
+                    .toUpperCase();
+
+
+                const tipo =
+                    String(
+                        notificacao?.tipo || ""
+                    )
+                    .trim()
+                    .toUpperCase();
+
+
+                // -------------------------------------------------
+                // PRIORIDADE:
+                // entidade_tipo
+                // -------------------------------------------------
+
+                if (
+                    entidadeTipo === moduloAtual
+                ) {
+
+                    return true;
+
+                }
+
+
+                // -------------------------------------------------
+                // FALLBACK:
+                // prefixo do tipo
+                // -------------------------------------------------
+
+                return tipo.startsWith(
+                    `${moduloAtual}_`
+                );
+
+            }
+        );
+
+    }
 
 
     // =========================================================
@@ -78,21 +212,27 @@
             "Content-Type": "application/json"
         };
 
+
         const token =
             localStorage.getItem("prote_token") ||
             localStorage.getItem("token");
 
+
         if (token) {
+
             headers.Authorization =
                 `Bearer ${token}`;
+
         }
 
+
         return headers;
+
     }
 
 
     // =========================================================
-    // ABRIR / FECHAR
+    // ABRIR / FECHAR PAINEL
     // =========================================================
 
     botao.addEventListener(
@@ -101,55 +241,221 @@
 
             evento.stopPropagation();
 
+
             const aberto =
                 !painel.hasAttribute("hidden");
 
+
             if (aberto) {
+
                 fecharPainel();
+
             } else {
+
                 abrirPainel();
+
             }
 
         }
     );
 
 
-    
-function navegarParaNotificacao(notificacao) {
-    const tipo = String(notificacao?.tipo || "").toUpperCase();
-    const entidadeTipo = String(notificacao?.entidade_tipo || "").toUpperCase();
-    const entidadeId = Number(notificacao?.entidade_id);
+    // =========================================================
+    // NAVEGAÇÃO
+    // =========================================================
 
-    if (!entidadeId) return;
-
-    if (
-        tipo === "DOCUMENTO_VENCIDO" ||
-        tipo === "DOCUMENTO_VENCIMENTO" ||
-        tipo === "DOCUMENTO_PROXIMO_VENCIMENTO" ||
-        entidadeTipo === "DOCUMENTO"
+    function navegarParaNotificacao(
+        notificacao
     ) {
-        window.location.href = `documentos.html?notificacao_documento=${entidadeId}`;
-        return;
+
+        const tipo =
+            String(
+                notificacao?.tipo || ""
+            )
+            .trim()
+            .toUpperCase();
+
+
+        const entidadeTipo =
+            String(
+                notificacao?.entidade_tipo || ""
+            )
+            .trim()
+            .toUpperCase();
+
+
+        const entidadeId =
+            Number(
+                notificacao?.entidade_id
+            );
+
+
+        if (!entidadeId) {
+
+            console.warn(
+                "[notificacoes] Notificação sem entidade_id:",
+                notificacao
+            );
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // DOCUMENTOS
+        // =====================================================
+
+        if (
+            entidadeTipo === "DOCUMENTO" ||
+            tipo === "DOCUMENTO_VENCIDO" ||
+            tipo === "DOCUMENTO_VENCIMENTO" ||
+            tipo === "DOCUMENTO_PROXIMO_VENCIMENTO"
+        ) {
+
+            window.location.href =
+                `documentos.html?notificacao_documento=${entidadeId}`;
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // MENSALIDADES
+        // =====================================================
+
+        if (
+            entidadeTipo === "MENSALIDADE" ||
+            tipo === "MENSALIDADE_ATRASADA" ||
+            tipo === "MENSALIDADE_PENDENTE"
+        ) {
+
+            window.location.href =
+                `mensalidade.html?notificacao_mensalidade=${entidadeId}`;
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // ORÇAMENTO
+        // =====================================================
+
+        if (
+            entidadeTipo === "ORCAMENTO" ||
+            tipo === "NOVO_ORCAMENTO"
+        ) {
+
+            window.location.href =
+                `orcamento.html?notificacao_orcamento=${entidadeId}`;
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // ALUNOS
+        // =====================================================
+
+        if (
+            entidadeTipo === "ALUNO" ||
+            tipo === "ALUNO_CADASTRO_INCOMPLETO" ||
+            tipo === "ALUNO_SEM_ITINERARIO"
+        ) {
+
+            window.location.href =
+                `alunos.html?notificacao_aluno=${entidadeId}`;
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // PRESENÇA
+        // =====================================================
+
+        if (
+            entidadeTipo === "PRESENCA" ||
+            tipo === "ALUNO_TRES_FALTAS_CONSECUTIVAS"
+        ) {
+
+            window.location.href =
+                `presenca.html?notificacao_presenca=${entidadeId}`;
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // RESPONSÁVEIS
+        // =====================================================
+
+        if (
+            entidadeTipo === "RESPONSAVEL"
+        ) {
+
+            window.location.href =
+                `responsaveis.html?notificacao_responsavel=${entidadeId}`;
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // ESCOLAS
+        // =====================================================
+
+        if (
+            entidadeTipo === "ESCOLA"
+        ) {
+
+            window.location.href =
+                `escolas.html?notificacao_escola=${entidadeId}`;
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // ACESSOS
+        // =====================================================
+
+        if (
+            entidadeTipo === "ACESSO"
+        ) {
+
+            window.location.href =
+                `acessos.html?notificacao_acesso=${entidadeId}`;
+
+            return;
+
+        }
+
+
+        // =====================================================
+        // DESTINO NÃO CONFIGURADO
+        // =====================================================
+
+        console.warn(
+            "[notificacoes] Nenhum destino definido para:",
+            notificacao
+        );
+
     }
 
-    if (
-        tipo === "MENSALIDADE_ATRASADA" ||
-        tipo === "MENSALIDADE_PENDENTE" ||
-        entidadeTipo === "MENSALIDADE"
-    ) {
-        window.location.href = `mensalidade.html?notificacao_mensalidade=${entidadeId}`;
-        return;
-    }
 
-    if (tipo === "NOVO_ORCAMENTO" || entidadeTipo === "ORCAMENTO") {
-        window.location.href = `orcamento.html?notificacao_orcamento=${entidadeId}`;
-        return;
-    }
+    // =========================================================
+    // FECHAR AO CLICAR FORA
+    // =========================================================
 
-    console.warn("[notificacoes] Nenhum destino definido para:", notificacao);
-}
-
-document.addEventListener(
+    document.addEventListener(
         "click",
         function (evento) {
 
@@ -157,26 +463,40 @@ document.addEventListener(
                 !painel.contains(evento.target) &&
                 !botao.contains(evento.target)
             ) {
+
                 fecharPainel();
+
             }
 
         }
     );
 
 
+    // =========================================================
+    // ABRIR PAINEL
+    // =========================================================
+
     function abrirPainel() {
 
-        painel.removeAttribute("hidden");
+        painel.removeAttribute(
+            "hidden"
+        );
+
 
         botao.setAttribute(
             "aria-expanded",
             "true"
         );
 
+
         carregarNotificacoes();
 
     }
 
+
+    // =========================================================
+    // FECHAR PAINEL
+    // =========================================================
 
     function fecharPainel() {
 
@@ -184,6 +504,7 @@ document.addEventListener(
             "hidden",
             ""
         );
+
 
         botao.setAttribute(
             "aria-expanded",
@@ -200,10 +521,14 @@ document.addEventListener(
     async function carregarNotificacoes() {
 
         if (carregando) {
+
             return;
+
         }
 
+
         carregando = true;
+
 
         try {
 
@@ -223,19 +548,28 @@ document.addEventListener(
             // NÃO AUTENTICADO
             // =================================================
 
-            if (resposta.status === 401) {
+            if (
+                resposta.status === 401
+            ) {
 
                 console.warn(
                     "[notificacoes] Usuário não autenticado."
                 );
 
+
                 notificacoes = [];
 
-                atualizarContador(0);
+
+                atualizarContador(
+                    0
+                );
+
 
                 renderizarNotificacoes();
 
+
                 return;
+
             }
 
 
@@ -244,21 +578,26 @@ document.addEventListener(
             // =================================================
 
             const dados =
-                await resposta.json().catch(
-                    () => null
-                );
+                await resposta
+                    .json()
+                    .catch(
+                        () => null
+                    );
 
 
             // =================================================
             // ERRO DA API
             // =================================================
 
-            if (!resposta.ok) {
+            if (
+                !resposta.ok
+            ) {
 
                 console.error(
                     "[notificacoes] Resposta do servidor:",
                     dados
                 );
+
 
                 throw new Error(
                     dados?.mensagem ||
@@ -282,22 +621,32 @@ document.addEventListener(
                 notificacoes =
                     dados.notificacoes;
 
-            } else if (
-                Array.isArray(dados)
+            }
+
+            else if (
+                Array.isArray(
+                    dados
+                )
             ) {
 
                 notificacoes =
                     dados;
 
-            } else if (
+            }
+
+            else if (
                 dados &&
-                Array.isArray(dados.data)
+                Array.isArray(
+                    dados.data
+                )
             ) {
 
                 notificacoes =
                     dados.data;
 
-            } else {
+            }
+
+            else {
 
                 notificacoes = [];
 
@@ -310,8 +659,9 @@ document.addEventListener(
 
             renderizarNotificacoes();
 
+        }
 
-        } catch (erro) {
+        catch (erro) {
 
             console.error(
                 "[notificacoes] Erro ao carregar:",
@@ -320,6 +670,7 @@ document.addEventListener(
 
 
             lista.innerHTML = `
+
                 <div class="notificacoes-erro">
 
                     <div class="notificacao-erro-icone">
@@ -335,10 +686,12 @@ document.addEventListener(
                     </span>
 
                 </div>
+
             `;
 
+        }
 
-        } finally {
+        finally {
 
             carregando = false;
 
@@ -348,21 +701,34 @@ document.addEventListener(
 
 
     // =========================================================
-    // RENDERIZAR
+    // RENDERIZAR NOTIFICAÇÕES
     // =========================================================
 
     function renderizarNotificacoes() {
 
-        /*
-         * O contador do sino SEMPRE considera somente
-         * notificações não lidas e não resolvidas.
-         */
+        // -----------------------------------------------------
+        // FILTRAR PELO MÓDULO DA PÁGINA
+        // -----------------------------------------------------
+
+        const notificacoesDoModulo =
+            filtrarPorModulo(
+                notificacoes
+            );
+
+
+        // -----------------------------------------------------
+        // CONTADOR
+        // -----------------------------------------------------
 
         const naoLidas =
-            notificacoes.filter(
+            notificacoesDoModulo.filter(
                 notificacao =>
-                    !Boolean(notificacao.lida) &&
-                    !Boolean(notificacao.resolvida)
+                    !Boolean(
+                        notificacao.lida
+                    ) &&
+                    !Boolean(
+                        notificacao.resolvida
+                    )
             );
 
 
@@ -371,25 +737,31 @@ document.addEventListener(
         );
 
 
-        // =====================================================
-        // SUBTÍTULO
-        // =====================================================
+        // -----------------------------------------------------
+        // TEXTO DO CABEÇALHO
+        // -----------------------------------------------------
 
         if (texto) {
 
-            if (naoLidas.length === 0) {
+            if (
+                naoLidas.length === 0
+            ) {
 
                 texto.textContent =
                     "Nenhuma nova notificação";
 
-            } else if (
+            }
+
+            else if (
                 naoLidas.length === 1
             ) {
 
                 texto.textContent =
                     "1 nova notificação";
 
-            } else {
+            }
+
+            else {
 
                 texto.textContent =
                     `${naoLidas.length} novas notificações`;
@@ -399,30 +771,35 @@ document.addEventListener(
         }
 
 
-        // =====================================================
-        // APLICAR FILTRO
-        // =====================================================
+        // -----------------------------------------------------
+        // FILTRO INTERNO
+        // -----------------------------------------------------
 
         const filtradas =
-            aplicarFiltro(notificacoes);
+            aplicarFiltro(
+                notificacoesDoModulo
+            );
 
 
-        // =====================================================
-        // NENHUMA NOTIFICAÇÃO NO FILTRO
-        // =====================================================
+        // -----------------------------------------------------
+        // NENHUMA NOTIFICAÇÃO
+        // -----------------------------------------------------
 
-        if (filtradas.length === 0) {
+        if (
+            filtradas.length === 0
+        ) {
 
             lista.innerHTML =
                 criarMensagemVazia();
 
             return;
+
         }
 
 
-        // =====================================================
+        // -----------------------------------------------------
         // ORDENAR
-        // =====================================================
+        // -----------------------------------------------------
 
         const ordenadas =
             [...filtradas].sort(
@@ -430,9 +807,9 @@ document.addEventListener(
             );
 
 
-        // =====================================================
-        // HTML
-        // =====================================================
+        // -----------------------------------------------------
+        // RENDERIZAR
+        // -----------------------------------------------------
 
         lista.innerHTML =
             ordenadas
@@ -448,20 +825,19 @@ document.addEventListener(
     // APLICAR FILTRO
     // =========================================================
 
-    function aplicarFiltro(listaNotificacoes) {
+    function aplicarFiltro(
+        listaNotificacoes
+    ) {
 
-        switch (filtroAtual) {
+        switch (
+            filtroAtual
+        ) {
 
             // -------------------------------------------------
             // TODAS
             // -------------------------------------------------
 
             case "todas":
-
-                /*
-                 * "Todas" mostra tudo que ainda não foi
-                 * resolvido.
-                 */
 
                 return listaNotificacoes.filter(
                     notificacao =>
@@ -515,7 +891,9 @@ document.addEventListener(
                     notificacao =>
                         String(
                             notificacao.prioridade || ""
-                        ).toUpperCase() === "CRITICA" &&
+                        )
+                        .toUpperCase() ===
+                        "CRITICA" &&
                         !Boolean(
                             notificacao.resolvida
                         )
@@ -558,29 +936,29 @@ document.addEventListener(
     // ORDENAR NOTIFICAÇÕES
     // =========================================================
 
-    function ordenarNotificacoes(a, b) {
-
-        /*
-         * Hierarquia:
-         *
-         * CRÍTICA = 4
-         * ALTA     = 3
-         * MÉDIA    = 2
-         * BAIXA    = 1
-         */
+    function ordenarNotificacoes(
+        a,
+        b
+    ) {
 
         const prioridade = {
+
             CRITICA: 4,
+
             ALTA: 3,
+
             MEDIA: 2,
+
             BAIXA: 1
+
         };
 
 
         const prioridadeA =
             prioridade[
                 String(
-                    a.prioridade || "MEDIA"
+                    a.prioridade ||
+                    "MEDIA"
                 ).toUpperCase()
             ] || 2;
 
@@ -588,15 +966,15 @@ document.addEventListener(
         const prioridadeB =
             prioridade[
                 String(
-                    b.prioridade || "MEDIA"
+                    b.prioridade ||
+                    "MEDIA"
                 ).toUpperCase()
             ] || 2;
 
 
-        /*
-         * Primeiro:
-         * não lidas.
-         */
+        // -----------------------------------------------------
+        // NÃO LIDAS PRIMEIRO
+        // -----------------------------------------------------
 
         if (
             Boolean(a.lida) !==
@@ -610,10 +988,9 @@ document.addEventListener(
         }
 
 
-        /*
-         * Depois:
-         * maior prioridade.
-         */
+        // -----------------------------------------------------
+        // MAIOR PRIORIDADE PRIMEIRO
+        // -----------------------------------------------------
 
         if (
             prioridadeA !==
@@ -626,22 +1003,24 @@ document.addEventListener(
         }
 
 
-        /*
-         * Por último:
-         * mais recentes.
-         */
+        // -----------------------------------------------------
+        // MAIS RECENTES PRIMEIRO
+        // -----------------------------------------------------
 
         const dataA =
             new Date(
                 a.data_criacao
             ).getTime();
 
+
         const dataB =
             new Date(
                 b.data_criacao
             ).getTime();
 
-        return dataB - dataA;
+
+        return dataB -
+            dataA;
 
     }
 
@@ -652,11 +1031,14 @@ document.addEventListener(
 
     function criarMensagemVazia() {
 
-        switch (filtroAtual) {
+        switch (
+            filtroAtual
+        ) {
 
             case "nao-lidas":
 
                 return `
+
                     <div class="notificacoes-vazio">
 
                         <div class="notificacao-vazio-icone">
@@ -672,12 +1054,14 @@ document.addEventListener(
                         </span>
 
                     </div>
+
                 `;
 
 
             case "lidas":
 
                 return `
+
                     <div class="notificacoes-vazio">
 
                         <div class="notificacao-vazio-icone">
@@ -693,12 +1077,14 @@ document.addEventListener(
                         </span>
 
                     </div>
+
                 `;
 
 
             case "criticas":
 
                 return `
+
                     <div class="notificacoes-vazio">
 
                         <div class="notificacao-vazio-icone">
@@ -714,12 +1100,14 @@ document.addEventListener(
                         </span>
 
                     </div>
+
                 `;
 
 
             case "resolvidas":
 
                 return `
+
                     <div class="notificacoes-vazio">
 
                         <div class="notificacao-vazio-icone">
@@ -735,12 +1123,14 @@ document.addEventListener(
                         </span>
 
                     </div>
+
                 `;
 
 
             default:
 
                 return `
+
                     <div class="notificacoes-vazio">
 
                         <div class="notificacao-vazio-icone">
@@ -756,6 +1146,7 @@ document.addEventListener(
                         </span>
 
                     </div>
+
                 `;
 
         }
@@ -767,18 +1158,28 @@ document.addEventListener(
     // CONTADOR
     // =========================================================
 
-    function atualizarContador(total) {
+    function atualizarContador(
+        total
+    ) {
 
-        if (total <= 0) {
+        if (
+            total <= 0
+        ) {
 
-            contador.hidden = true;
-            contador.textContent = "0";
+            contador.hidden =
+                true;
+
+            contador.textContent =
+                "0";
 
             return;
+
         }
 
 
-        contador.hidden = false;
+        contador.hidden =
+            false;
+
 
         contador.textContent =
             total > 99
@@ -800,7 +1201,8 @@ document.addEventListener(
             String(
                 notificacao.prioridade ||
                 "MEDIA"
-            ).toLowerCase();
+            )
+            .toLowerCase();
 
 
         const icone =
@@ -834,6 +1236,7 @@ document.addEventListener(
 
 
         return `
+
             <div
                 class="item-notificacao ${classeLida} ${classeResolvida}"
                 data-id="${id}"
@@ -878,12 +1281,17 @@ document.addEventListener(
                     <span
                         class="notificacao-acao"
                     >
-                        ${notificacao.resolvida ? "Resolvida ✓" : "Ver detalhes →"}
+                        ${
+                            notificacao.resolvida
+                                ? "Resolvida ✓"
+                                : "Ver detalhes →"
+                        }
                     </span>
 
                 </div>
 
             </div>
+
         `;
 
     }
@@ -893,29 +1301,93 @@ document.addEventListener(
     // ÍCONES
     // =========================================================
 
-    function obterIcone(tipo) {
+    function obterIcone(
+        tipo
+    ) {
 
-        switch (tipo) {
+        const tipoNormalizado =
+            String(
+                tipo || ""
+            )
+            .trim()
+            .toUpperCase();
+
+
+        switch (
+            tipoNormalizado
+        ) {
+
+            // =================================================
+            // DOCUMENTOS
+            // =================================================
 
             case "DOCUMENTO_VENCIDO":
+
                 return "⚠";
 
+
             case "DOCUMENTO_VENCIMENTO":
+
                 return "◷";
+
 
             case "DOCUMENTO_PROXIMO_VENCIMENTO":
+
                 return "◷";
 
+
+            // =================================================
+            // ORÇAMENTOS
+            // =================================================
+
             case "NOVO_ORCAMENTO":
+
                 return "▣";
 
+
+            // =================================================
+            // MENSALIDADES
+            // =================================================
+
             case "MENSALIDADE_ATRASADA":
+
                 return "$";
+
 
             case "MENSALIDADE_PENDENTE":
+
                 return "$";
 
+
+            // =================================================
+            // ALUNOS
+            // =================================================
+
+            case "ALUNO_CADASTRO_INCOMPLETO":
+
+                return "👤";
+
+
+            case "ALUNO_SEM_ITINERARIO":
+
+                return "🚐";
+
+
+            // =================================================
+            // PRESENÇA
+            // =================================================
+
+            case "ALUNO_TRES_FALTAS_CONSECUTIVAS":
+
+                return "⚠";
+
+
+            // =================================================
+            // PADRÃO
+            // =================================================
+
             default:
+
                 return "●";
 
         }
@@ -927,10 +1399,14 @@ document.addEventListener(
     // FORMATAR DATA
     // =========================================================
 
-    function formatarData(data) {
+    function formatarData(
+        data
+    ) {
 
         if (!data) {
+
             return "";
+
         }
 
 
@@ -976,18 +1452,26 @@ document.addEventListener(
                     ".item-notificacao"
                 );
 
+
             if (!item) {
+
                 return;
+
             }
+
 
             const id =
                 Number(
                     item.dataset.id
                 );
 
+
             if (!id) {
+
                 return;
+
             }
+
 
             const notificacao =
                 notificacoes.find(
@@ -997,34 +1481,71 @@ document.addEventListener(
                         ) === id
                 );
 
+
             if (!notificacao) {
+
                 return;
+
             }
 
-            // Notificação resolvida não precisa abrir novamente.
-            if (Boolean(notificacao.resolvida)) {
+
+            // =================================================
+            // RESOLVIDA
+            // =================================================
+
+            if (
+                Boolean(
+                    notificacao.resolvida
+                )
+            ) {
+
                 return;
+
             }
+
 
             try {
 
-                // Ao abrir uma notificação não lida, ela passa para LIDA.
-                if (!Boolean(notificacao.lida)) {
+                // =================================================
+                // MARCAR COMO LIDA
+                // =================================================
 
-                    await marcarComoLida(id);
+                if (
+                    !Boolean(
+                        notificacao.lida
+                    )
+                ) {
 
-                    notificacao.lida = true;
+                    await marcarComoLida(
+                        id
+                    );
+
+
+                    notificacao.lida =
+                        true;
+
 
                     notificacao.data_leitura =
-                        new Date().toISOString();
+                        new Date()
+                            .toISOString();
+
 
                     renderizarNotificacoes();
+
                 }
 
-                // Depois da leitura, direciona para o registro relacionado.
-                navegarParaNotificacao(notificacao);
 
-            } catch (erro) {
+                // =================================================
+                // NAVEGAR
+                // =================================================
+
+                navegarParaNotificacao(
+                    notificacao
+                );
+
+            }
+
+            catch (erro) {
 
                 console.error(
                     "[notificacoes] Erro ao abrir notificação:",
@@ -1041,7 +1562,9 @@ document.addEventListener(
     // MARCAR COMO LIDA
     // =========================================================
 
-    async function marcarComoLida(id) {
+    async function marcarComoLida(
+        id
+    ) {
 
         const resposta =
             await fetch(
@@ -1055,12 +1578,16 @@ document.addEventListener(
 
 
         const dados =
-            await resposta.json().catch(
-                () => null
-            );
+            await resposta
+                .json()
+                .catch(
+                    () => null
+                );
 
 
-        if (!resposta.ok) {
+        if (
+            !resposta.ok
+        ) {
 
             throw new Error(
                 dados?.mensagem ||
@@ -1079,7 +1606,9 @@ document.addEventListener(
     // MARCAR TODAS COMO LIDAS
     // =========================================================
 
-    if (marcarTodas) {
+    if (
+        marcarTodas
+    ) {
 
         marcarTodas.addEventListener(
             "click",
@@ -1090,59 +1619,164 @@ document.addEventListener(
 
                 try {
 
-                    const resposta =
-                        await fetch(
-                            "/api/notificacoes/marcar-todas-lidas",
-                            {
-                                method: "PATCH",
-                                headers: obterHeaders(),
-                                credentials: "include"
+                    // =================================================
+                    // NOTIFICAÇÕES DO MÓDULO ATUAL
+                    // =================================================
+
+                    const notificacoesDoModulo =
+                        filtrarPorModulo(
+                            notificacoes
+                        );
+
+
+                    const naoLidas =
+                        notificacoesDoModulo.filter(
+                            notificacao =>
+                                !Boolean(
+                                    notificacao.lida
+                                ) &&
+                                !Boolean(
+                                    notificacao.resolvida
+                                )
+                        );
+
+
+                    // =================================================
+                    // NADA PARA MARCAR
+                    // =================================================
+
+                    if (
+                        naoLidas.length === 0
+                    ) {
+
+                        renderizarNotificacoes();
+
+                        return;
+
+                    }
+
+
+                    // =================================================
+                    // DASHBOARD
+                    // =================================================
+
+                    if (
+                        moduloAtual === "TODOS"
+                    ) {
+
+                        const resposta =
+                            await fetch(
+                                "/api/notificacoes/marcar-todas-lidas",
+                                {
+                                    method: "PATCH",
+                                    headers: obterHeaders(),
+                                    credentials: "include"
+                                }
+                            );
+
+
+                        const dados =
+                            await resposta
+                                .json()
+                                .catch(
+                                    () => null
+                                );
+
+
+                        if (
+                            !resposta.ok
+                        ) {
+
+                            throw new Error(
+                                dados?.mensagem ||
+                                `Erro HTTP ${resposta.status}`
+                            );
+
+                        }
+
+
+                        notificacoes.forEach(
+                            notificacao => {
+
+                                if (
+                                    !Boolean(
+                                        notificacao.resolvida
+                                    )
+                                ) {
+
+                                    notificacao.lida =
+                                        true;
+
+
+                                    notificacao.data_leitura =
+                                        new Date()
+                                            .toISOString();
+
+                                }
+
                             }
-                        );
-
-
-                    const dados =
-                        await resposta.json().catch(
-                            () => null
-                        );
-
-
-                    if (!resposta.ok) {
-
-                        throw new Error(
-                            dados?.mensagem ||
-                            `Erro HTTP ${resposta.status}`
                         );
 
                     }
 
 
-                    notificacoes.forEach(
-                        notificacao => {
+                    // =================================================
+                    // MÓDULO ESPECÍFICO
+                    // =================================================
 
-                            if (
-                                !notificacao.resolvida
-                            ) {
+                    else {
 
-                                notificacao.lida =
-                                    true;
+                        await Promise.all(
 
-                                notificacao.data_leitura =
-                                    new Date().toISOString();
+                            naoLidas.map(
+                                async notificacao => {
 
-                            }
+                                    const id =
+                                        Number(
+                                            notificacao.id_notificacao
+                                        );
 
-                        }
-                    );
 
+                                    if (!id) {
+
+                                        return;
+
+                                    }
+
+
+                                    await marcarComoLida(
+                                        id
+                                    );
+
+
+                                    notificacao.lida =
+                                        true;
+
+
+                                    notificacao.data_leitura =
+                                        new Date()
+                                            .toISOString();
+
+                                }
+                            )
+
+                        );
+
+                    }
+
+
+                    // =================================================
+                    // ATUALIZAR INTERFACE
+                    // =================================================
 
                     renderizarNotificacoes();
 
+                }
 
-                } catch (erro) {
+                catch (erro) {
 
                     console.error(
-                        "[notificacoes] Erro ao marcar todas como lidas:",
+                        "[notificacoes] Erro ao marcar notificações como lidas:",
                         erro
                     );
 
@@ -1160,23 +1794,15 @@ document.addEventListener(
 
     function configurarFiltros() {
 
-        /*
-         * Procuramos botões com:
-         *
-         * data-filtro="todas"
-         * data-filtro="nao-lidas"
-         * data-filtro="lidas"
-         * data-filtro="criticas"
-         * data-filtro="resolvidas"
-         */
-
         const filtros =
             painel.querySelectorAll(
                 "[data-filtro]"
             );
 
 
-        if (!filtros.length) {
+        if (
+            !filtros.length
+        ) {
 
             console.warn(
                 "[notificacoes] Nenhum filtro encontrado no painel."
@@ -1196,14 +1822,15 @@ document.addEventListener(
 
                         evento.stopPropagation();
 
+
                         filtroAtual =
                             filtro.dataset.filtro ||
                             "todas";
 
 
-                        /*
-                         * Atualiza estado visual.
-                         */
+                        // =================================================
+                        // ESTADO VISUAL
+                        // =================================================
 
                         filtros.forEach(
                             outroFiltro => {
@@ -1212,6 +1839,7 @@ document.addEventListener(
                                     "ativo",
                                     outroFiltro === filtro
                                 );
+
 
                                 outroFiltro.setAttribute(
                                     "aria-selected",
@@ -1233,9 +1861,9 @@ document.addEventListener(
         );
 
 
-        /*
-         * Filtro padrão.
-         */
+        // =================================================
+        // FILTRO PADRÃO
+        // =================================================
 
         filtros.forEach(
             filtro => {
@@ -1270,7 +1898,9 @@ document.addEventListener(
     // SEGURANÇA
     // =========================================================
 
-    function escaparHTML(texto) {
+    function escaparHTML(
+        texto
+    ) {
 
         if (
             texto === null ||
@@ -1283,22 +1913,27 @@ document.addEventListener(
 
 
         return String(texto)
+
             .replace(
                 /&/g,
                 "&amp;"
             )
+
             .replace(
                 /</g,
                 "&lt;"
             )
+
             .replace(
                 />/g,
                 "&gt;"
             )
+
             .replace(
                 /"/g,
                 "&quot;"
             )
+
             .replace(
                 /'/g,
                 "&#039;"
@@ -1312,6 +1947,12 @@ document.addEventListener(
     // =========================================================
 
     configurarFiltros();
+
+
+    console.log(
+        `[notificacoes] Página: ${paginaAtual} | Módulo: ${moduloAtual || "não definido"}`
+    );
+
 
     carregarNotificacoes();
 
