@@ -25,8 +25,8 @@ async function carregarDashboard() {
   try {
     return await window.API.get("/dashboard/resumo");
   } catch (error) {
-    console.error("Erro ao carregar dados do dashboard:", error);
-    showError("Não foi possível carregar o dashboard.");
+    console.error("Erro ao carregar dados do painel:", error);
+    showError("Não foi possível carregar o painel.");
     return null;
   }
 }
@@ -301,8 +301,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       atualizarDashboard(dados);
       iniciarGrafico(dados);
     } catch (error) {
-      console.error("Erro ao carregar dados do dashboard:", error);
-      showError("Não foi possível carregar os dados do dashboard.");
+      console.error("Erro ao carregar dados do painel:", error);
+      showError("Não foi possível carregar os dados do painel.");
       iniciarGrafico(null);
     }
   } else {

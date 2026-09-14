@@ -521,59 +521,6 @@
     padding: 0;
 }
 
-.detalhes-head {
-    display: flex;
-
-    justify-content: space-between;
-
-    padding: 12px 14px;
-
-    background: #e8edf5;
-
-    color: #1a56db;
-
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.detalhes-head button {
-    border: 0;
-
-    background: transparent;
-
-    color: #1a56db;
-
-    cursor: pointer;
-}
-
-.linha-detalhes {
-    display: grid;
-
-    grid-template-columns: 1fr 170px;
-
-    gap: 12px;
-
-    padding: 12px;
-}
-
-.box {
-    border: 1px solid var(--borda);
-
-    border-radius: 10px;
-
-    padding: 12px;
-
-    background: #fff;
-}
-
-.perfil {
-    display: flex;
-
-    align-items: center;
-
-    gap: 14px;
-}
-
 .avatar {
     width: 64px;
     height: 64px;
@@ -589,20 +536,6 @@
 
     font-weight: 700;
     font-size: 24px;
-}
-
-.resumo {
-    display: grid;
-    place-items: center;
-}
-
-.resumo span {
-    font-size: 12px;
-    color: #1a56db;
-}
-
-.resumo strong {
-    font-size: 28px;
 }
 
 .subsecao {
@@ -899,7 +832,6 @@
         justify-content: center;
     }
 
-    .linha-detalhes,
     .cards-financeiro {
         grid-template-columns: 1fr;
     }

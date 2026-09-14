@@ -152,10 +152,9 @@ function renderTabela() {
 
   tbody.innerHTML = dados.map((item) => `
     <tr>
-      <td>${escaparHTML(item.id)}</td>
       <td>${escaparHTML(item.nome)}</td>
       <td>${escaparHTML(item.acesso)}</td>
-      <td>${escaparHTML(item.telefone)}<br>${escaparHTML(item.email)}${item.cnh ? `<br>${escaparHTML(mascararCnh(item.cnh))}` : ''}</td>
+      <td>${escaparHTML(item.telefone)}<br>${escaparHTML(item.email)}</td>
       <td>
         <div class="acoes-acesso">
           <button class="btn-acao-acesso editar" type="button" data-acao="editar" data-id="${item.id}" data-tipo="${item.tipo}" title="Editar" aria-label="Editar acesso">

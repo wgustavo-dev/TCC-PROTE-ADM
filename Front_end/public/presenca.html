@@ -28,6 +28,7 @@
 
   <link rel="stylesheet" href="css/globalcss.css" />
   <link rel="stylesheet" href="css/presenca.css" />
+  <link rel="stylesheet" href="css/ui-padrao.css" />
   <link rel="stylesheet" href="core/alerts.css" />
   <link rel="stylesheet" href="../css/perfil-widget.css">
     <link rel="stylesheet" href="css/notificacoes.css">
@@ -63,7 +64,7 @@
             <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
             <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
           </svg>
-          Dashboard
+          Painel
         </a>
         <span class="nav-section-title">Financeiro</span>
         <a href="despesas.html" class="nav-item" data-page="despesas">
@@ -193,7 +194,7 @@
 
 
         <h1 class="page-title titulo-presenca">Presença</h1>
-        <p class="page-sub">Registre a presença diária dos alunos</p>
+        <p class="page-sub">Registre a chamada por turno e acompanhe a frequência dos alunos</p>
       </div>
 
       <section class="card barra-data">
@@ -250,23 +251,12 @@
         </div>
       </section>
 
-      <section class="card lista-chamada">
-        <h2>Lista de chamada</h2>
-        <p class="sub-lista" id="textoDataLista">Selecione uma data para registrar a presença</p>
-
-        <div id="listaAlunosPresenca"></div>
-
-        <button class="botao-salvar" id="botaoSalvarChamada">
-          Salvar registro da chamada
-        </button>
-      </section>
-
       <section class="card trajeto-card">
         <div class="trajeto-cabecalho">
           <div class="trajeto-titulos">
             <h2>Linha de Trajeto</h2>
             <p class="sub-lista">
-              Alunos presentes, na ordem definida pelo Itinerário.
+              Clique duas vezes no aluno para marcar como pego/entregue.
               <span class="trajeto-badge" id="trajetoBadgeAlunos">0 alunos</span>
             </p>
           </div>
@@ -275,6 +265,14 @@
         <div class="trajeto-linha-scroll">
           <div class="trajeto-linha" id="trajetoLinha"></div>
         </div>
+      </section>
+
+      <section class="card lista-chamada">
+        <h2>Lista de chamada</h2>
+        <p class="sub-lista" id="textoDataLista">Selecione uma data para registrar a presença</p>
+        <p class="sub-lista aviso-chamada aviso-chamada-lista" id="avisoTextoLista"></p>
+
+        <div id="listaAlunosPresenca"></div>
       </section>
 
     </main>
