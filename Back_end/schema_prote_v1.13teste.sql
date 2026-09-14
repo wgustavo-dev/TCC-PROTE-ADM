@@ -249,15 +249,12 @@ CREATE TABLE presenca (
     id_aluno INT NOT NULL,
     data DATE NOT NULL,
     turno ENUM('MANHA','TARDE','NOITE') NOT NULL,
-    tipo ENUM('IDA','VOLTA') NOT NULL,
     status ENUM('PRESENTE','AUSENTE') NOT NULL,
-    observacao TEXT,
 
-    UNIQUE KEY uk_presenca_aluno_data_turno_tipo (
+    UNIQUE KEY uk_presenca_aluno_data_turno (
         id_aluno,
         data,
-        turno,
-        tipo
+        turno
     ),
 
     FOREIGN KEY (id_aluno)
@@ -807,39 +804,30 @@ INSERT INTO presenca (
     id_aluno,
     data,
     turno,
-    tipo,
     status
 ) VALUES
-(4, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
-(1, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
-(7, '2026-08-31', 'MANHA', 'IDA', 'AUSENTE'),
-(6, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
-(2, '2026-08-31', 'MANHA', 'IDA', 'AUSENTE'),
-(5, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE');
+(4, '2026-08-31', 'MANHA', 'PRESENTE'),
+(1, '2026-08-31', 'MANHA', 'PRESENTE'),
+(7, '2026-08-31', 'MANHA', 'AUSENTE'),
+(6, '2026-08-31', 'MANHA', 'PRESENTE'),
+(2, '2026-08-31', 'MANHA', 'AUSENTE'),
+(5, '2026-08-31', 'MANHA', 'PRESENTE');
 
 
 -- TARDE
--- Repare nos alunos 10 e 13: cada um aparece nas DUAS chamadas da
--- tarde (IDA e VOLTA, conforme o itinerário misto acima) e cada
--- chamada tem seu próprio status independente — é exatamente o caso
--- que a Linha de Trajeto precisa tratar entrada a entrada.
 
 INSERT INTO presenca (
     id_aluno,
     data,
     turno,
-    tipo,
-    status,
-    observacao
+    status
 ) VALUES
-(10, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE', NULL),
-(10, '2026-08-31', 'TARDE', 'VOLTA', 'AUSENTE', 'Não volta com a gente hoje porque o pai buscou.'),
-(13, '2026-08-31', 'TARDE', 'IDA', 'AUSENTE', 'Falta médica, atestado entregue.'),
-(13, '2026-08-31', 'TARDE', 'VOLTA', 'PRESENTE', NULL),
-(9, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE', NULL),
-(11, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE', NULL),
-(12, '2026-08-31', 'TARDE', 'VOLTA', 'AUSENTE', 'Foi buscado pela mãe na escola.'),
-(8, '2026-08-31', 'TARDE', 'VOLTA', 'PRESENTE', NULL);
+(10, '2026-08-31', 'TARDE', 'PRESENTE'),
+(13, '2026-08-31', 'TARDE', 'AUSENTE'),
+(9, '2026-08-31', 'TARDE', 'PRESENTE'),
+(11, '2026-08-31', 'TARDE', 'PRESENTE'),
+(12, '2026-08-31', 'TARDE', 'AUSENTE'),
+(8, '2026-08-31', 'TARDE', 'PRESENTE');
 
 
 -- TESTE CRÍTICO:
@@ -849,10 +837,9 @@ INSERT INTO presenca (
     id_aluno,
     data,
     turno,
-    tipo,
     status
 ) VALUES
-(1, '2026-08-31', 'TARDE', 'VOLTA', 'PRESENTE');
+(1, '2026-08-31', 'TARDE', 'PRESENTE');
 
 
 -- OUTRA DATA
@@ -861,14 +848,13 @@ INSERT INTO presenca (
     id_aluno,
     data,
     turno,
-    tipo,
     status
 ) VALUES
-(4, '2026-08-29', 'MANHA', 'IDA', 'PRESENTE'),
-(1, '2026-08-29', 'MANHA', 'IDA', 'AUSENTE'),
-(7, '2026-08-29', 'MANHA', 'IDA', 'PRESENTE'),
-(10, '2026-08-29', 'TARDE', 'IDA', 'PRESENTE'),
-(9, '2026-08-29', 'TARDE', 'IDA', 'AUSENTE');
+(4, '2026-08-29', 'MANHA', 'PRESENTE'),
+(1, '2026-08-29', 'MANHA', 'AUSENTE'),
+(7, '2026-08-29', 'MANHA', 'PRESENTE'),
+(10, '2026-08-29', 'TARDE', 'PRESENTE'),
+(9, '2026-08-29', 'TARDE', 'AUSENTE');
 
 
 -- =====================================================
@@ -1088,53 +1074,55 @@ SELECT * FROM despesa;
 -- TESTE DA LINHA DE TRAJETO
 -- =====================================================
 
--- Esta consulta reproduz o que service_linha_trajeto.ts faz: parte do
--- Itinerário (ordem física, podendo misturar IDA e VOLTA) e busca a
--- presença de cada entrada por aluno + data + turno + tipo. Sem
--- registro de presença, COALESCE assume PRESENTE por padrão.
-
 SELECT
-    ia.ordem,
+    p.data,
+    p.turno,
     a.id_aluno,
     a.nome,
+    a.id_escola,
     e.nome AS escola,
     ia.tipo,
-    COALESCE(p.status, 'PRESENTE') AS status
-FROM itinerario_aluno ia
+    ia.ordem,
+    p.status
+FROM presenca p
 INNER JOIN aluno a
-    ON a.id_aluno = ia.id_aluno
+    ON a.id_aluno = p.id_aluno
 INNER JOIN escola e
     ON e.id_escola = a.id_escola
-LEFT JOIN presenca p
-    ON p.id_aluno = ia.id_aluno
-    AND p.data = '2026-08-31'
-    AND p.turno = ia.turno
-    AND p.tipo = ia.tipo
+INNER JOIN itinerario_aluno ia
+    ON ia.id_aluno = p.id_aluno
+    AND ia.turno = p.turno
+INNER JOIN (
+    SELECT
+        id_aluno,
+        turno,
+        MIN(id_itinerario) AS id_itinerario
+    FROM itinerario_aluno
+    GROUP BY id_aluno, turno
+) primeira_rota
+    ON primeira_rota.id_itinerario = ia.id_itinerario
 WHERE
-    ia.turno = 'TARDE'
+    p.data = '2026-08-31'
+    AND p.turno = 'MANHA'
+    AND p.status = 'PRESENTE'
 ORDER BY
     ia.ordem ASC;
 
 
 -- =====================================================
--- TESTE DA SEPARAÇÃO DE TURNO + TIPO DA PRESENÇA
+-- TESTE DA SEPARAÇÃO DE TURNOS DA PRESENÇA
 -- =====================================================
--- Mostra o mesmo aluno com registros independentes de IDA e VOLTA no
--- mesmo turno (aluno 10, tarde de 2026-08-31: presente na ida, ausente
--- na volta).
 
 SELECT
     id_aluno,
     data,
     turno,
-    tipo,
-    status,
-    observacao
+    status
 FROM presenca
 WHERE
-    id_aluno = 10
+    id_aluno = 1
     AND data = '2026-08-31'
-ORDER BY turno, tipo;
+ORDER BY turno;
 
 
 -- =====================================================

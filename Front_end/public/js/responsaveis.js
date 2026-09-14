@@ -489,7 +489,7 @@ function abrirDetalhes(id, linhaClicada) {
     document.createElement('tr');
 
   linhaDetalhesAtual.className =
-    'responsavel-detalhes';
+    'linha-detalhes-responsavel';
 
   linhaDetalhesAtual.innerHTML =
     '<td colspan="5"></td>';

@@ -6,8 +6,6 @@ let alunos = [];
 let responsaveis = [];
 let escolasDisponiveis = [];
 let el = null;
-let mostrarTodosAlunos = false;
-const LIMITE_ALUNOS_LISTA = 5;
 
 /* =========================================================
    PERMISSÕES (C3)
@@ -486,13 +484,6 @@ function configurarModal() {
    ========================================================= */
 
 function configurarBuscaEFiltros() {
-  if (el.btnMostrarTodosAlunos) {
-    el.btnMostrarTodosAlunos.addEventListener("click", () => {
-      mostrarTodosAlunos = !mostrarTodosAlunos;
-      renderizar();
-    });
-  }
-
   if (el.botaoFiltroAluno) {
     el.botaoFiltroAluno.addEventListener("click", () => {
       el.painelFiltrosAluno.classList.toggle("hidden");
@@ -677,8 +668,22 @@ function renderizarTabela(lista) {
   if (el.emptyState) el.emptyState.style.display = "none";
   
   el.tbodyAlunos.innerHTML = lista
-    .map(
-      (aluno) => `
+    .map((aluno) => {
+      const badgesAcessibilidade = [];
+
+      if (aluno.necessidade_acessibilidade_temporaria || aluno.necessidadeAcessibilidadeTemporaria) {
+        badgesAcessibilidade.push('<span class="badge-acessibilidade temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">♿ Temporária</span>');
+      }
+
+      if (aluno.necessidade_acessibilidade_permanente || aluno.necessidadeAcessibilidadePermanente) {
+        badgesAcessibilidade.push('<span class="badge-acessibilidade permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Permanente</span>');
+      }
+
+      if ((aluno.observacao_acessibilidade || aluno.observacaoAcessibilidade || "").trim()) {
+        badgesAcessibilidade.push('<span class="badge-acessibilidade observacao" title="Observação de saúde/acessibilidade" aria-label="Observação de saúde ou acessibilidade">🩺 Observação</span>');
+      }
+
+      return `
     <tr>
       <td><div class="celula-aluno">${aluno.foto ? `<img src="${aluno.foto}" alt="Foto de ${aluno.nome}" class="foto-aluno">` : `<div class="foto-placeholder">SEM FOTO</div>`}</div></td>
       <td>
@@ -686,33 +691,33 @@ function renderizarTabela(lista) {
         ${badgesAcessibilidade.length ? `<div class="acessibilidade-opcoes">${badgesAcessibilidade.join("")}</div>` : ""}
       </td>
       <td>${aluno.escola || "-"}</td>
-      <td><div class="responsavel-resumo"><strong>${aluno.responsavel1 || "-"}</strong><span>${aluno.telefone1 || "Telefone não informado"}</span></div></td>
+      
+      <td>${obterDescricaoTrajeto(aluno.tipoTrajeto)}</td>
       <td>
+        <span class="linha-texto">${aluno.responsavel1 || "-"}</span>
+      </td>
+      <td>
+        <span class="linha-texto">${aluno.telefone1 || "-"}</span>
+      </td>
+      <td>${aluno.embarque || "-"}</td>
+      <td>${aluno.desembarque || "-"}</td>
+      <td>
+        ${usuarioEhMonitor() ? `<span class="texto-somente-leitura">Somente visualização</span>` : `
         <div class="actions">
-          <button class="detalhes-toggle" type="button" aria-label="Ver detalhes do aluno" title="Ver detalhes">▾</button>
-          ${usuarioEhMonitor() ? `<span class="texto-somente-leitura">Somente visualização</span>` : `
-          <button class="icon-btn edit" data-id="${aluno.id}" data-action="editar" aria-label="Editar aluno" title="Editar aluno">Editar</button>
-          <button class="icon-btn delete" data-id="${aluno.id}" data-action="excluir" aria-label="Excluir aluno" title="Excluir aluno">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14H6L5 6"></path>
-              <path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path>
+          <button class="icon-btn edit" data-id="${aluno.id}" data-action="editar" aria-label="Editar aluno">
+            Editar
+          </button>
+          <button class="icon-btn delete" data-id="${aluno.id}" data-action="excluir" aria-label="Excluir aluno">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14H6L5 6"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+              <path d="M9 6V4h6v2"></path>
             </svg>
           </button>
-          `}
         </div>
-      </td>
-    </tr>
-    <tr class="aluno-detalhes" data-detalhes-id="${aluno.id}" hidden>
-      <td colspan="5">
-        <div class="accordion-detalhes-painel">
-          <div class="accordion-detalhes-cabecalho"><strong>Detalhes do aluno</strong><span>${String(aluno.nome || "Aluno").toLocaleUpperCase("pt-BR")}</span><button type="button" class="accordion-detalhes-fechar" data-fechar-detalhes aria-label="Fechar detalhes do aluno">Fechar</button></div>
-          <div class="aluno-detalhes-grid">
-            <div><strong>Tipo de trajeto</strong><span>${obterDescricaoTrajeto(aluno.tipoTrajeto)}</span></div>
-            <div><strong>Telefone do responsável</strong><span>${aluno.telefone1 || "-"}</span></div>
-            <div><strong>Endereço de embarque</strong><span>${aluno.embarque || "-"}</span></div>
-            <div><strong>Endereço de desembarque</strong><span>${aluno.desembarque || "-"}</span></div>
-          </div>
-        </div>
+        `}
       </td>
     </tr>
     `;
@@ -735,23 +740,13 @@ function renderizarCardsMobile(lista) {
   el.cardsAlunosMobile.innerHTML = lista.map((aluno) => {
     const rota = normalizarRotaPorTrajeto(aluno);
     return `
-      <article class="aluno-card-mobile trajeto-${aluno.tipoTrajeto}" data-mobile-aluno-id="${aluno.id}" tabindex="0" aria-expanded="false">
-        <header class="aluno-card-mobile-resumo">
-          ${aluno.foto ? `<img src="${aluno.foto}" alt="Foto de ${aluno.nome}" class="foto-aluno">` : `<div class="foto-placeholder">SEM FOTO</div>`}
-          <div>
+      <article class="aluno-card-mobile trajeto-${aluno.tipoTrajeto}">
+        <header>
           <strong>${aluno.nome || "-"}</strong>
-          <span>${aluno.escola || "-"}</span>
-          <span class="responsavel-resumo"><strong>${aluno.responsavel1 || "-"}</strong><small>${aluno.telefone1 || "Telefone não informado"}</small></span>
-          </div>
-          ${usuarioEhMonitor() ? `<span class="texto-somente-leitura">Somente visualização</span>` : `<div class="actions resumo-acoes-mobile"><button class="icon-btn edit" data-id="${aluno.id}" data-action="editar" aria-label="Editar aluno" title="Editar aluno">Editar</button><button class="icon-btn delete" data-id="${aluno.id}" data-action="excluir" aria-label="Excluir aluno" title="Excluir aluno"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path></svg></button></div>`}
+          <span class="tag-trajeto">${obterDescricaoTrajeto(aluno.tipoTrajeto)}</span>
         </header>
-        <div class="aluno-card-mobile-detalhes" hidden>
-          <div class="accordion-detalhes-cabecalho"><strong>Detalhes do aluno</strong><span>${String(aluno.nome || "Aluno").toLocaleUpperCase("pt-BR")}</span><button type="button" class="accordion-detalhes-fechar" data-fechar-detalhes aria-label="Fechar detalhes do aluno">Fechar</button></div>
-          <p><b>Trajeto:</b> ${obterDescricaoTrajeto(aluno.tipoTrajeto)}</p>
-          <p><b>Telefone:</b> ${aluno.telefone1 || "-"}</p>
-          <p><b>Embarque:</b> ${aluno.embarque || "-"}</p>
-          <p><b>Desembarque:</b> ${aluno.desembarque || "-"}</p>
-        </div>
+        <p>${aluno.escola || "-"}</p>
+        <p><b>Trajeto:</b> ${obterDescricaoTrajeto(aluno.tipoTrajeto)}</p>
       </article>`;
   }).join("");
 }
@@ -785,21 +780,8 @@ function renderizarRotas(lista) {
 
 function renderizar() {
   const lista = obterAlunosFiltrados();
-  if (lista.length <= LIMITE_ALUNOS_LISTA) {
-    mostrarTodosAlunos = false;
-  }
-
-  const listaVisivel = mostrarTodosAlunos ? lista : lista.slice(0, LIMITE_ALUNOS_LISTA);
-  if (el.btnMostrarTodosAlunos) {
-    const deveMostrarBotao = lista.length > LIMITE_ALUNOS_LISTA;
-    el.btnMostrarTodosAlunos.hidden = !deveMostrarBotao;
-    el.btnMostrarTodosAlunos.textContent = mostrarTodosAlunos
-      ? "Mostrar menos alunos"
-      : "Mostrar todos os alunos";
-  }
-
-  renderizarTabela(listaVisivel);
-  renderizarCardsMobile(listaVisivel);
+  renderizarTabela(lista);
+  renderizarCardsMobile(lista);
   renderizarRotas(lista);
 }
 
@@ -913,44 +895,31 @@ function configurarFormulario() {
 
 function configurarTabela() {
   if (!el.tbodyAlunos) return;
-
+  
   el.tbodyAlunos.addEventListener("click", async (event) => {
-    const botaoFechar = event.target.closest("[data-fechar-detalhes]");
-    if (botaoFechar) {
-      const detalhes = botaoFechar.closest(".aluno-detalhes");
-      const resumo = el.tbodyAlunos.querySelector(`[data-aluno-id="${detalhes?.dataset.detalhesId}"]`);
-      if (detalhes) detalhes.hidden = true;
-      if (resumo) resumo.setAttribute("aria-expanded", "false");
-      return;
-    }
-
     const botao = event.target.closest("button[data-action]");
-    if (!botao) {
-      const resumo = event.target.closest(".aluno-resumo");
-      if (resumo) {
-        const detalhes = el.tbodyAlunos.querySelector(`[data-detalhes-id="${resumo.dataset.alunoId}"]`);
-        const aberto = resumo.getAttribute("aria-expanded") === "true";
-        resumo.setAttribute("aria-expanded", String(!aberto));
-        if (detalhes) detalhes.hidden = aberto;
-      }
-      return;
-    }
+    if (!botao) return;
 
     const id = botao.dataset.id;
     const aluno = alunos.find((item) => String(item.id) === String(id));
     if (!aluno) return;
 
-    if (botao.dataset.action === "editar") return abrirModalEditar(aluno);
+    if (botao.dataset.action === "editar") {
+      return abrirModalEditar(aluno);
+    }
+
     if (botao.dataset.action !== "excluir") return;
 
-    const resposta = await showConfirm("Esta ação também excluirá as mensalidades, presenças e itens de itinerário vinculados ao aluno. Deseja continuar?");
+    const resposta = await showConfirm(
+      "Esta ação também excluirá as mensalidades, presenças e itens de itinerário vinculados ao aluno. Deseja continuar?"
+    );
     if (!resposta.isConfirmed) return;
 
     try {
       await window.API.del(`/alunos/${id}`);
       alunos = alunos.filter((item) => String(item.id) !== String(id));
       atualizarOpcoesEscola();
-      atualizarOpcoesTurma();
+  atualizarOpcoesTurma();
       renderizar();
       showSuccess("Aluno excluído com sucesso!");
     } catch (error) {
@@ -958,40 +927,6 @@ function configurarTabela() {
       showError("Não foi possível excluir o aluno.");
     }
   });
-
-  if (el.cardsAlunosMobile) {
-    el.cardsAlunosMobile.addEventListener("click", async (event) => {
-      const botaoFechar = event.target.closest("[data-fechar-detalhes]");
-      if (botaoFechar) {
-        const detalhes = botaoFechar.closest(".aluno-card-mobile-detalhes");
-        const resumo = detalhes?.closest("[data-mobile-aluno-id]");
-        if (detalhes) detalhes.hidden = true;
-        if (resumo) resumo.setAttribute("aria-expanded", "false");
-        return;
-      }
-
-      const botao = event.target.closest("button[data-action]");
-      if (botao) {
-        const aluno = alunos.find((item) => String(item.id) === String(botao.dataset.id));
-        if (!aluno) return;
-        if (botao.dataset.action === "editar") return abrirModalEditar(aluno);
-        const resposta = await showConfirm("Esta ação também excluirá os dados vinculados ao aluno. Deseja continuar?");
-        if (!resposta.isConfirmed) return;
-        await window.API.del(`/alunos/${botao.dataset.id}`);
-        alunos = alunos.filter((item) => String(item.id) !== String(botao.dataset.id));
-        atualizarOpcoesEscola();
-        atualizarOpcoesTurma();
-        renderizar();
-        return;
-      }
-      const resumo = event.target.closest("[data-mobile-aluno-id]");
-      if (!resumo) return;
-      const detalhes = resumo.querySelector(".aluno-card-mobile-detalhes");
-      const aberto = resumo.getAttribute("aria-expanded") === "true";
-      resumo.setAttribute("aria-expanded", String(!aberto));
-      if (detalhes) detalhes.hidden = aberto;
-    });
-  }
 }
 
 /* =========================================================
@@ -1036,8 +971,7 @@ function obterElementos() {
     botaoFiltroAluno: document.getElementById("botaoFiltroAluno"),
     painelFiltrosAluno: document.getElementById("painelFiltrosAluno"),
     rotasContainer: document.getElementById("rotasContainer"),
-    cardsAlunosMobile: document.getElementById("cardsAlunosMobile"),
-    btnMostrarTodosAlunos: document.getElementById("btnMostrarTodosAlunos")
+    cardsAlunosMobile: document.getElementById("cardsAlunosMobile")
   };
 }
 

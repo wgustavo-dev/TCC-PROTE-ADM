@@ -158,10 +158,6 @@
     return (user && (user.cargo || user.role)) || "";
   }
 
-  function primeiroNome(nome) {
-    return String(nome || "Usuário").trim().split(/\s+/).filter(Boolean)[0] || "Usuário";
-  }
-
   // Permissão exibida: usa "permissao" se vier pronta da API;
   // senão, deduz a partir do cargo/role (ajuste os casos abaixo
   // conforme os perfis do seu sistema).
@@ -327,7 +323,7 @@
 
     var cargo = resolveCargo(user);
 
-    els.triggerName.textContent = primeiroNome(user && user.nome);
+    els.triggerName.textContent = (user && user.nome) || "Usuário";
     els.triggerRole.textContent = cargo;
     els.panelName.textContent = (user && user.nome) || "Usuário";
     els.panelRole.textContent = cargo || "—";
