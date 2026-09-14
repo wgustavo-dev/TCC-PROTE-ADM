@@ -21,7 +21,7 @@
     })();
   </script>
 
-  <title>PROTE — Painel de Controle</title>
+  <title>PROTE — Dashboard</title>
 
   <!-- Google Fonts & Chart.js -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -30,7 +30,6 @@
   <!-- CSS do Sistema -->
   <link rel="stylesheet" href="css/globalcss.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
-  <link rel="stylesheet" href="css/ui-padrao.css" />
   <link rel="stylesheet" href="core/alerts.css" />
   <link rel="stylesheet" href="css/perfil-widget.css">
   <link rel="stylesheet" href="css/notificacoes.css" />
@@ -60,7 +59,7 @@
       </div>
 
       <nav class="nav">
-        <span class="nav-section-title">Resumo</span>
+        <span class="nav-section-title">Geral</span>
         <a href="index.html" class="nav-item active" data-page="dashboard">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
@@ -68,7 +67,7 @@
             <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
             <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
           </svg>
-          Painel
+          Dashboard
         </a>
         <span class="nav-section-title">Financeiro</span>
         <a href="despesas.html" class="nav-item" data-page="despesas">
@@ -95,7 +94,7 @@
           </svg>
           Mensalidades
         </a>
-        <span class="nav-section-title">Clientes</span>
+        <span class="nav-section-title">Pessoas</span>
         <a href="responsaveis.html" class="nav-item" data-page="responsaveis">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -119,7 +118,7 @@
           </svg>
           Presença
         </a>
-        <span class="nav-section-title">Administração</span>
+        <span class="nav-section-title">Gerenciamento</span>
         <a href="documentos.html" class="nav-item" data-page="documentos">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -153,15 +152,15 @@
 
     </aside>
 
-    <!-- Conteúdo Principal do Painel -->
+    <!-- Conteúdo Principal do Dashboard -->
     <main class="main dashboard-main">
 
 <!-- Cabeçalho -->
 <div class="cabecalho-pagina">
 
   <div class="cabecalho-pagina-texto">
-    <h1 class="page-title">Painel de Controle</h1>
-    <p class="page-sub">Acompanhe os principais indicadores e atividades do transporte escolar</p>
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-sub">Visão geral das suas operações</p>
   </div>
 
   <!-- NOTIFICAÇÕES -->
@@ -310,22 +309,25 @@
 
       <!-- LINHA 1: Cards Financeiros (3 colunas) -->
       <section class="grid-3-colunas margin-bottom">
-        <div class="card card-acento-verde">
+        <div class="card">
           <div class="card-topo">
+            <span class="badge-quadrado badge-verde-pastel"></span>
             <span class="rotulo-card">Receita mensal</span>
           </div>
           <p class="valor-destaque" id="kpiReceita">—</p>
         </div>
 
-        <div class="card card-acento-vermelho">
+        <div class="card">
           <div class="card-topo">
+            <span class="badge-quadrado badge-vermelho-pastel"></span>
             <span class="rotulo-card">Despesas mensais</span>
           </div>
           <p class="valor-destaque" id="kpiDespesas">—</p>
         </div>
 
-        <div class="card card-acento-amarelo">
+        <div class="card">
           <div class="card-topo">
+            <span class="badge-quadrado badge-amarelo-pastel"></span>
             <span class="rotulo-card">Lucro líquido</span>
           </div>
           <p class="valor-destaque" id="kpiLucro">—</p>
@@ -334,8 +336,9 @@
 
       <!-- LINHA 2: Indicadores Operacionais (4 colunas) -->
       <section class="grid-4-colunas margin-bottom">
-        <div class="card card-acento-roxo">
+        <div class="card">
           <div class="card-topo">
+            <span class="badge-quadrado badge-roxo-pastel"></span>
             <span class="rotulo-card">Presença média</span>
           </div>
           <p class="valor-destaque" id="kpiPresenca">—</p>
@@ -344,24 +347,27 @@
           </div>
         </div>
 
-        <div class="card card-acento-azul">
+        <div class="card">
           <div class="card-topo">
+            <span class="badge-quadrado badge-azul-pastel"></span>
             <span class="rotulo-card">Alunos ativos</span>
           </div>
           <p class="valor-destaque" id="kpiAlunos">—</p>
           <span class="subtexto-card">matriculados e ativos</span>
         </div>
 
-        <div class="card card-acento-azul-claro">
+        <div class="card">
           <div class="card-topo">
+            <span class="badge-quadrado badge-azul-claro-pastel"></span>
             <span class="rotulo-card">Monitores</span>
           </div>
           <p class="valor-destaque" id="kpiMonitores">—</p>
           <span class="subtexto-card">monitores ativos</span>
         </div>
 
-        <div class="card card-acento-laranja">
+        <div class="card">
           <div class="card-topo">
+            <span class="badge-quadrado badge-laranja-pastel"></span>
             <span class="rotulo-card">Alunos por escola</span>
           </div>
           <ul class="lista-escolas" id="listaEscolas">
@@ -405,8 +411,9 @@
 
       <!-- LINHA 5: Documentos e Orçamentos -->
       <section class="grid-2-colunas margin-bottom">
-        <div class="card card-acento-amarelo">
+        <div class="card">
           <div class="card-header-center">
+            <span class="badge-quadrado badge-amarelo-pastel"></span>
             <h3 class="card-titulo-center">Documentos</h3>
           </div>
 
@@ -426,8 +433,9 @@
           </div>
         </div>
 
-        <div class="card card-acento-rosa">
+        <div class="card">
           <div class="card-header-center">
+            <span class="badge-quadrado badge-rosa-pastel"></span>
             <h3 class="card-titulo-center">Orçamentos</h3>
           </div>
 

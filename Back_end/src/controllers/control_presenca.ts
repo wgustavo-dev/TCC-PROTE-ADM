@@ -25,8 +25,7 @@ export class ControlPresenca {
     try {
       const data = String(req.params.data || "");
       const turno = String(req.params.turno || "");
-      const tipo = req.query.tipo !== undefined ? String(req.query.tipo) : undefined;
-      return res.json(await service.listarPorData(data, turno, tipo));
+      return res.json(await service.listarPorData(data, turno));
     } catch (error: any) {
       return res.status(400).json({ error: error.message });
     }

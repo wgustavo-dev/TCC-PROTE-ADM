@@ -30,7 +30,6 @@
   <link rel="stylesheet" href="css/globalcss.css" />
   <link rel="stylesheet" href="css/alunos.css" />
   <link rel="stylesheet" href="css/responsaveis.css" />
-  <link rel="stylesheet" href="css/ui-padrao.css" />
   <link rel="stylesheet" href="core/alerts.css" />
   <link rel="stylesheet" href="../css/perfil-widget.css">
     <link rel="stylesheet" href="css/notificacoes.css">
@@ -65,7 +64,7 @@
             <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
             <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
           </svg>
-          Painel
+          Dashboard
         </a>
         <span class="nav-section-title">Financeiro</span>
         <a href="despesas.html" class="nav-item" data-page="despesas">
@@ -196,7 +195,7 @@
         <div class="alunos-titulos">
           <h1 class="page-title">Responsáveis</h1>
           <p class="page-sub">
-            Consulte responsáveis, contatos e alunos vinculados a cada cadastro
+            Tenha acesso às informações dos responsáveis
           </p>
         </div>
       </div>
@@ -251,7 +250,6 @@
       </div>
 
       <div class="card table-card tabela-alunos-wrapper">
-        <p class="aviso-accordion">Clique no responsável para visualizar detalhes.</p>
         <div class="table-wrapper">
           <table class="tabela tabela-alunos">
             <thead>
@@ -274,28 +272,29 @@
       </div>
 
       <div class="card detalhes hidden" id="painelDetalhes" style="margin-top:14px;">
-        <div class="accordion-detalhes-painel responsavel-detalhes-painel">
-          <div class="accordion-detalhes-cabecalho">
-            <strong>Detalhes do responsável</strong>
-            <span id="detNomeTopo">RESPONSÁVEL</span>
-            <button id="btnFecharDetalhes" class="accordion-detalhes-fechar" type="button">Fechar</button>
-          </div>
+        <div class="detalhes-head">
+          <span id="detNomeTopo">RESPONSÁVEL</span>
 
-          <div class="responsavel-detalhes-grid">
-            <div class="responsavel-identificacao">
-              <div class="avatar" id="detAvatar">RA</div>
-              <div>
-                <strong>Contato principal</strong>
-                <span id="detTelefone">(00) 00000-0000</span>
-                <span id="detEmail">email@email.com</span>
-              </div>
-            </div>
+          <button id="btnFecharDetalhes" type="button">
+            Fechar
+          </button>
+        </div>
+
+        <div class="linha-detalhes">
+          <div class="box perfil">
+            <div class="avatar" id="detAvatar">RA</div>
 
             <div>
-              <strong>Quantidade de alunos</strong>
-              <span id="detQtdAlunos">0</span>
+              <p id="detTelefone">(00) 00000-0000</p>
+              <p id="detEmail">email@email.com</p>
             </div>
           </div>
+
+          <div class="box resumo">
+            <span>Quantidade de alunos</span>
+            <strong id="detQtdAlunos">0</strong>
+          </div>
+        </div>
 
         <div class="subsecao">
   <div class="subsecao-header">
@@ -330,7 +329,6 @@
             </div>
           </div>
         </div>
-      </div>
       </div>
     </main>
   </div>

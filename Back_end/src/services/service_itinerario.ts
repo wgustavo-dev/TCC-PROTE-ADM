@@ -198,6 +198,9 @@ export class ServiceItinerario {
         ordem: item.ordem,
         endereco,
         tipo: item.tipo.toLowerCase(),
+        necessidadeAcessibilidadeTemporaria: Boolean(item.aluno.necessidade_acessibilidade_temporaria),
+        necessidadeAcessibilidadePermanente: Boolean(item.aluno.necessidade_acessibilidade_permanente),
+        observacaoAcessibilidade: item.aluno.observacao_acessibilidade || "",
       });
     }
 

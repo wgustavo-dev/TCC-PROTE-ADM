@@ -47,9 +47,11 @@
     li.dataset.itemId = item.itemId;   // entrada específica (ida OU volta)
     li.dataset.alunoId = item.alunoId; // aluno real (pode se repetir em 2 entradas)
     li.dataset.tipo = item.tipo;
-    // Escola aparece antes do endereço, pra identificar o destino mais rápido
-    // (útil quando o mesmo turno atende mais de uma escola).
     const linhaSecundaria = item.escola ? (item.escola + ' • ' + item.endereco) : item.endereco;
+    const badges = [];
+    if (item.necessidadeAcessibilidadeTemporaria) badges.push('<span class="acessibilidade-badge acessibilidade-badge--temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">♿ Temporária</span>');
+    if (item.necessidadeAcessibilidadePermanente) badges.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Permanente</span>');
+    if ((item.observacaoAcessibilidade || '').trim()) badges.push('<span class="acessibilidade-badge acessibilidade-badge--observacao" title="Observação de saúde ou acessibilidade" aria-label="Observação de saúde ou acessibilidade">🩺 Observação</span>');
     li.innerHTML =
       '<span class="drag-handle">' + iconeGrip + '</span>' +
       '<span class="ordem-badge">0</span>' +
@@ -57,6 +59,7 @@
       '<span class="aluno-info">' +
         '<span class="aluno-nome">' + item.nome + '</span>' +
         '<span class="aluno-endereco">' + linhaSecundaria + '</span>' +
+        (badges.length ? '<span class="aluno-acessibilidade">' + badges.join('') + '</span>' : '') +
       '</span>' +
       '<span class="tipo-badge tipo-badge--' + item.tipo + '">' + rotuloTipo[item.tipo] + '</span>';
     return li;

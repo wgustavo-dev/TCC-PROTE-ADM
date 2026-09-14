@@ -21,6 +21,11 @@ export class Condutor {
   @Column({ type: "varchar", length: 20, nullable: true })
   telefone!: string;
 
+  // nullable preserva a compatibilidade com cadastros antigos; novos
+  // cadastros são validados obrigatoriamente no ServiceAcessos.
+  @Column({ type: "varchar", length: 11, nullable: true, unique: true })
+  cnh!: string;
+
   @Column({ type: "text", nullable: true })
   escolas!: string;
 

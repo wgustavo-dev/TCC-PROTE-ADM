@@ -67,6 +67,33 @@ export class ServiceAcessos {
     return valor;
   }
 
+  private async validarCnhDisponivel(cnh: string, ignorarId?: number) {
+    const condutorExistente = await this.condutorRepository.findOneBy({ cnh });
+
+    if (condutorExistente && condutorExistente.id_condutor !== ignorarId) {
+      throw new Error("Já existe um condutor cadastrado com esta CNH.");
+    }
+  }
+
+  private normalizarCnh(cnh: any): string {
+    const valor = String(cnh ?? "").replace(/\D/g, "");
+
+    if (valor.length !== 11 || /^(\d)\1{10}$/.test(valor)) {
+      throw new Error("Informe uma CNH válida com 11 dígitos.");
+    }
+
+    const digitos = valor.slice(0, 9).split("").map(Number);
+    const primeiroDigito = digitos.reduce((total, digito, indice) => total + digito * (9 - indice), 0) % 11;
+    const segundoDigito = digitos.reduce((total, digito, indice) => total + digito * (indice + 1), 0) % 11;
+    const esperado = `${primeiroDigito === 10 ? 0 : primeiroDigito}${segundoDigito === 10 ? 0 : segundoDigito}`;
+
+    if (valor.slice(9) !== esperado) {
+      throw new Error("Informe uma CNH válida.");
+    }
+
+    return valor;
+  }
+
   private formatarCondutor(condutor: Condutor) {
     return {
       id: condutor.id_condutor,
@@ -75,6 +102,7 @@ export class ServiceAcessos {
       nome: condutor.nome,
       email: condutor.email,
       telefone: condutor.telefone,
+      cnh: condutor.cnh,
     };
   }
 
@@ -134,10 +162,14 @@ export class ServiceAcessos {
     const senhaCriptografada = await bcrypt.hash(dados.senha, 10);
 
     if (tipo === "condutor") {
+      const cnh = this.normalizarCnh(dados.cnh);
+      await this.validarCnhDisponivel(cnh);
+
       const condutor = this.condutorRepository.create({
         nome: dados.nome.trim(),
         email,
         telefone: dados.telefone.trim(),
+        cnh,
         senha: senhaCriptografada,
         ativo: true,
       });
@@ -214,6 +246,12 @@ export class ServiceAcessos {
       if (dados.telefone !== undefined) {
         if (!String(dados.telefone).trim()) throw new Error("Telefone é obrigatório.");
         condutor.telefone = dados.telefone.trim();
+      }
+
+      if (dados.cnh !== undefined) {
+        const cnh = this.normalizarCnh(dados.cnh);
+        await this.validarCnhDisponivel(cnh, id);
+        condutor.cnh = cnh;
       }
 
       if (dados.senha) {
@@ -403,6 +441,16 @@ export class ServiceAcessos {
     const condutorExistente = await this.condutorRepository.findOneBy({ email: emailDestino });
 
     if (condutorExistente) {
+      const cnh = dados.cnh !== undefined
+        ? this.normalizarCnh(dados.cnh)
+        : condutorExistente.cnh;
+
+      if (!cnh) {
+        throw new Error("Informe uma CNH válida com 11 dígitos.");
+      }
+
+      await this.validarCnhDisponivel(cnh, condutorExistente.id_condutor);
+      condutorExistente.cnh = cnh;
       condutorExistente.ativo = true;
       await this.condutorRepository.save(condutorExistente);
 
@@ -434,6 +482,7 @@ export class ServiceAcessos {
       nome,
       email: emailDestino,
       telefone,
+      cnh: await this.obterCnhParaNovoCondutor(dados),
       senha,
       ativo: true,
     });
@@ -444,6 +493,12 @@ export class ServiceAcessos {
     await this.monitorRepository.save(monitorOrigem);
 
     return this.formatarCondutor(novoCondutor);
+  }
+
+  private async obterCnhParaNovoCondutor(dados: any): Promise<string> {
+    const cnh = this.normalizarCnh(dados.cnh);
+    await this.validarCnhDisponivel(cnh);
+    return cnh;
   }
 
   // DELETE /acessos/:tipo/:id -> exclusão lógica (ativo = false)

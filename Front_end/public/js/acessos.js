@@ -24,12 +24,14 @@ const campos = {
   acesso: document.getElementById('tipoAcesso'),
   email: document.getElementById('emailAcesso'),
   telefone: document.getElementById('telefoneAcesso'),
+  cnh: document.getElementById('cnhAcesso'),
   senha: document.getElementById('senhaAcesso'),
   confirmarSenha: document.getElementById('confirmarSenhaAcesso')
 };
 
 const labelSenha = document.getElementById('labelSenhaAcesso');
 const labelConfirmarSenha = document.getElementById('labelConfirmarSenhaAcesso');
+const grupoCnh = document.getElementById('grupoCnhAcesso');
 
 function aplicarMascaraTelefone(valor) {
   const numeros = String(valor || '').replace(/\D/g, '').slice(0, 11);
@@ -43,6 +45,45 @@ function aplicarMascaraTelefone(valor) {
 
 function limparMascaraTelefone(valor) {
   return String(valor || '').replace(/\D/g, '');
+}
+
+function limparCnh(valor) {
+  return String(valor || '').replace(/\D/g, '').slice(0, 11);
+}
+
+function aplicarMascaraCnh(valor) {
+  const numeros = limparCnh(valor);
+
+  if (numeros.length <= 3) return numeros;
+  if (numeros.length <= 6) return `${numeros.slice(0, 3)}.${numeros.slice(3)}`;
+  if (numeros.length <= 9) return `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6)}`;
+
+  return `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6, 9)}-${numeros.slice(9)}`;
+}
+
+function validarCnh(valor) {
+  const cnh = limparCnh(valor);
+  if (cnh.length !== 11 || /^(\d)\1{10}$/.test(cnh)) return false;
+
+  const digitos = cnh.slice(0, 9).split('').map(Number);
+  const primeiro = digitos.reduce((total, digito, indice) => total + digito * (9 - indice), 0) % 11;
+  const segundo = digitos.reduce((total, digito, indice) => total + digito * (indice + 1), 0) % 11;
+  const esperado = `${primeiro === 10 ? 0 : primeiro}${segundo === 10 ? 0 : segundo}`;
+
+  return cnh.slice(9) === esperado;
+}
+
+function atualizarCampoCnh() {
+  const ehCondutor = campos.acesso.value === 'Condutor';
+  grupoCnh.hidden = !ehCondutor;
+  grupoCnh.classList.toggle('is-hidden', !ehCondutor);
+  grupoCnh.setAttribute('aria-hidden', String(!ehCondutor));
+  campos.cnh.required = ehCondutor && (!idEditando || estaConvertendoTipo({ acesso: campos.acesso.value }));
+}
+
+function mascararCnh(cnh) {
+  const valor = limparCnh(cnh);
+  return valor ? `CNH: *******${valor.slice(-4)}` : '';
 }
 
 function normalizarEmail(valor) {
@@ -75,7 +116,8 @@ function normalizarAcesso(item) {
     nome: item.nome || '',
     acesso: item.acesso || (tipo === 'monitor' ? 'Monitor' : 'Condutor'),
     email: item.email || '',
-    telefone: aplicarMascaraTelefone(item.telefone || '')
+    telefone: aplicarMascaraTelefone(item.telefone || ''),
+    cnh: limparCnh(item.cnh || '')
   };
 }
 
@@ -96,7 +138,7 @@ function listaFiltrada() {
 
   return acessos
     .filter((item) => {
-      const texto = `${item.nome} ${item.acesso} ${item.email} ${item.telefone}`.toLowerCase();
+      const texto = `${item.nome} ${item.acesso} ${item.email} ${item.telefone} ${item.cnh}`.toLowerCase();
       const passouBusca = !busca || texto.includes(busca);
       const passouFiltro = filtroAtual === 'todos' || item.acesso === filtroAtual;
 
@@ -110,9 +152,10 @@ function renderTabela() {
 
   tbody.innerHTML = dados.map((item) => `
     <tr>
+      <td>${escaparHTML(item.id)}</td>
       <td>${escaparHTML(item.nome)}</td>
-      <td><span class="badge-acesso ${item.tipo === 'monitor' ? 'badge-monitor' : 'badge-condutor'}">${escaparHTML(item.acesso)}</span></td>
-      <td>${escaparHTML(item.telefone)}<br>${escaparHTML(item.email)}</td>
+      <td>${escaparHTML(item.acesso)}</td>
+      <td>${escaparHTML(item.telefone)}<br>${escaparHTML(item.email)}${item.cnh ? `<br>${escaparHTML(mascararCnh(item.cnh))}` : ''}</td>
       <td>
         <div class="acoes-acesso">
           <button class="btn-acao-acesso editar" type="button" data-acao="editar" data-id="${item.id}" data-tipo="${item.tipo}" title="Editar" aria-label="Editar acesso">
@@ -147,6 +190,7 @@ function abrirModal(editando = false, acesso = null) {
   campos.acesso.value = acesso?.acesso || '';
   campos.email.value = acesso?.email || '';
   campos.telefone.value = acesso?.telefone || '';
+  campos.cnh.value = aplicarMascaraCnh(acesso?.cnh || '');
   campos.senha.value = '';
   campos.confirmarSenha.value = '';
 
@@ -163,6 +207,7 @@ function abrirModal(editando = false, acesso = null) {
   campos.confirmarSenha.required = !editando;
   labelSenha.textContent = editando ? 'Senha (deixe em branco para manter a atual)' : 'Senha';
   labelConfirmarSenha.textContent = editando ? 'Confirmar nova senha' : 'Confirmar senha';
+  atualizarCampoCnh();
 
   modalOverlay.classList.remove('hidden');
   registrarEstadoInicialFormulario(form);
@@ -184,6 +229,10 @@ function montarPayload() {
     telefone: limparMascaraTelefone(campos.telefone.value)
   };
 
+  if (payload.acesso === 'Condutor') {
+    payload.cnh = limparCnh(campos.cnh.value);
+  }
+
   // Só envia a senha quando o usuário digitou algo. Isso permite
   // editar um acesso sem ser obrigado a trocar a senha.
   if (campos.senha.value) {
@@ -199,6 +248,10 @@ function validarPayload(payload) {
   if (!payload.email) return 'Preencha o email.';
   if (!validarEmail(payload.email)) return 'Informe um e-mail válido.';
   if (!payload.telefone || payload.telefone.length < 10) return 'Preencha um telefone válido.';
+
+  const exigeCnh = payload.acesso === 'Condutor' && (!idEditando || estaConvertendoTipo(payload));
+  if (exigeCnh && !payload.cnh) return 'Preencha a CNH do condutor.';
+  if (payload.cnh && !validarCnh(payload.cnh)) return 'Informe uma CNH válida.';
 
   const precisaSenha = !idEditando;
 
@@ -300,6 +353,14 @@ filtroAcesso.addEventListener('change', (event) => {
 campos.telefone.addEventListener('input', (event) => {
   event.target.value = aplicarMascaraTelefone(event.target.value);
 });
+
+campos.cnh.addEventListener('input', (event) => {
+  event.target.value = aplicarMascaraCnh(event.target.value);
+});
+
+campos.acesso.addEventListener('change', atualizarCampoCnh);
+campos.acesso.addEventListener('input', atualizarCampoCnh);
+campos.acesso.addEventListener('click', atualizarCampoCnh);
 
 campos.email.addEventListener('input', (event) => {
   event.target.value = normalizarEmail(event.target.value);

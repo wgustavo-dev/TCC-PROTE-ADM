@@ -201,6 +201,19 @@ export class ServiceAluno {
     throw new Error("Turno inválido. Use MANHA ou TARDE.");
   }
 
+  private normalizarBooleano(valor: any): boolean {
+    if (valor === undefined || valor === null || valor === "") {
+      return false;
+    }
+
+    if (typeof valor === "boolean") {
+      return valor;
+    }
+
+    const texto = String(valor).trim().toLowerCase();
+    return ["1", "true", "yes", "sim", "on"].includes(texto);
+  }
+
   private normalizarTipoTrajeto(tipo: any): "IDA" | "VOLTA" | "AMBOS" | null {
     const valor = String(tipo ?? "").trim().toUpperCase();
 
@@ -239,8 +252,22 @@ export class ServiceAluno {
     return { embarque, desembarque };
   }
 
+  private validarFlagsAcessibilidade(dados: Partial<Aluno> & any) {
+    const temporaria = this.normalizarBooleano(
+      dados.necessidade_acessibilidade_temporaria
+    );
+    const permanente = this.normalizarBooleano(
+      dados.necessidade_acessibilidade_permanente
+    );
+
+    if (temporaria && permanente) {
+      throw new Error("Não é possível marcar necessidade temporária e permanente ao mesmo tempo.");
+    }
+  }
+
   async criar(dados: Partial<Aluno> & any, usuarioLogado?: UsuarioLogado) {
     this.limparCamposAntigos(dados);
+    this.validarFlagsAcessibilidade(dados);
 
     if (!dados.nome?.trim()) {
       throw new Error("Nome do aluno é obrigatório");
@@ -270,6 +297,13 @@ export class ServiceAluno {
       foto: dados.foto || null,
       id_responsavel: responsavel.id_responsavel,
       id_condutor: idCondutor,
+      necessidade_acessibilidade_temporaria: this.normalizarBooleano(
+        dados.necessidade_acessibilidade_temporaria
+      ),
+      necessidade_acessibilidade_permanente: this.normalizarBooleano(
+        dados.necessidade_acessibilidade_permanente
+      ),
+      observacao_acessibilidade: dados.observacao_acessibilidade?.trim() || null,
     });
 
     await this.alunoRepository.save(aluno);
@@ -286,6 +320,13 @@ export class ServiceAluno {
 
   async atualizar(id: number, dados: Partial<Aluno> & any, usuarioLogado?: UsuarioLogado) {
     this.limparCamposAntigos(dados);
+
+    if (
+      dados.necessidade_acessibilidade_temporaria !== undefined &&
+      dados.necessidade_acessibilidade_permanente !== undefined
+    ) {
+      this.validarFlagsAcessibilidade(dados);
+    }
 
     const aluno = await this.alunoRepository.findOneBy({
       id_aluno: id,
@@ -352,6 +393,22 @@ export class ServiceAluno {
       aluno.foto = dados.foto || null;
     }
 
+    if (dados.necessidade_acessibilidade_temporaria !== undefined) {
+      aluno.necessidade_acessibilidade_temporaria = this.normalizarBooleano(
+        dados.necessidade_acessibilidade_temporaria
+      );
+    }
+
+    if (dados.necessidade_acessibilidade_permanente !== undefined) {
+      aluno.necessidade_acessibilidade_permanente = this.normalizarBooleano(
+        dados.necessidade_acessibilidade_permanente
+      );
+    }
+
+    if (dados.observacao_acessibilidade !== undefined) {
+      aluno.observacao_acessibilidade = dados.observacao_acessibilidade?.trim() || null;
+    }
+
     if (dados.id_condutor !== undefined) {
       aluno.id_condutor = dados.id_condutor ? Number(dados.id_condutor) : null;
     } else if (usuarioLogado && aluno.id_condutor === null) {
@@ -374,29 +431,28 @@ export class ServiceAluno {
   }
 
   async deletar(id_aluno: number) {
-    let idResponsavel: number | null = null;
-
-    await AppDataSource.transaction(async (manager) => {
-      const alunoRepository = manager.getRepository(Aluno);
-      const aluno = await alunoRepository.findOneBy({ id_aluno });
+    const aluno = await this.alunoRepository.findOne({
+      where: { id_aluno },
+    });
 
       if (!aluno) {
         throw new Error("Aluno não encontrado");
       }
 
-      idResponsavel = aluno.id_responsavel;
-
-      // A remoção é atômica: ou toda a árvore é excluída, ou nada muda.
-      // Isso também protege instalações com esquema antigo, sem CASCADE.
-      await manager.getRepository(Presenca).delete({ id_aluno });
-      await manager.getRepository(Mensalidade).delete({ id_aluno });
-      await manager.getRepository(ItinerarioAluno).delete({ id_aluno });
-      await alunoRepository.delete({ id_aluno });
-    });
-
-    if (idResponsavel !== null) {
-      await this.sincronizarQuantidadeAlunos(idResponsavel);
+    /*
+      Mantido por segurança:
+      Mesmo com FK cascade no banco, apagamos dependências diretas antes
+      para evitar conflito em ambientes onde o schema esteja diferente.
+    */
+    await this.presencaRepository.delete({ id_aluno });
+    await this.mensalidadeRepository.delete({ id_aluno });
+    try {
+      await this.itinerarioService.removerPorAluno(id_aluno);
+    } catch (error) {
+      console.error("Falha ao limpar itinerário do aluno excluído:", error);
     }
+
+    await this.alunoRepository.remove(aluno);
 
     return {
       message: "Aluno excluído com sucesso",
