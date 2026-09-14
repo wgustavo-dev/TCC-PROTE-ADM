@@ -201,6 +201,19 @@ export class ServiceAluno {
     throw new Error("Turno inválido. Use MANHA ou TARDE.");
   }
 
+  private normalizarBooleano(valor: any): boolean {
+    if (valor === undefined || valor === null || valor === "") {
+      return false;
+    }
+
+    if (typeof valor === "boolean") {
+      return valor;
+    }
+
+    const texto = String(valor).trim().toLowerCase();
+    return ["1", "true", "yes", "sim", "on"].includes(texto);
+  }
+
   private normalizarTipoTrajeto(tipo: any): "IDA" | "VOLTA" | "AMBOS" | null {
     const valor = String(tipo ?? "").trim().toUpperCase();
 
@@ -239,8 +252,22 @@ export class ServiceAluno {
     return { embarque, desembarque };
   }
 
+  private validarFlagsAcessibilidade(dados: Partial<Aluno> & any) {
+    const temporaria = this.normalizarBooleano(
+      dados.necessidade_acessibilidade_temporaria
+    );
+    const permanente = this.normalizarBooleano(
+      dados.necessidade_acessibilidade_permanente
+    );
+
+    if (temporaria && permanente) {
+      throw new Error("Não é possível marcar necessidade temporária e permanente ao mesmo tempo.");
+    }
+  }
+
   async criar(dados: Partial<Aluno> & any, usuarioLogado?: UsuarioLogado) {
     this.limparCamposAntigos(dados);
+    this.validarFlagsAcessibilidade(dados);
 
     if (!dados.nome?.trim()) {
       throw new Error("Nome do aluno é obrigatório");
@@ -270,6 +297,13 @@ export class ServiceAluno {
       foto: dados.foto || null,
       id_responsavel: responsavel.id_responsavel,
       id_condutor: idCondutor,
+      necessidade_acessibilidade_temporaria: this.normalizarBooleano(
+        dados.necessidade_acessibilidade_temporaria
+      ),
+      necessidade_acessibilidade_permanente: this.normalizarBooleano(
+        dados.necessidade_acessibilidade_permanente
+      ),
+      observacao_acessibilidade: dados.observacao_acessibilidade?.trim() || null,
     });
 
     await this.alunoRepository.save(aluno);
@@ -286,6 +320,13 @@ export class ServiceAluno {
 
   async atualizar(id: number, dados: Partial<Aluno> & any, usuarioLogado?: UsuarioLogado) {
     this.limparCamposAntigos(dados);
+
+    if (
+      dados.necessidade_acessibilidade_temporaria !== undefined &&
+      dados.necessidade_acessibilidade_permanente !== undefined
+    ) {
+      this.validarFlagsAcessibilidade(dados);
+    }
 
     const aluno = await this.alunoRepository.findOneBy({
       id_aluno: id,
@@ -350,6 +391,22 @@ export class ServiceAluno {
 
     if (dados.foto !== undefined) {
       aluno.foto = dados.foto || null;
+    }
+
+    if (dados.necessidade_acessibilidade_temporaria !== undefined) {
+      aluno.necessidade_acessibilidade_temporaria = this.normalizarBooleano(
+        dados.necessidade_acessibilidade_temporaria
+      );
+    }
+
+    if (dados.necessidade_acessibilidade_permanente !== undefined) {
+      aluno.necessidade_acessibilidade_permanente = this.normalizarBooleano(
+        dados.necessidade_acessibilidade_permanente
+      );
+    }
+
+    if (dados.observacao_acessibilidade !== undefined) {
+      aluno.observacao_acessibilidade = dados.observacao_acessibilidade?.trim() || null;
     }
 
     if (dados.id_condutor !== undefined) {

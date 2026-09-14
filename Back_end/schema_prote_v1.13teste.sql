@@ -9,11 +9,26 @@
 -- 3) Suporte a notificações lidas e resolvidas.
 -- 4) Suporte a vínculo da notificação com registros
 --    específicos do sistema.
+-- 5) Adicionados os campos de acessibilidade no aluno:
+--    necessidade_acessibilidade_temporaria,
+--    necessidade_acessibilidade_permanente,
+--    observacao_acessibilidade.
+-- 6) Campo cnh no condutor passou a ser obrigatório e
+--    único para identificar a habilitação do motorista.
 --
 -- v1.12:
 -- 1) presenca.turno diferencia MANHA, TARDE e NOITE.
 -- 2) presença é única por id_aluno + data + turno.
 -- 3) não há migração de registros antigos sem turno.
+--
+-- Observações gerais do banco atual:
+-- - Alunos podem registrar necessidades temporárias ou
+--   permanentes de acessibilidade, além de uma observação
+--   complementar de saúde/deficiência.
+-- - A informação de acessibilidade fica vinculada ao aluno,
+--   sendo exibida nos módulos de Alunos, Itinerário e Presença.
+-- - O condutor possui cadastro obrigatório de CNH, usado
+--   para validação e vínculo do transporte escolar.
 --
 -- Seed incluída:
 -- - 1 condutor
@@ -52,6 +67,7 @@ CREATE TABLE condutor (
     email VARCHAR(100),
     senha VARCHAR(255),
     telefone VARCHAR(20),
+    cnh VARCHAR(11) NOT NULL UNIQUE,
     escolas TEXT,
     foto VARCHAR(255),
     token_recuperacao VARCHAR(255),
@@ -126,6 +142,9 @@ CREATE TABLE aluno (
     tipo_trajeto ENUM('IDA','VOLTA','AMBOS'),
     foto VARCHAR(255),
     dia_vencimento TINYINT,
+    necessidade_acessibilidade_temporaria BOOLEAN DEFAULT FALSE,
+    necessidade_acessibilidade_permanente BOOLEAN DEFAULT FALSE,
+    observacao_acessibilidade TEXT,
 
     id_responsavel INT NOT NULL,
     id_condutor INT,
@@ -393,6 +412,7 @@ INSERT INTO condutor (
     email,
     senha,
     telefone,
+    cnh,
     escolas,
     foto,
     ativo
@@ -401,6 +421,7 @@ INSERT INTO condutor (
     'liametechnologies@gmail.com',
     '$2a$10$S4T6MlgCnSowCx9Vz4X4xeAsO4.G8U5RjnxczS70C/qbni4Q1uDzi',
     '(11) 98888-1234',
+    '02650306461',
     NULL,
     NULL,
     TRUE

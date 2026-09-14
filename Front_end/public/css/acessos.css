@@ -494,3 +494,10 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+/* A regra geral acima usa display:flex !important; portanto o atributo
+   hidden sozinho não consegue ocultar este grupo. */
+#grupoCnhAcesso[hidden],
+#grupoCnhAcesso.is-hidden {
+  display: none !important;
+}

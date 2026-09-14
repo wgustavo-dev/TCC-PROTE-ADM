@@ -175,12 +175,22 @@
       const ordem = Number(item.ordem);
       const existente = alunosPorId.get(id);
 
+      const necessidadeTemporaria = item.necessidade_acessibilidade_temporaria ?? item.necessidadeAcessibilidadeTemporaria ?? item.aluno?.necessidade_acessibilidade_temporaria ?? item.aluno?.necessidadeAcessibilidadeTemporaria ?? false;
+      const necessidadePermanente = item.necessidade_acessibilidade_permanente ?? item.necessidadeAcessibilidadePermanente ?? item.aluno?.necessidade_acessibilidade_permanente ?? item.aluno?.necessidadeAcessibilidadePermanente ?? false;
+      const observacaoAcessibilidade = item.observacao_acessibilidade ?? item.observacaoAcessibilidade ?? item.aluno?.observacao_acessibilidade ?? item.aluno?.observacaoAcessibilidade ?? "";
+
       const aluno = {
         id,
         nome: item.nome || item.aluno?.nome || "Aluno",
         foto: item.foto || item.aluno?.foto || null,
         escola: item.escola || item.aluno?.escola?.nome || null,
         ordem: Number.isFinite(ordem) ? ordem : Number.MAX_SAFE_INTEGER,
+        necessidade_acessibilidade_temporaria: Boolean(necessidadeTemporaria),
+        necessidade_acessibilidade_permanente: Boolean(necessidadePermanente),
+        observacao_acessibilidade: String(observacaoAcessibilidade || ""),
+        necessidadeAcessibilidadeTemporaria: Boolean(necessidadeTemporaria),
+        necessidadeAcessibilidadePermanente: Boolean(necessidadePermanente),
+        observacaoAcessibilidade: String(observacaoAcessibilidade || ""),
       };
 
       if (!existente || aluno.ordem < existente.ordem) {
@@ -235,6 +245,9 @@
         }
 
         const ordem = Number(aluno.ordem);
+        const necessidadeTemporaria = aluno.necessidade_acessibilidade_temporaria ?? aluno.necessidadeAcessibilidadeTemporaria ?? aluno.aluno?.necessidade_acessibilidade_temporaria ?? aluno.aluno?.necessidadeAcessibilidadeTemporaria ?? false;
+        const necessidadePermanente = aluno.necessidade_acessibilidade_permanente ?? aluno.necessidadeAcessibilidadePermanente ?? aluno.aluno?.necessidade_acessibilidade_permanente ?? aluno.aluno?.necessidadeAcessibilidadePermanente ?? false;
+        const observacaoAcessibilidade = aluno.observacao_acessibilidade ?? aluno.observacaoAcessibilidade ?? aluno.aluno?.observacao_acessibilidade ?? aluno.aluno?.observacaoAcessibilidade ?? "";
 
         return {
           ...aluno,
@@ -245,6 +258,12 @@
           foto: aluno.foto || aluno.aluno?.foto || null,
           escola: aluno.escola || aluno.aluno?.escola?.nome || null,
           ordem: Number.isFinite(ordem) ? ordem : index + 1,
+          necessidade_acessibilidade_temporaria: Boolean(necessidadeTemporaria),
+          necessidade_acessibilidade_permanente: Boolean(necessidadePermanente),
+          observacao_acessibilidade: String(observacaoAcessibilidade || ""),
+          necessidadeAcessibilidadeTemporaria: Boolean(necessidadeTemporaria),
+          necessidadeAcessibilidadePermanente: Boolean(necessidadePermanente),
+          observacaoAcessibilidade: String(observacaoAcessibilidade || ""),
         };
       })
       .filter(Boolean);
@@ -366,8 +385,23 @@
     }
 
     listaAlunos.innerHTML = registros
-      .map(
-        (aluno) => `
+      .map((aluno) => {
+        const badges = [];
+        const temporaria = Boolean(aluno.necessidade_acessibilidade_temporaria ?? aluno.necessidadeAcessibilidadeTemporaria ?? false);
+        const permanente = Boolean(aluno.necessidade_acessibilidade_permanente ?? aluno.necessidadeAcessibilidadePermanente ?? false);
+        const observacao = String(aluno.observacao_acessibilidade ?? aluno.observacaoAcessibilidade ?? "").trim();
+
+        if (temporaria) {
+          badges.push('<span class="acessibilidade-badge acessibilidade-badge--temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">♿ Temporária</span>');
+        }
+        if (permanente) {
+          badges.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Permanente</span>');
+        }
+        if (observacao) {
+          badges.push('<span class="acessibilidade-badge acessibilidade-badge--observacao" title="Observação de saúde ou acessibilidade" aria-label="Observação de saúde ou acessibilidade">🩺 Observação</span>');
+        }
+
+        return `
             <div class="aluno-presenca">
               <div class="info-aluno-presenca">
                 <div class="avatar-presenca">
@@ -382,6 +416,8 @@
                   <div class="id-aluno-presenca">
                     ID: ${aluno.id}
                   </div>
+
+                  ${badges.length ? `<div class="acessibilidade-badges">${badges.join("")}</div>` : ""}
                 </div>
               </div>
 
@@ -393,8 +429,8 @@
                 ${aluno.presente ? "Presente" : "Ausente"}
               </button>
             </div>
-          `
-      )
+          `;
+      })
       .join("");
   }
 

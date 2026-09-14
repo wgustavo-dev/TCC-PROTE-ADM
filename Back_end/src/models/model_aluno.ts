@@ -77,6 +77,15 @@ export class Aluno {
   @Column({ type: "tinyint", nullable: true })
   dia_vencimento!: number | null;
 
+  @Column({ type: "boolean", default: false, name: "necessidade_acessibilidade_temporaria" })
+  necessidade_acessibilidade_temporaria!: boolean;
+
+  @Column({ type: "boolean", default: false, name: "necessidade_acessibilidade_permanente" })
+  necessidade_acessibilidade_permanente!: boolean;
+
+  @Column({ type: "text", nullable: true, name: "observacao_acessibilidade" })
+  observacao_acessibilidade!: string | null;
+
   @ManyToOne(() => Responsavel, { nullable: false })
   @JoinColumn({ name: "id_responsavel" })
   responsavel!: Responsavel;

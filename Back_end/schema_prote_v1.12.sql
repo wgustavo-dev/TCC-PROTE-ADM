@@ -45,6 +45,7 @@ CREATE TABLE condutor (
     email VARCHAR(100),
     senha VARCHAR(255),
     telefone VARCHAR(20),
+    cnh VARCHAR(11) UNIQUE,
     escolas TEXT,
     foto VARCHAR(255),
     token_recuperacao VARCHAR(255),
@@ -332,6 +333,7 @@ INSERT INTO condutor (
     email,
     senha,
     telefone,
+    cnh,
     escolas,
     foto,
     ativo
@@ -340,6 +342,7 @@ INSERT INTO condutor (
     'liametechnologies@gmail.com',
     '$2a$10$S4T6MlgCnSowCx9Vz4X4xeAsO4.G8U5RjnxczS70C/qbni4Q1uDzi',
     '(11) 98888-1234',
+    '02650306461',
     NULL,
     NULL,
     TRUE
