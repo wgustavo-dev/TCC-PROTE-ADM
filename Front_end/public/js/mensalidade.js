@@ -847,14 +847,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     configurarBotoes();
     configurarEventosTabela();
     await iniciarFluxoCadastro();
+    abrirMensalidadeDaNotificacao();
   } catch (error) {
     console.error(error);
     showError("Não foi possível carregar as mensalidades.");
-  }
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && fundoModal?.classList.contains("ativo")) {
-    fecharModalSeguroMensalidade();
   }
 });

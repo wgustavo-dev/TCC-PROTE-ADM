@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="css/escolas.css" />
   <link rel="stylesheet" href="core/alerts.css" />
   <link rel="stylesheet" href="../css/perfil-widget.css">
+    <link rel="stylesheet" href="css/notificacoes.css">
 </head>
 
 <body>
@@ -97,6 +98,7 @@
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M5 21V9l7-5 7 5v12"></path><path d="M9 21v-6h6v6"></path><path d="M9 9h.01"></path><path d="M15 9h.01"></path></svg>
           Escolas
         </a>
+
       </nav>
 
       <!-- PERFIL -->
@@ -111,17 +113,60 @@
 
     <main class="main">
       <div class="cabecalho-pagina escolas-cabecalho">
-        <div class="alunos-titulos">
-          <h1 class="page-title">Escolas</h1>
-          <p class="page-sub">
-            Tenha acesso às escolas cadastradas
-          </p>
-        </div>
 
-        <button class="btn-primary" id="btnNovaEscola" type="button">
-          <span>+</span>
-          Nova escola
-        </button>
+<!-- NOTIFICAÇÕES -->
+<div class="notificacoes-container">
+  <button type="button" class="botao-notificacoes" id="botaoNotificacoes"
+    aria-label="Abrir notificações" aria-expanded="false">
+    <svg class="icone-sino" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+    <span class="contador-notificacoes" id="contadorNotificacoes" hidden>0</span>
+  </button>
+
+  <div class="painel-notificacoes" id="painelNotificacoes" hidden>
+    <div class="notificacoes-cabecalho">
+      <div>
+        <h3>Notificações</h3>
+        <span id="textoNotificacoes">Nenhuma nova notificação</span>
+      </div>
+      <button type="button" class="botao-marcar-todas" id="marcarTodasLidas">Ler todas</button>
+    </div>
+
+    <div class="filtros-notificacoes" role="tablist" aria-label="Filtros de notificações">
+      <button type="button" class="filtro-notificacao ativo" data-filtro="todas" aria-selected="true">Todas</button>
+      <button type="button" class="filtro-notificacao" data-filtro="nao-lidas" aria-selected="false">Não lidas</button>
+      <button type="button" class="filtro-notificacao" data-filtro="lidas" aria-selected="false">Lidas</button>
+      <button type="button" class="filtro-notificacao" data-filtro="criticas" aria-selected="false">Críticas</button>
+      <button type="button" class="filtro-notificacao" data-filtro="resolvidas" aria-selected="false">Resolvidas</button>
+    </div>
+
+    <div class="lista-notificacoes" id="listaNotificacoes">
+      <div class="notificacoes-vazio">
+        <div class="notificacao-vazio-icone">✓</div>
+        <strong>Tudo em dia</strong>
+        <span>Você não possui novas notificações.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+        <div class="escolas-cabecalho-conteudo">
+          <div class="alunos-titulos">
+            <h1 class="page-title">Escolas</h1>
+            <p class="page-sub">
+              Tenha acesso às escolas cadastradas
+            </p>
+          </div>
+
+          <button class="btn-primary" id="btnNovaEscola" type="button">
+            <span>+</span>
+            Nova escola
+          </button>
+        </div>
       </div>
 
       <div class="campo-busca">
@@ -236,7 +281,7 @@
           />
         </div>
 
-        <div class="grupo-filtro">
+        <!-- <div class="grupo-filtro">
           <label class="label-filtro" for="alunosCampo">Alunos</label>
 
           <input
@@ -245,7 +290,7 @@
             class="input-filtro"
             disabled
           />
-        </div>
+        </div> -->
 
         <div class="info-box">
           A quantidade de alunos é calculada automaticamente pelos alunos vinculados a esta escola no módulo Alunos.
@@ -277,5 +322,6 @@
   <script type="module" src="js/escolas.js"></script>
   <script src="js/perfil-widget.js"></script>
   <script src="js/perfil-init.js"></script>
+    <script src="js/notificacoes.js"></script>
 </body>
 </html>

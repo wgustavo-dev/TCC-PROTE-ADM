@@ -35,6 +35,17 @@ export class ServiceAluno {
     return AppDataSource.getRepository(Escola);
   }
 
+  private async sincronizarQuantidadeAlunos(idResponsavel: number) {
+    const quantidade = await this.alunoRepository.count({
+      where: { id_responsavel: idResponsavel },
+    });
+
+    await this.responsavelRepository.update(
+      { id_responsavel: idResponsavel },
+      { quantidade_alunos: quantidade }
+    );
+  }
+
   private async validarResponsavel(id_responsavel: any) {
     const idResponsavel = Number(id_responsavel);
 
@@ -262,6 +273,7 @@ export class ServiceAluno {
     });
 
     await this.alunoRepository.save(aluno);
+    await this.sincronizarQuantidadeAlunos(aluno.id_responsavel);
 
     // Gera as entradas do itinerário (ida/volta) se já tiver
     // turno + tipo_trajeto + condutor definidos no cadastro.
@@ -282,6 +294,8 @@ export class ServiceAluno {
     if (!aluno) {
       throw new Error("Aluno não encontrado");
     }
+
+    const idResponsavelAnterior = aluno.id_responsavel;
 
     if (dados.nome !== undefined && !dados.nome.trim()) {
       throw new Error("Nome do aluno é obrigatório");
@@ -345,6 +359,11 @@ export class ServiceAluno {
     }
 
     await this.alunoRepository.save(aluno);
+    await this.sincronizarQuantidadeAlunos(idResponsavelAnterior);
+
+    if (aluno.id_responsavel !== idResponsavelAnterior) {
+      await this.sincronizarQuantidadeAlunos(aluno.id_responsavel);
+    }
 
     // NOVO: sincroniza o itinerário com o turno/tipo_trajeto/condutor
     // atuais do aluno (cria o que falta, remove o que não vale mais,
@@ -355,21 +374,28 @@ export class ServiceAluno {
   }
 
   async deletar(id_aluno: number) {
-    await AppDataSource.transaction(async (manager) => {
-      const alunoRepository = manager.getRepository(Aluno);
-      const aluno = await alunoRepository.findOneBy({ id_aluno });
+    const aluno = await this.alunoRepository.findOne({
+      where: { id_aluno },
+    });
 
       if (!aluno) {
         throw new Error("Aluno não encontrado");
       }
 
-      // A remoção é atômica: ou toda a árvore é excluída, ou nada muda.
-      // Isso também protege instalações com esquema antigo, sem CASCADE.
-      await manager.getRepository(Presenca).delete({ id_aluno });
-      await manager.getRepository(Mensalidade).delete({ id_aluno });
-      await manager.getRepository(ItinerarioAluno).delete({ id_aluno });
-      await alunoRepository.delete({ id_aluno });
-    });
+    /*
+      Mantido por segurança:
+      Mesmo com FK cascade no banco, apagamos dependências diretas antes
+      para evitar conflito em ambientes onde o schema esteja diferente.
+    */
+    await this.presencaRepository.delete({ id_aluno });
+    await this.mensalidadeRepository.delete({ id_aluno });
+    try {
+      await this.itinerarioService.removerPorAluno(id_aluno);
+    } catch (error) {
+      console.error("Falha ao limpar itinerário do aluno excluído:", error);
+    }
+
+    await this.alunoRepository.remove(aluno);
 
     return {
       message: "Aluno excluído com sucesso",

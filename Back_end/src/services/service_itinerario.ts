@@ -116,7 +116,11 @@ export class ServiceItinerario {
     // cria o que está faltando
     for (const esperado of esperados) {
       const jaExiste = await this.itinerarioRepository.findOne({
-        where: { id_aluno: aluno.id_aluno, turno: esperado.periodo, tipo: esperado.tipo },
+        where: {
+          id_aluno: aluno.id_aluno,
+          turno: esperado.periodo,
+          tipo: esperado.tipo,
+        },
       });
 
       if (!jaExiste) {
@@ -129,6 +133,12 @@ export class ServiceItinerario {
           ordem,
         });
         await this.itinerarioRepository.save(novoItem);
+      } else if (jaExiste.id_condutor !== aluno.id_condutor) {
+        // O aluno pode ter sido transferido para outro condutor. Nesse
+        // caso, a entrada existente não pode continuar apontando para a
+        // rota antiga.
+        jaExiste.id_condutor = aluno.id_condutor;
+        await this.itinerarioRepository.save(jaExiste);
       }
     }
   }
@@ -169,7 +179,7 @@ export class ServiceItinerario {
 
     const itens = await this.itinerarioRepository.find({
       where: { id_condutor: idCondutor },
-      relations: { aluno: true },
+      relations: { aluno: { escola: true } },
       order: { turno: "ASC", ordem: "ASC" },
     });
 
@@ -183,6 +193,9 @@ export class ServiceItinerario {
         itemId: String(item.id_itinerario),
         alunoId: item.id_aluno,
         nome: item.aluno.nome,
+        escola: item.aluno.escola?.nome || null,
+        turno: item.turno,
+        ordem: item.ordem,
         endereco,
         tipo: item.tipo.toLowerCase(),
       });

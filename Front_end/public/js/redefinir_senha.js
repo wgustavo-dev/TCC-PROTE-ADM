@@ -1,44 +1,34 @@
-/* =======================================================
-   redefinir_senha.js
-   Lógica exclusiva da tela de Redefinir Senha
-
-   O token vem via query string na URL:
-   redefinir_senha.html?token=abc123
-
-   Fml, para TESTAR sem back-end, tem q abrir:
-   redefinir_senha.html?token=teste123
-
-   Endpoint: POST /auth/redefinir_senha → { token, novaSenha }
-   Sucesso:  redireciona para login.html
-   ======================================================= */
-
 var campNovaSenha = document.getElementById('campNovaSenha');
 var campConfirmarSenha = document.getElementById('campConfirmarSenha');
 var erroRedefinir = document.getElementById('erroRedefinir');
 var botaoSalvarSenha = document.getElementById('botaoSalvarSenha');
 var botaoVerNovaSenha = document.getElementById('botaoVerNovaSenha');
 var botaoVerConfirmarSenha = document.getElementById('botaoVerConfirmarSenha');
-var botaoFechar = document.getElementById('botaoFechar');
+
 var reqMinimo = document.getElementById('reqMinimo');
 var reqLetra = document.getElementById('reqLetra');
 var reqNumero = document.getElementById('reqNumero');
 var reqIguais = document.getElementById('reqIguais');
 
 
-/* -------------------------------------------------------
-   FECHAR — volta para o login
-------------------------------------------------------- */
-botaoFechar.addEventListener('click', function () {
-    window.location.href = 'login.html';
-});
-
-
-/* -------------------------------------------------------
+/* =======================================================
    MOSTRAR / ESCONDER SENHA
-------------------------------------------------------- */
+======================================================= */
+
 function configurarVerSenha(botao, campo) {
-    botao.addEventListener('click', function () {
-        campo.type = campo.type === 'text' ? 'password' : 'text';
+    if (!botao || !campo) return;
+
+    botao.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (campo.type === 'password') {
+            campo.type = 'text';
+            botao.setAttribute('aria-label', 'Ocultar senha');
+        } else {
+            campo.type = 'password';
+            botao.setAttribute('aria-label', 'Mostrar senha');
+        }
     });
 }
 
@@ -46,111 +36,203 @@ configurarVerSenha(botaoVerNovaSenha, campNovaSenha);
 configurarVerSenha(botaoVerConfirmarSenha, campConfirmarSenha);
 
 
-/* -------------------------------------------------------
-   CHECKLIST DE REQUISITOS DA SENHA
-   Atualiza em tempo real enquanto o usuário digita.
-------------------------------------------------------- */
+/* =======================================================
+   CHECKLIST DA SENHA
+======================================================= */
+
 function marcarRequisito(elemento, atendido) {
-    if (atendido) {
-        elemento.classList.add('atendido');
-        elemento.querySelector('svg').innerHTML =
-            '<circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/>';
-    } else {
-        elemento.classList.remove('atendido');
-        elemento.querySelector('svg').innerHTML =
-            '<circle cx="12" cy="12" r="10"/>';
+    if (!elemento) return;
+
+    var svg = elemento.querySelector('svg');
+
+    elemento.classList.toggle('atendido', atendido);
+
+    if (svg) {
+        if (atendido) {
+            svg.innerHTML =
+                '<circle cx="12" cy="12" r="10"></circle>' +
+                '<polyline points="7 12 10 15 17 8"></polyline>';
+        } else {
+            svg.innerHTML =
+                '<circle cx="12" cy="12" r="10"></circle>';
+        }
     }
 }
+
 
 function atualizarChecklist() {
     var nova = campNovaSenha.value;
     var confirmar = campConfirmarSenha.value;
 
     marcarRequisito(reqMinimo, nova.length >= 8);
-    marcarRequisito(reqLetra, /[a-zA-Z]/.test(nova));
-    marcarRequisito(reqNumero, /[0-9]/.test(nova));
-    marcarRequisito(reqIguais, nova.length > 0 && nova === confirmar);
-}
 
-campNovaSenha.addEventListener('input', atualizarChecklist);
-campConfirmarSenha.addEventListener('input', atualizarChecklist);
+    marcarRequisito(
+        reqLetra,
+        /[a-zA-Z]/.test(nova)
+    );
 
-function senhaValida() {
-    var nova = campNovaSenha.value;
-    return (
-        nova.length >= 8 &&
-        /[a-zA-Z]/.test(nova) &&
-        /[0-9]/.test(nova) &&
-        nova === campConfirmarSenha.value
+    marcarRequisito(
+        reqNumero,
+        /[0-9]/.test(nova)
+    );
+
+    marcarRequisito(
+        reqIguais,
+        nova.length > 0 &&
+        confirmar.length > 0 &&
+        nova === confirmar
     );
 }
 
 
-/* -------------------------------------------------------
-   TOKEN DA URL
-   Lê o ?token=... da query string.
-   Para testar: redefinir_senha.html?token=teste123
-------------------------------------------------------- */
-function obterToken() {
-    return new URLSearchParams(window.location.search).get('token') || '';
+if (campNovaSenha) {
+    campNovaSenha.addEventListener('input', atualizarChecklist);
+}
+
+if (campConfirmarSenha) {
+    campConfirmarSenha.addEventListener('input', atualizarChecklist);
 }
 
 
-/* -------------------------------------------------------
-   VALIDAÇÃO
-------------------------------------------------------- */
+/* =======================================================
+   VALIDAR SENHA
+======================================================= */
+
+function senhaValida() {
+    var nova = campNovaSenha.value;
+    var confirmar = campConfirmarSenha.value;
+
+    return (
+        nova.length >= 8 &&
+        /[a-zA-Z]/.test(nova) &&
+        /[0-9]/.test(nova) &&
+        nova === confirmar
+    );
+}
+
+
+/* =======================================================
+   PEGAR TOKEN DA URL
+======================================================= */
+
+function obterToken() {
+    return new URLSearchParams(
+        window.location.search
+    ).get('token') || '';
+}
+
+
+/* =======================================================
+   ESTADO DE CARREGAMENTO
+======================================================= */
+
 function definirCarregando(carregando) {
     botaoSalvarSenha.disabled = carregando;
-    botaoSalvarSenha.textContent = carregando ? 'Aguarde...' : 'Salvar nova senha';
+
+    var texto = botaoSalvarSenha.querySelector('#textoBotaoSalvar');
+
+    if (texto) {
+        texto.textContent = carregando
+            ? 'Aguarde...'
+            : 'Salvar nova senha';
+    }
 }
 
 
-/* -------------------------------------------------------
+/* =======================================================
    SALVAR NOVA SENHA
-   POST /auth/redefinir_senha → redireciona para login.html
-------------------------------------------------------- */
-botaoSalvarSenha.addEventListener('click', async function () {
-    erroRedefinir.textContent = '';
+======================================================= */
 
-    if (!senhaValida()) {
-        erroRedefinir.textContent = 'Verifique os requisitos da senha antes de continuar.';
-        return;
-    }
+if (botaoSalvarSenha) {
 
-    var token = obterToken();
+    botaoSalvarSenha.addEventListener(
+        'click',
+        async function () {
 
-    if (!token) {
-        erroRedefinir.textContent = 'Link inválido ou expirado. Solicite um novo link.';
-        return;
-    }
+            erroRedefinir.textContent = '';
 
-    definirCarregando(true);
+            if (!senhaValida()) {
 
-    try {
-        await window.API.post('/auth/redefinir_senha', {
-            token,
-            novaSenha: campNovaSenha.value
-        });
+                erroRedefinir.textContent =
+                    'Verifique os requisitos da senha antes de continuar.';
 
-        await showSuccess('Senha redefinida com sucesso! Faça login com sua nova senha.');
-        window.location.href = 'login.html';
-
-    } catch (erro) {
-        erroRedefinir.textContent = erro.message || 'Não foi possível redefinir a senha. Tente novamente.';
-    } finally {
-        definirCarregando(false);
-    }
-});
+                return;
+            }
 
 
-/* -------------------------------------------------------
+            var token = obterToken();
+
+            if (!token) {
+
+                erroRedefinir.textContent =
+                    'Link inválido ou expirado. Solicite um novo link.';
+
+                return;
+            }
+
+
+            definirCarregando(true);
+
+
+            try {
+
+                await window.API.post(
+                    '/auth/redefinir_senha',
+                    {
+                        token: token,
+                        novaSenha: campNovaSenha.value
+                    }
+                );
+
+
+                await showSuccess(
+                    'Senha redefinida com sucesso! Faça login com sua nova senha.'
+                );
+
+
+                window.location.href = 'login.html';
+
+
+            } catch (erro) {
+
+                console.error(
+                    'Erro ao redefinir senha:',
+                    erro
+                );
+
+                erroRedefinir.textContent =
+                    erro.message ||
+                    'Não foi possível redefinir a senha. Tente novamente.';
+
+
+            } finally {
+
+                definirCarregando(false);
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =======================================================
    INICIALIZAÇÃO
-   Verifica se tem token na URL. Se não tiver, redireciona
-   para esqueceu_senha.html (link inválido ou expirado).
-------------------------------------------------------- */
-window.addEventListener('DOMContentLoaded', function () {
-    if (!obterToken()) {
-        /* Sem token = acesso inválido — manda para esqueceu a senha */
-        window.location.href = 'esqueceu_senha.html';
+======================================================= */
+
+window.addEventListener(
+    'DOMContentLoaded',
+    function () {
+
+        atualizarChecklist();
+
+        if (!obterToken()) {
+
+            window.location.href =
+                'esqueceu_senha.html';
+
+        }
+
     }
-});
+);
