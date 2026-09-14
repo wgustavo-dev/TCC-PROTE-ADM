@@ -829,6 +829,27 @@ function configurarBotoes() {
 
 }
 
+function abrirMensalidadeDaNotificacao() {
+  const params = new URLSearchParams(window.location.search);
+  const id = Number(params.get("notificacao_mensalidade"));
+
+  if (!id) return;
+
+  const item = mensalidades.find((mensalidade) => Number(mensalidade.id) === id);
+
+  if (!item) {
+    console.warn("[mensalidade] Mensalidade da notificação não encontrada:", id);
+    return;
+  }
+
+  abrirModalEditar(item.id);
+
+  params.delete("notificacao_mensalidade");
+  const novaQuery = params.toString();
+  const novaUrl = window.location.pathname + (novaQuery ? `?${novaQuery}` : "");
+  window.history.replaceState({}, document.title, novaUrl);
+}
+
 /* =========================================================
    INICIALIZAÇÃO
    ========================================================= */
