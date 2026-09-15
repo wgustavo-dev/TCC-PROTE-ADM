@@ -1,9 +1,9 @@
 -- =====================================================
--- SCHEMA PROTE ADM - v1.13
+-- SCHEMA PROTE ADM - v1.14
 -- =====================================================
 -- Estrutura completa + seed de testes
 --
--- Alterações da v1.13:
+-- Alterações da v1.14:
 -- 1) Adicionada tabela de notificações.
 -- 2) Notificações vinculadas ao condutor responsável.
 -- 3) Suporte a notificações lidas e resolvidas.
@@ -15,6 +15,14 @@
 --    observacao_acessibilidade.
 -- 6) Campo cnh no condutor passou a ser obrigatório e
 --    único para identificar a habilitação do motorista.
+-- 7) Presença diferencia IDA e VOLTA pelo campo tipo.
+-- 8) Presença aceita observação opcional para ausências.
+-- 9) A chave única da presença inclui aluno, data, turno e tipo.
+--
+-- v1.13:
+-- 1) Notificações vinculadas ao condutor e aos registros do sistema.
+-- 2) Campos de acessibilidade adicionados ao aluno.
+-- 3) CNH obrigatória e única no condutor.
 --
 -- v1.12:
 -- 1) presenca.turno diferencia MANHA, TARDE e NOITE.
@@ -249,12 +257,15 @@ CREATE TABLE presenca (
     id_aluno INT NOT NULL,
     data DATE NOT NULL,
     turno ENUM('MANHA','TARDE','NOITE') NOT NULL,
+    tipo ENUM('IDA','VOLTA') NOT NULL,
     status ENUM('PRESENTE','AUSENTE') NOT NULL,
+    observacao TEXT NULL,
 
-    UNIQUE KEY uk_presenca_aluno_data_turno (
+    UNIQUE KEY uk_presenca_aluno_data_turno_tipo (
         id_aluno,
         data,
-        turno
+        turno,
+        tipo
     ),
 
     FOREIGN KEY (id_aluno)
@@ -520,14 +531,14 @@ INSERT INTO responsavel (
     '(11) 91111-0004',
     'marcos.rocha@gmail.com',
     'Rua dos Ipês, 55 - Vila Nova',
-    2
+    1
 ),
 (
     'Patricia Gomes Alves',
     '(11) 91111-0005',
     'patricia.alves@gmail.com',
     'Av. Central, 900 - Jardim das Flores',
-    3
+    2
 ),
 (
     'Ricardo Martins Oliveira',
@@ -804,14 +815,15 @@ INSERT INTO presenca (
     id_aluno,
     data,
     turno,
+    tipo,
     status
 ) VALUES
-(4, '2026-08-31', 'MANHA', 'PRESENTE'),
-(1, '2026-08-31', 'MANHA', 'PRESENTE'),
-(7, '2026-08-31', 'MANHA', 'AUSENTE'),
-(6, '2026-08-31', 'MANHA', 'PRESENTE'),
-(2, '2026-08-31', 'MANHA', 'AUSENTE'),
-(5, '2026-08-31', 'MANHA', 'PRESENTE');
+(4, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
+(1, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
+(7, '2026-08-31', 'MANHA', 'IDA', 'AUSENTE'),
+(6, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
+(2, '2026-08-31', 'MANHA', 'IDA', 'AUSENTE'),
+(5, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE');
 
 
 -- TARDE
@@ -820,14 +832,15 @@ INSERT INTO presenca (
     id_aluno,
     data,
     turno,
+    tipo,
     status
 ) VALUES
-(10, '2026-08-31', 'TARDE', 'PRESENTE'),
-(13, '2026-08-31', 'TARDE', 'AUSENTE'),
-(9, '2026-08-31', 'TARDE', 'PRESENTE'),
-(11, '2026-08-31', 'TARDE', 'PRESENTE'),
-(12, '2026-08-31', 'TARDE', 'AUSENTE'),
-(8, '2026-08-31', 'TARDE', 'PRESENTE');
+(10, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE'),
+(13, '2026-08-31', 'TARDE', 'IDA', 'AUSENTE'),
+(9, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE'),
+(11, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE'),
+(12, '2026-08-31', 'TARDE', 'VOLTA', 'AUSENTE'),
+(8, '2026-08-31', 'TARDE', 'VOLTA', 'PRESENTE');
 
 
 -- TESTE CRÍTICO:
@@ -837,9 +850,10 @@ INSERT INTO presenca (
     id_aluno,
     data,
     turno,
+    tipo,
     status
 ) VALUES
-(1, '2026-08-31', 'TARDE', 'PRESENTE');
+(1, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE');
 
 
 -- OUTRA DATA
@@ -848,13 +862,14 @@ INSERT INTO presenca (
     id_aluno,
     data,
     turno,
+    tipo,
     status
 ) VALUES
-(4, '2026-08-29', 'MANHA', 'PRESENTE'),
-(1, '2026-08-29', 'MANHA', 'AUSENTE'),
-(7, '2026-08-29', 'MANHA', 'PRESENTE'),
-(10, '2026-08-29', 'TARDE', 'PRESENTE'),
-(9, '2026-08-29', 'TARDE', 'AUSENTE');
+(4, '2026-08-29', 'MANHA', 'IDA', 'PRESENTE'),
+(1, '2026-08-29', 'MANHA', 'IDA', 'AUSENTE'),
+(7, '2026-08-29', 'MANHA', 'IDA', 'PRESENTE'),
+(10, '2026-08-29', 'TARDE', 'IDA', 'PRESENTE'),
+(9, '2026-08-29', 'TARDE', 'IDA', 'AUSENTE');
 
 
 -- =====================================================
