@@ -489,7 +489,7 @@ function abrirDetalhes(id, linhaClicada) {
     document.createElement('tr');
 
   linhaDetalhesAtual.className =
-    'linha-detalhes-responsavel';
+    'responsavel-detalhes';
 
   linhaDetalhesAtual.innerHTML =
     '<td colspan="5"></td>';
@@ -868,11 +868,18 @@ async function salvarFormulario(e) {
 ========================================================= */
 
 async function confirmarExclusao(nome) {
-  const resultado = await showConfirm(`Tem certeza que deseja excluir ${nome || 'este responsável'}?`, {
-    title: 'Excluir responsável?',
-    confirmButtonText: 'Sim, excluir',
-    cancelButtonText: 'Cancelar'
-  });
+
+  const resultado =
+    await showConfirm(
+      `Ao excluir ${nome || 'este responsável'}, todos os alunos e suas mensalidades, presenças e itinerários também serão excluídos. Deseja continuar?`,
+      {
+        title: 'Excluir responsável?',
+        confirmButtonText:
+          'Sim, excluir',
+        cancelButtonText:
+          'Cancelar'
+      }
+    );
 
   return resultado.isConfirmed;
 }

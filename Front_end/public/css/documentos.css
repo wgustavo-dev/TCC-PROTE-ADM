@@ -45,7 +45,8 @@
 }
 
 .documento-card-resumo {
-  min-height: 150px;
+  min-height: 112px;
+  padding: 16px 18px;
 }
 
 .documento-card-topo {

@@ -1,0 +1,382 @@
+Hoje o objetivo é realizar uma padronização visual completa do sistema PROTE e corrigir problemas de interface, usabilidade e responsividade.
+
+Antes de alterar qualquer código, analise cuidadosamente a estrutura visual e os componentes já existentes no sistema. Sempre que possível, reutilize padrões, componentes, classes e comportamentos que já funcionam, evitando criar soluções duplicadas.
+
+O foco desta tarefa é exclusivamente visual, estrutural e de experiência do usuário. Não altere regras de negócio, endpoints, banco de dados ou funcionalidades do backend, exceto se alguma correção visual depender diretamente de um ajuste mínimo e indispensável.
+
+Execute as alterações seguindo os tópicos abaixo.
+
+1. REESTRUTURAÇÃO DA BARRA LATERAL
+
+Atualmente, a quantidade de módulos presentes na barra lateral faz com que o usuário precise rolar a página para acessar determinados módulos, e isso também pode dificultar o acesso ao perfil.
+
+A área do perfil do usuário não deve rolar junto com a lista de módulos.
+
+Implemente a seguinte estrutura:
+
+* A lista de módulos deve possuir sua própria área rolável.
+* O perfil do usuário deve permanecer sempre visível e fixo na parte inferior da barra lateral.
+* A rolagem da lista de módulos não pode deslocar, esconder ou empurrar o perfil para fora da tela.
+* Entre a lista de módulos e o perfil, deve existir uma separação visual clara.
+
+Também deve existir uma indicação visual para informar ao usuário que existem mais módulos abaixo.
+
+Crie uma seta indicativa flutuante próxima à parte inferior da área rolável com uma indicação equivalente a:
+
+“Role para baixo para visualizar todos os módulos”
+
+Essa indicação deve:
+
+* aparecer apenas quando houver conteúdo oculto abaixo;
+* desaparecer ou deixar de ser necessária quando o usuário chegar ao final da lista;
+* não bloquear o clique nos módulos;
+* não interferir na área fixa do perfil.
+
+O resultado esperado é uma barra lateral onde:
+
+ÁREA DE MÓDULOS = rolável
+
+PERFIL DO USUÁRIO = sempre fixo e visível
+
+2. CENTRALIZAÇÃO DOS TÍTULOS E SUBTÍTULOS
+
+A partir desta atualização, todos os títulos e subtítulos principais das páginas do sistema devem seguir um padrão visual centralizado.
+
+Padronize:
+
+* título principal;
+* subtítulo, quando existir;
+* espaçamento entre título e conteúdo;
+* alinhamento visual entre as diferentes páginas.
+
+Não faça apenas uma centralização isolada em algumas telas. Identifique o padrão de cabeçalho utilizado no sistema e aplique uma solução consistente que possa ser reutilizada.
+
+3. PADRONIZAÇÃO DOS BOTÕES DE CRIAÇÃO
+
+Os seguintes botões devem possuir o mesmo padrão visual:
+
+* * Novo Documento
+* * Novo Acesso
+* * Nova Escola
+* * Novo Orçamento
+* * Nova Despesa
+
+Padronize:
+
+* largura;
+* altura;
+* espaçamento interno;
+* alinhamento;
+* tipografia;
+* comportamento responsivo.
+
+Esses botões devem ficar alinhados à direita da área do título da página, ajudando a equilibrar visualmente o cabeçalho.
+
+Ao implementar esse padrão, tome cuidado para que os botões:
+
+* não sejam encobertos pelo botão de notificações;
+* não sobreponham outros elementos;
+* continuem acessíveis em telas menores;
+* se adaptem corretamente à versão mobile.
+
+O padrão deve ser reutilizável, e não criado individualmente para cada página.
+
+4. ALTERAÇÃO DE NOMENCLATURA
+
+Substitua todas as ocorrências visíveis da palavra:
+
+“Dashboard”
+
+por:
+
+“Painel”
+
+A alteração deve ser consistente em toda a interface do sistema.
+
+Verifique:
+
+* títulos;
+* itens da barra lateral;
+* breadcrumbs, caso existam;
+* textos de interface;
+* referências visíveis ao usuário.
+
+Não altere nomes internos de arquivos, rotas ou variáveis apenas por causa dessa mudança, a menos que seja realmente necessário.
+
+5. LEGENDAS DA BARRA LATERAL E PERMISSÕES DO MONITOR
+
+Atualmente existem legendas que agrupam determinados módulos na barra lateral.
+
+Quando um usuário do tipo ou nível:
+
+“monitor”
+
+não possuir acesso aos módulos pertencentes a determinado grupo, a legenda desse grupo também deve desaparecer.
+
+Não deve ocorrer o seguinte:
+
+Legenda de grupo
+Nenhum módulo disponível abaixo dela.
+
+A regra deve ser:
+
+Se nenhum módulo daquele grupo estiver visível para o usuário, a legenda do grupo também não deve ser exibida.
+
+Se existir pelo menos um módulo visível dentro do grupo, a legenda pode permanecer.
+
+A lógica deve funcionar dinamicamente de acordo com as permissões já existentes.
+
+6. NOVAS LEGENDAS DOS GRUPOS DA BARRA LATERAL
+
+Substitua as legendas atuais da barra lateral pelas seguintes categorias:
+
+* Resumo
+* Financeiro
+* Clientes
+* Administração
+
+Distribua os módulos nas categorias de forma lógica, respeitando a organização e permissões já existentes.
+
+Não altere permissões dos módulos.
+
+A alteração deve ser apenas de organização e apresentação.
+
+7. PERFIL RESUMIDO NA BARRA LATERAL
+
+Na versão resumida do perfil exibida na barra lateral, mostre apenas o primeiro nome do usuário.
+
+Exemplo:
+
+“Wagner Gustavo”
+
+deve ser exibido como:
+
+“Wagner”
+
+Não altere o nome completo armazenado no sistema.
+
+Essa regra vale apenas para a apresentação resumida do perfil na barra lateral.
+
+A solução deve funcionar corretamente para nomes compostos e espaços extras.
+
+8. REFORMULAÇÃO DO MÓDULO ALUNOS
+
+O módulo Alunos deve utilizar como referência visual e estrutural o módulo Responsáveis.
+
+Analise cuidadosamente como a listagem de Responsáveis funciona antes de implementar.
+
+A listagem de Alunos deve ser transformada em uma estrutura de accordion.
+
+Cada aluno deve possuir:
+
+LINHA RESUMIDA
+
+A linha resumida deve apresentar apenas:
+
+* foto do aluno;
+* nome do aluno;
+* escola;
+* nome do responsável.
+
+Toda a linha deve ser clicável.
+
+O usuário deve poder clicar em qualquer área da linha para abrir ou fechar os detalhes.
+
+Não deixe apenas um pequeno botão como área clicável.
+
+ACCORDION / DETALHES
+
+Ao abrir o aluno, devem ser exibidos:
+
+* todos os dados da linha resumida;
+* tipo de trajeto;
+* telefone de contato do responsável;
+* endereço de embarque;
+* endereço de desembarque;
+* botões e ações já existentes para aquele aluno.
+
+Não remova funcionalidades existentes.
+
+A alteração deve reorganizar a apresentação das informações, preservando as ações e recursos que já funcionam.
+
+9. REFORMULAÇÃO DO MÓDULO MENSALIDADES
+
+O módulo Mensalidades também deve seguir como referência o estilo visual e estrutural do módulo Responsáveis.
+
+A listagem deve utilizar accordions.
+
+Cada mensalidade deve possuir uma linha resumida e uma área expandida com informações adicionais.
+
+LINHA RESUMIDA
+
+Exibir:
+
+* foto do aluno;
+* nome do aluno;
+* escola;
+* dia de vencimento;
+* status da mensalidade;
+* botões de ações.
+
+A organização deve permanecer visualmente clara, mesmo em telas menores.
+
+ACCORDION / DETALHES
+
+Ao expandir, exibir:
+
+* todos os dados presentes na linha resumida;
+* nome do responsável;
+* telefone de contato do responsável;
+* demais informações que já existam atualmente e façam sentido permanecer nos detalhes.
+
+Não eliminar informações existentes sem necessidade.
+
+FILTRO DE ESCOLAS
+
+Existe um problema no filtro de escolas do módulo Mensalidades.
+
+Atualmente não é possível selecionar corretamente qual escola deve ser utilizada para filtrar a listagem.
+
+Analise a implementação existente e corrija esse problema.
+
+O usuário deve conseguir:
+
+* visualizar as opções disponíveis;
+* selecionar uma escola;
+* aplicar o filtro corretamente;
+* voltar a visualizar todas as escolas.
+
+A correção deve preservar o funcionamento dos demais filtros.
+
+10. MELHORIAS GERAIS DE UI/UX
+
+Além dos requisitos específicos, faça pequenas melhorias de CSS e interface que contribuam claramente para:
+
+* melhor legibilidade;
+* melhor espaçamento;
+* alinhamento mais consistente;
+* hierarquia visual;
+* áreas clicáveis mais claras;
+* feedback visual em hover e interação;
+* melhor aproveitamento do espaço;
+* redução de elementos visualmente desalinhados.
+
+Não faça uma reformulação completa do design.
+
+Mantenha a identidade visual atual do PROTE e faça melhorias incrementais.
+
+Não adicione efeitos excessivos, animações desnecessárias ou elementos que prejudiquem desempenho ou simplicidade.
+
+11. RESPONSIVIDADE — PRIORIDADE PARA ALUNOS E PRESENÇA
+
+As páginas:
+
+* Alunos
+* Presença
+
+devem receber atenção especial para dispositivos móveis.
+
+Teste e ajuste a interface para diferentes larguras de tela.
+
+Garanta especialmente que:
+
+* nenhum conteúdo importante fique cortado;
+* não seja necessário realizar rolagem horizontal desnecessária;
+* botões continuem acessíveis;
+* accordions funcionem corretamente;
+* informações sejam reorganizadas adequadamente;
+* textos não se sobreponham;
+* a navegação continue clara em telas pequenas;
+* áreas clicáveis sejam adequadas para toque.
+
+Não basta reduzir os elementos usando CSS.
+
+Quando necessário, reorganize o layout para oferecer uma experiência realmente adequada em dispositivos móveis.
+
+12. ANÁLISE ANTES DA IMPLEMENTAÇÃO
+
+Antes de começar as modificações:
+
+1. Analise os arquivos e componentes envolvidos.
+2. Identifique quais estilos são compartilhados.
+3. Identifique como o módulo Responsáveis implementa sua listagem e accordion.
+4. Identifique a estrutura atual da barra lateral.
+5. Identifique como as permissões do Monitor são aplicadas.
+6. Identifique a estrutura dos cabeçalhos das páginas.
+7. Identifique o funcionamento atual do filtro de escolas em Mensalidades.
+
+Não recrie funcionalidades existentes sem necessidade.
+
+Sempre prefira adaptar e reutilizar padrões já funcionais.
+
+Se algum requisito deste pedido entrar em conflito com a arquitetura atual do projeto ou exigir uma decisão que não esteja clara, pare antes de implementar e explique exatamente qual é a dúvida.
+
+Não invente comportamentos.
+
+13. ORDEM DE EXECUÇÃO
+
+Execute o trabalho nesta ordem:
+
+1. Analisar a arquitetura visual atual.
+
+2. Reestruturar a barra lateral e o perfil fixo.
+
+3. Corrigir a lógica das legendas conforme as permissões do Monitor.
+
+4. Atualizar as categorias da barra lateral.
+
+5. Alterar “Dashboard” para “Painel”.
+
+6. Padronizar títulos e subtítulos.
+
+7. Padronizar os botões de criação.
+
+8. Ajustar a exibição resumida do nome do usuário.
+
+9. Reformular a listagem de Alunos utilizando o padrão de Responsáveis.
+
+10. Reformular a listagem de Mensalidades utilizando o padrão de Responsáveis.
+
+11. Corrigir o filtro de escolas em Mensalidades.
+
+12. Aplicar melhorias gerais de UI/UX.
+
+13. Revisar a responsividade de Alunos.
+
+14. Revisar a responsividade de Presença.
+
+15. Fazer uma revisão final procurando problemas visuais, sobreposições, inconsistências e regressões.
+
+16. ENTREGA FINAL
+
+Ao concluir, entregue todos os arquivos alterados ou criados de forma completa e individual.
+
+Não entregue apenas:
+
+* trechos;
+* diffs;
+* pseudocódigo;
+* instruções como “adicione este código”.
+
+Cada arquivo deve ser apresentado integralmente, pronto para substituir ou criar no projeto.
+
+Ao final, informe objetivamente:
+
+* quais arquivos foram alterados;
+* quais arquivos foram criados;
+* quais mudanças foram feitas na barra lateral;
+* como ficou a regra das legendas para o usuário Monitor;
+* quais páginas receberam a padronização de títulos;
+* quais botões foram padronizados;
+* como ficou a estrutura de Alunos;
+* como ficou a estrutura de Mensalidades;
+* como foi corrigido o filtro de escolas;
+* quais melhorias de UI/UX adicionais foram realizadas;
+* quais ajustes de responsividade foram feitos;
+* quais testes visuais e funcionais foram realizados.
+
+PRIORIDADE FINAL
+
+O objetivo não é apenas “deixar bonito”.
+
+O resultado deve tornar o PROTE mais consistente, organizado, responsivo e fácil de utilizar, mantendo a identidade visual existente e sem quebrar funcionalidades que já funcionam.

@@ -88,7 +88,7 @@
     var link = document.createElement("link");
     link.id = "pw-styles";
     link.rel = "stylesheet";
-    link.href = getScriptDir() + "../css/perfil-widget.css";
+    link.href = getScriptDir() + "perfil-widget.css";
     document.head.appendChild(link);
   }
 
@@ -156,6 +156,10 @@
   // Cargo/role: aceita os dois nomes de campo, caso sua API varie.
   function resolveCargo(user) {
     return (user && (user.cargo || user.role)) || "";
+  }
+
+  function primeiroNome(nome) {
+    return String(nome || "Usuário").trim().split(/\s+/).filter(Boolean)[0] || "Usuário";
   }
 
   // Permissão exibida: usa "permissao" se vier pronta da API;
@@ -323,7 +327,7 @@
 
     var cargo = resolveCargo(user);
 
-    els.triggerName.textContent = (user && user.nome) || "Usuário";
+    els.triggerName.textContent = primeiroNome(user && user.nome);
     els.triggerRole.textContent = cargo;
     els.panelName.textContent = (user && user.nome) || "Usuário";
     els.panelRole.textContent = cargo || "—";
