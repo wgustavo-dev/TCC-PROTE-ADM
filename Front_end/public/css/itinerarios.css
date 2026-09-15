@@ -189,15 +189,53 @@
 }
  
 .aluno-item {
+  border-radius: 10px;
+  background: var(--branco);
+  overflow: hidden;
+  cursor: pointer;
+}
+.aluno-item + .aluno-item { margin-top: 2px; }
+.aluno-item:hover { background: #f9fafb; }
+
+/* Linha principal do item — mantém o layout antigo do .aluno-item */
+.aluno-item-linha {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 6px;
-  border-radius: 10px;
-  background: var(--branco);
 }
-.aluno-item + .aluno-item { margin-top: 2px; }
-.aluno-item:hover { background: #f9fafb; }
+
+.aluno-item--cuidado .aluno-item-linha {
+  background: linear-gradient(90deg, rgba(217, 119, 6, 0.06), transparent 60%);
+}
+
+.aluno-item-seta {
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+  color: var(--texto-secundario);
+  font-size: 11px;
+  transition: transform .15s ease;
+}
+.aluno-item[aria-expanded="true"] .aluno-item-seta { transform: rotate(180deg); }
+
+/* Em modo de edição o clique serve para arrastar, não para ver detalhes */
+.periodos-grid.modo-edicao .aluno-item { cursor: default; }
+
+/* Painel de detalhes (observação / cuidado especial) exibido ao clicar na criança */
+.aluno-item-detalhes {
+  margin: 0 6px 8px;
+}
+.item-detalhes-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 12px 14px 14px;
+}
+.item-detalhes-observacao span {
+  white-space: pre-wrap;
+}
+@media (max-width: 520px) {
+  .item-detalhes-grid { grid-template-columns: 1fr; }
+}
  
 .drag-handle {
   display: flex; align-items: center; justify-content: center;

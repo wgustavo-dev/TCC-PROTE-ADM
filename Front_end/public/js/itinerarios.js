@@ -41,29 +41,127 @@
   /* =========================================================
      2) RENDERIZAÇÃO
      ========================================================= */
+  function escaparHTML(valor) {
+    return String(valor || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   function renderizarAluno(item) {
     const li = document.createElement('li');
     li.className = 'aluno-item';
     li.dataset.itemId = item.itemId;   // entrada específica (ida OU volta)
     li.dataset.alunoId = item.alunoId; // aluno real (pode se repetir em 2 entradas)
     li.dataset.tipo = item.tipo;
+    li.setAttribute('role', 'button');
+    li.tabIndex = 0;
+    li.setAttribute('aria-expanded', 'false');
+    li.setAttribute('aria-label', 'Ver detalhes de ' + escaparHTML(item.nome));
+
     const linhaSecundaria = item.escola ? (item.escola + ' • ' + item.endereco) : item.endereco;
+    const temTemporaria = Boolean(item.necessidadeAcessibilidadeTemporaria);
+    const temPermanente = Boolean(item.necessidadeAcessibilidadePermanente);
+    const observacao = (item.observacaoAcessibilidade || '').trim();
+    const temCuidadoEspecial = temTemporaria || temPermanente || Boolean(observacao);
+
     const badges = [];
-    if (item.necessidadeAcessibilidadeTemporaria) badges.push('<span class="acessibilidade-badge acessibilidade-badge--temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">♿ Temporária</span>');
-    if (item.necessidadeAcessibilidadePermanente) badges.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Permanente</span>');
-    if ((item.observacaoAcessibilidade || '').trim()) badges.push('<span class="acessibilidade-badge acessibilidade-badge--observacao" title="Observação de saúde ou acessibilidade" aria-label="Observação de saúde ou acessibilidade">🩺 Observação</span>');
+    if (temTemporaria) badges.push('<span class="acessibilidade-badge acessibilidade-badge--temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">♿ Temporária</span>');
+    if (temPermanente) badges.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Permanente</span>');
+    if (observacao) badges.push('<span class="acessibilidade-badge acessibilidade-badge--observacao" title="Observação de saúde ou acessibilidade" aria-label="Observação de saúde ou acessibilidade">🩺 Observação</span>');
+
+    let textoNecessidade = 'Nenhuma necessidade registrada.';
+    if (temTemporaria && temPermanente) textoNecessidade = 'Temporária e permanente';
+    else if (temTemporaria) textoNecessidade = 'Temporária';
+    else if (temPermanente) textoNecessidade = 'Permanente';
+
     li.innerHTML =
-      '<span class="drag-handle">' + iconeGrip + '</span>' +
-      '<span class="ordem-badge">0</span>' +
-      '<span class="aluno-avatar">' + iconeUsuario + '</span>' +
-      '<span class="aluno-info">' +
-        '<span class="aluno-nome">' + item.nome + '</span>' +
-        '<span class="aluno-endereco">' + linhaSecundaria + '</span>' +
-        (badges.length ? '<span class="aluno-acessibilidade">' + badges.join('') + '</span>' : '') +
-      '</span>' +
-      '<span class="tipo-badge tipo-badge--' + item.tipo + '">' + rotuloTipo[item.tipo] + '</span>';
+      '<div class="aluno-item-linha">' +
+        '<span class="drag-handle">' + iconeGrip + '</span>' +
+        '<span class="ordem-badge">0</span>' +
+        '<span class="aluno-avatar">' + iconeUsuario + '</span>' +
+        '<span class="aluno-info">' +
+          '<span class="aluno-nome">' + item.nome + '</span>' +
+          '<span class="aluno-endereco">' + linhaSecundaria + '</span>' +
+          (badges.length ? '<span class="aluno-acessibilidade">' + badges.join('') + '</span>' : '') +
+        '</span>' +
+        '<span class="tipo-badge tipo-badge--' + item.tipo + '">' + rotuloTipo[item.tipo] + '</span>' +
+        '<span class="aluno-item-seta">▾</span>' +
+      '</div>' +
+      '<div class="accordion-detalhes-painel aluno-item-detalhes" data-detalhes-item-id="' + item.itemId + '" hidden>' +
+        '<div class="accordion-detalhes-cabecalho">' +
+          '<strong>Detalhes do aluno</strong>' +
+          '<span>' + escaparHTML(String(item.nome || 'Aluno').toLocaleUpperCase('pt-BR')) + '</span>' +
+          '<button type="button" class="accordion-detalhes-fechar" data-fechar-detalhes-item aria-label="Fechar detalhes">Fechar</button>' +
+        '</div>' +
+        '<div class="aluno-detalhes-grid item-detalhes-grid">' +
+          '<div><strong>Necessidade de acessibilidade</strong><span>' + escaparHTML(textoNecessidade) + '</span></div>' +
+          '<div class="item-detalhes-observacao"><strong>Observação / cuidado especial</strong><span>' + (observacao ? escaparHTML(observacao) : 'Nenhuma observação registrada.') + '</span></div>' +
+        '</div>' +
+      '</div>';
+
+    li.classList.toggle('aluno-item--cuidado', temCuidadoEspecial);
+
     return li;
   }
+
+  /* =========================================================
+     DETALHES DO ALUNO (clicar em qualquer parte do card para
+     ver observação de saúde / cuidado especial, igual à parte
+     de Alunos)
+     ========================================================= */
+  function fecharTodosOsDetalhes(exceto) {
+    document.querySelectorAll('.aluno-item-detalhes:not([hidden])').forEach((painel) => {
+      if (painel === exceto) return;
+      painel.hidden = true;
+      const card = painel.closest('.aluno-item');
+      if (card) card.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  function alternarDetalhesAluno(itemId) {
+    const li = document.querySelector('.aluno-item[data-item-id="' + itemId + '"]');
+    if (!li) return;
+
+    const painel = li.querySelector('.aluno-item-detalhes');
+    if (!painel) return;
+
+    const abrir = painel.hidden;
+    fecharTodosOsDetalhes(abrir ? painel : null);
+    painel.hidden = !abrir;
+    li.setAttribute('aria-expanded', String(abrir));
+  }
+
+  grid.addEventListener('click', (evento) => {
+    const fechar = evento.target.closest('[data-fechar-detalhes-item]');
+    if (fechar) {
+      const painel = fechar.closest('.aluno-item-detalhes');
+      const card = painel?.closest('.aluno-item');
+      if (painel) painel.hidden = true;
+      if (card) card.setAttribute('aria-expanded', 'false');
+      return;
+    }
+
+    // Em modo de edição (arrastar e soltar) o clique não deve abrir detalhes.
+    if (emEdicao) return;
+
+    const card = evento.target.closest('.aluno-item');
+    if (!card) return;
+
+    alternarDetalhesAluno(card.dataset.itemId);
+  });
+
+  grid.addEventListener('keydown', (evento) => {
+    if (emEdicao) return;
+    if (evento.key !== 'Enter' && evento.key !== ' ') return;
+
+    const card = evento.target.closest('.aluno-item');
+    if (!card) return;
+
+    evento.preventDefault();
+    alternarDetalhesAluno(card.dataset.itemId);
+  });
 
   function renderizarTudo(dados) {
     ['manha', 'tarde', 'noite'].forEach(periodo => {

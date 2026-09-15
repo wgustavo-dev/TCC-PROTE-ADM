@@ -436,9 +436,19 @@
       badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Permanente</span>');
     }
 
-    if (String(item.observacao_acessibilidade ?? item.observacaoAcessibilidade ?? "").trim()) {
+    const observacaoAcessibilidade = String(item.observacao_acessibilidade ?? item.observacaoAcessibilidade ?? "").trim();
+    const temTemporaria = valorBooleano(item.necessidade_acessibilidade_temporaria ?? item.necessidadeAcessibilidadeTemporaria);
+    const temPermanente = valorBooleano(item.necessidade_acessibilidade_permanente ?? item.necessidadeAcessibilidadePermanente);
+    const temCuidadoEspecial = temTemporaria || temPermanente || Boolean(observacaoAcessibilidade);
+
+    if (observacaoAcessibilidade) {
       badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--observacao" title="Observação de saúde ou acessibilidade" aria-label="Observação de saúde ou acessibilidade">🩺 Observação</span>');
     }
+
+    let textoNecessidade = "Nenhuma necessidade registrada.";
+    if (temTemporaria && temPermanente) textoNecessidade = "Temporária e permanente";
+    else if (temTemporaria) textoNecessidade = "Temporária";
+    else if (temPermanente) textoNecessidade = "Permanente";
 
     const observacaoHTML =
       item.status === "AUSENTE"
@@ -452,8 +462,22 @@
         `
         : "";
 
+    const detalhesCuidadoHTML = `
+      <div class="accordion-detalhes-painel aluno-presenca-detalhes" data-detalhes-presenca-id="${item.itemId}" hidden>
+        <div class="accordion-detalhes-cabecalho">
+          <strong>Detalhes do aluno</strong>
+          <span>${escaparAtributoHTML(String(item.nome || "Aluno").toLocaleUpperCase("pt-BR"))}</span>
+          <button type="button" class="accordion-detalhes-fechar" data-fechar-detalhes-presenca aria-label="Fechar detalhes">Fechar</button>
+        </div>
+        <div class="aluno-detalhes-grid item-detalhes-grid">
+          <div><strong>Necessidade de acessibilidade</strong><span>${escaparAtributoHTML(textoNecessidade)}</span></div>
+          <div class="item-detalhes-observacao"><strong>Observação / cuidado especial</strong><span>${observacaoAcessibilidade ? escaparAtributoHTML(observacaoAcessibilidade) : "Nenhuma observação registrada."}</span></div>
+        </div>
+      </div>
+    `;
+
     return `
-      <div class="aluno-presenca" data-nome-pesquisa="${escaparAtributoHTML(normalizarTextoPesquisa(item.nome))}">
+      <div class="aluno-presenca ${temCuidadoEspecial ? "aluno-presenca--cuidado" : ""}" data-item-id="${item.itemId}" data-nome-pesquisa="${escaparAtributoHTML(normalizarTextoPesquisa(item.nome))}" role="button" tabindex="0" aria-expanded="false" aria-label="Ver detalhes de ${escaparAtributoHTML(item.nome)}">
         <div class="linha-principal-presenca">
           <div class="info-aluno-presenca">
             <div class="avatar-presenca">
@@ -485,6 +509,7 @@
         </div>
 
         ${observacaoHTML}
+        ${detalhesCuidadoHTML}
       </div>
     `;
   }
@@ -975,6 +1000,36 @@
   }
 
   // ============================================================
+  // DETALHES DO ALUNO (clicar na criança para ver observação de
+  // saúde / cuidado especial, igual à parte de Alunos)
+  // ============================================================
+
+  function fecharTodosOsDetalhesPresenca(exceto) {
+    if (!listaAlunos) return;
+    listaAlunos.querySelectorAll(".aluno-presenca-detalhes:not([hidden])").forEach((painel) => {
+      if (painel === exceto) return;
+      painel.hidden = true;
+      const card = painel.closest(".aluno-presenca");
+      if (card) card.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function alternarDetalhesPresenca(itemId) {
+    if (!listaAlunos) return;
+
+    const card = listaAlunos.querySelector(`.aluno-presenca[data-item-id="${itemId}"]`);
+    if (!card) return;
+
+    const painel = card.querySelector(".aluno-presenca-detalhes");
+    if (!painel) return;
+
+    const abrir = painel.hidden;
+    fecharTodosOsDetalhesPresenca(abrir ? painel : null);
+    painel.hidden = !abrir;
+    card.setAttribute("aria-expanded", String(abrir));
+  }
+
+  // ============================================================
   // EVENTOS DA LISTA DE CHAMADA
   // ============================================================
 
@@ -992,13 +1047,50 @@
     });
 
     listaAlunos.addEventListener("click", function (evento) {
-      const botao = evento.target.closest(".botao-status");
-
-      if (!botao) {
+      const botaoFechar = evento.target.closest("[data-fechar-detalhes-presenca]");
+      if (botaoFechar) {
+        const painel = botaoFechar.closest(".aluno-presenca-detalhes");
+        const card = painel?.closest(".aluno-presenca");
+        if (painel) painel.hidden = true;
+        if (card) card.setAttribute("aria-expanded", "false");
         return;
       }
 
-      alternarStatus(botao.dataset.itemId);
+      const botao = evento.target.closest(".botao-status");
+      if (botao) {
+        alternarStatus(botao.dataset.itemId);
+        return;
+      }
+
+      // Clique dentro do campo de observação não deve abrir/fechar os detalhes.
+      if (evento.target.closest(".campo-observacao")) {
+        return;
+      }
+
+      const card = evento.target.closest(".aluno-presenca");
+      if (!card) {
+        return;
+      }
+
+      alternarDetalhesPresenca(card.dataset.itemId);
+    });
+
+    listaAlunos.addEventListener("keydown", function (evento) {
+      if (evento.key !== "Enter" && evento.key !== " ") {
+        return;
+      }
+
+      if (evento.target.closest(".campo-observacao") || evento.target.closest(".botao-status")) {
+        return;
+      }
+
+      const card = evento.target.closest(".aluno-presenca");
+      if (!card) {
+        return;
+      }
+
+      evento.preventDefault();
+      alternarDetalhesPresenca(card.dataset.itemId);
     });
 
     // "focusout" (e não "blur") porque precisamos que o evento suba até
