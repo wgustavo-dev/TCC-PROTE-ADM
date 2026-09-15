@@ -181,7 +181,10 @@ function mapearAlunoApi(item) {
     escola: item.escola ? item.escola.nome : "",
     // vencimento: item.vencimento || "",
     tipoTrajeto: item.tipo_trajeto === "IDA" ? "ir" : item.tipo_trajeto === "VOLTA" ? "voltar" : "ambos",
-    periodo: item.turno ? item.turno.toLowerCase() : "manha"
+    periodo: item.turno ? item.turno.toLowerCase() : "manha",
+    necessidade_acessibilidade_temporaria: Boolean(item.necessidade_acessibilidade_temporaria),
+    necessidade_acessibilidade_permanente: Boolean(item.necessidade_acessibilidade_permanente),
+    observacao_acessibilidade: item.observacao_acessibilidade || "",
   };
 }
 
@@ -351,6 +354,38 @@ function configurarPreviewFoto() {
       mostrarPreviewFoto(link);
     });
   }
+
+  if (el.necessidadeAcessibilidadeTemporaria) {
+    el.necessidadeAcessibilidadeTemporaria.addEventListener("change", () => {
+      if (el.necessidadeAcessibilidadeTemporaria.checked && el.necessidadeAcessibilidadePermanente && el.necessidadeAcessibilidadePermanente.checked) {
+        el.necessidadeAcessibilidadePermanente.checked = false;
+      }
+      validarSelecaoAcessibilidade();
+    });
+  }
+
+  if (el.necessidadeAcessibilidadePermanente) {
+    el.necessidadeAcessibilidadePermanente.addEventListener("change", () => {
+      if (el.necessidadeAcessibilidadePermanente.checked && el.necessidadeAcessibilidadeTemporaria && el.necessidadeAcessibilidadeTemporaria.checked) {
+        el.necessidadeAcessibilidadeTemporaria.checked = false;
+      }
+      validarSelecaoAcessibilidade();
+    });
+  }
+}
+
+function validarSelecaoAcessibilidade() {
+  if (!el) return;
+
+  const temporaria = !!(el.necessidadeAcessibilidadeTemporaria && el.necessidadeAcessibilidadeTemporaria.checked);
+  const permanente = !!(el.necessidadeAcessibilidadePermanente && el.necessidadeAcessibilidadePermanente.checked);
+
+  if (temporaria && permanente) {
+    if (el.necessidadeAcessibilidadePermanente) {
+      el.necessidadeAcessibilidadePermanente.checked = false;
+    }
+    showWarning("Não é possível marcar necessidade temporária e permanente ao mesmo tempo.");
+  }
 }
 
 function montarPayloadAluno() {
@@ -363,6 +398,13 @@ function montarPayloadAluno() {
     ? el.escolaAluno.selectedOptions[0].textContent.trim()
     : "";
   const rota = normalizarRotaPorTrajeto({ tipoTrajeto, embarque, desembarque, escola: escolaNome });
+
+  const temporaria = !!(el.necessidadeAcessibilidadeTemporaria && el.necessidadeAcessibilidadeTemporaria.checked);
+  const permanente = !!(el.necessidadeAcessibilidadePermanente && el.necessidadeAcessibilidadePermanente.checked);
+
+  if (temporaria && permanente) {
+    showWarning("Não é possível marcar necessidade temporária e permanente ao mesmo tempo.");
+  }
 
   return {
     id: el.alunoId ? el.alunoId.value || null : null,
@@ -382,6 +424,9 @@ function montarPayloadAluno() {
     endereco_embarque: rota.embarque,
     endereco_desembarque: rota.desembarque,
     foto: el.fotoAluno && el.fotoAluno.files && el.fotoAluno.files[0] ? el.fotoAluno.files[0] : null,
+    necessidade_acessibilidade_temporaria: temporaria,
+    necessidade_acessibilidade_permanente: permanente,
+    observacao_acessibilidade: el.observacaoAcessibilidade ? el.observacaoAcessibilidade.value.trim() : "",
   };
 }
 
@@ -409,6 +454,10 @@ async function salvarAluno(payload, idResponsavel) {
   if (payload.foto) {
     form.append("foto", payload.foto);
   }
+
+  form.append("necessidade_acessibilidade_temporaria", payload.necessidade_acessibilidade_temporaria ? "true" : "false");
+  form.append("necessidade_acessibilidade_permanente", payload.necessidade_acessibilidade_permanente ? "true" : "false");
+  form.append("observacao_acessibilidade", payload.observacao_acessibilidade || "");
 
   if (payload.id) {
     await window.API.put(`/alunos/${payload.id}`, form);
@@ -628,11 +677,28 @@ function renderizarTabela(lista) {
   if (el.emptyState) el.emptyState.style.display = "none";
   
   el.tbodyAlunos.innerHTML = lista
-    .map(
-      (aluno) => `
+    .map((aluno) => {
+      const badgesAcessibilidade = [];
+
+      if (aluno.necessidade_acessibilidade_temporaria || aluno.necessidadeAcessibilidadeTemporaria) {
+        badgesAcessibilidade.push('<span class="badge-acessibilidade temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">♿ Temporária</span>');
+      }
+
+      if (aluno.necessidade_acessibilidade_permanente || aluno.necessidadeAcessibilidadePermanente) {
+        badgesAcessibilidade.push('<span class="badge-acessibilidade permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Permanente</span>');
+      }
+
+      if ((aluno.observacao_acessibilidade || aluno.observacaoAcessibilidade || "").trim()) {
+        badgesAcessibilidade.push('<span class="badge-acessibilidade observacao" title="Observação de saúde/acessibilidade" aria-label="Observação de saúde ou acessibilidade">🩺 Observação</span>');
+      }
+
+      return `
     <tr class="aluno-resumo" data-aluno-id="${aluno.id}" tabindex="0" aria-expanded="false">
       <td><div class="celula-aluno">${aluno.foto ? `<img src="${aluno.foto}" alt="Foto de ${aluno.nome}" class="foto-aluno">` : `<div class="foto-placeholder">SEM FOTO</div>`}</div></td>
-      <td><span class="nome-aluno">${aluno.nome || "-"}</span></td>
+      <td>
+        <span class="nome-aluno">${aluno.nome || "-"}</span>
+        ${badgesAcessibilidade.length ? `<div class="acessibilidade-opcoes">${badgesAcessibilidade.join("")}</div>` : ""}
+      </td>
       <td>${aluno.escola || "-"}</td>
       <td><div class="responsavel-resumo"><strong>${aluno.responsavel1 || "-"}</strong><span>${aluno.telefone1 || "Telefone não informado"}</span></div></td>
       <td>
@@ -663,8 +729,8 @@ function renderizarTabela(lista) {
         </div>
       </td>
     </tr>
-    `
-    )
+    `;
+    })
     .join("");
 }
 
@@ -969,6 +1035,9 @@ function obterElementos() {
     escolaAluno: document.getElementById("escolaAluno"),
     turnoAluno: document.getElementById("turnoAluno"),
     tipoTrajetoAluno: document.getElementById("tipoTrajetoAluno"),
+    necessidadeAcessibilidadeTemporaria: document.getElementById("necessidadeAcessibilidadeTemporaria"),
+    necessidadeAcessibilidadePermanente: document.getElementById("necessidadeAcessibilidadePermanente"),
+    observacaoAcessibilidade: document.getElementById("observacaoAcessibilidade"),
     inputBusca: document.getElementById("inputBusca"),
     tbodyAlunos: document.getElementById("tbodyAlunos"),
     emptyState: document.getElementById("emptyState"),
@@ -1001,6 +1070,9 @@ function abrirModalNovo() {
   }
   if (el.bairroAluno) el.bairroAluno.value = "";
   if (el.linkFotoAluno) el.linkFotoAluno.value = "";
+  if (el.necessidadeAcessibilidadeTemporaria) el.necessidadeAcessibilidadeTemporaria.checked = false;
+  if (el.necessidadeAcessibilidadePermanente) el.necessidadeAcessibilidadePermanente.checked = false;
+  if (el.observacaoAcessibilidade) el.observacaoAcessibilidade.value = "";
   esconderPreviewFoto();
   aplicarVisibilidadeEnderecos();
   if (el.modalOverlay) el.modalOverlay.classList.remove("hidden");
@@ -1021,6 +1093,9 @@ function abrirModalEditar(aluno) {
   if (el.escolaAluno) el.escolaAluno.value = aluno.idEscola || "";
   if (el.tipoTrajetoAluno) el.tipoTrajetoAluno.value = tipoTrajetoParaSelect(aluno.tipoTrajeto);
   if (el.turnoAluno) el.turnoAluno.value = (aluno.periodo || "manha").toUpperCase();
+  if (el.necessidadeAcessibilidadeTemporaria) el.necessidadeAcessibilidadeTemporaria.checked = Boolean(aluno.necessidade_acessibilidade_temporaria || aluno.necessidadeAcessibilidadeTemporaria);
+  if (el.necessidadeAcessibilidadePermanente) el.necessidadeAcessibilidadePermanente.checked = Boolean(aluno.necessidade_acessibilidade_permanente || aluno.necessidadeAcessibilidadePermanente);
+  if (el.observacaoAcessibilidade) el.observacaoAcessibilidade.value = aluno.observacao_acessibilidade || aluno.observacaoAcessibilidade || "";
   if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   aplicarVisibilidadeEnderecos();
   aluno.foto ? mostrarPreviewFoto(aluno.foto) : esconderPreviewFoto();

@@ -196,6 +196,9 @@
           escola: item.escola || null,
           tipo,
           ordem: Number.isFinite(Number(item.ordem)) ? Number(item.ordem) : Number.MAX_SAFE_INTEGER,
+          necessidade_acessibilidade_temporaria: Boolean(item.necessidade_acessibilidade_temporaria ?? item.necessidadeAcessibilidadeTemporaria ?? item.aluno?.necessidade_acessibilidade_temporaria ?? item.aluno?.necessidadeAcessibilidadeTemporaria ?? false),
+          necessidade_acessibilidade_permanente: Boolean(item.necessidade_acessibilidade_permanente ?? item.necessidadeAcessibilidadePermanente ?? item.aluno?.necessidade_acessibilidade_permanente ?? item.aluno?.necessidadeAcessibilidadePermanente ?? false),
+          observacao_acessibilidade: String(item.observacao_acessibilidade ?? item.observacaoAcessibilidade ?? item.aluno?.observacao_acessibilidade ?? item.aluno?.observacaoAcessibilidade ?? ""),
         };
       })
       .filter(Boolean)
@@ -240,6 +243,9 @@
         }
 
         const ordem = Number(item.ordem);
+  const necessidadeTemporaria = item.necessidade_acessibilidade_temporaria ?? item.necessidadeAcessibilidadeTemporaria ?? item.aluno?.necessidade_acessibilidade_temporaria ?? item.aluno?.necessidadeAcessibilidadeTemporaria ?? false;
+  const necessidadePermanente = item.necessidade_acessibilidade_permanente ?? item.necessidadeAcessibilidadePermanente ?? item.aluno?.necessidade_acessibilidade_permanente ?? item.aluno?.necessidadeAcessibilidadePermanente ?? false;
+  const observacaoAcessibilidade = item.observacao_acessibilidade ?? item.observacaoAcessibilidade ?? item.aluno?.observacao_acessibilidade ?? item.aluno?.observacaoAcessibilidade ?? "";
 
         return {
           itemId: String(item.itemId),
@@ -249,6 +255,12 @@
           escola: item.escola || null,
           tipo: String(item.tipo || "ida").toLowerCase(),
           ordem: Number.isFinite(ordem) ? ordem : index + 1,
+          necessidade_acessibilidade_temporaria: Boolean(necessidadeTemporaria),
+          necessidade_acessibilidade_permanente: Boolean(necessidadePermanente),
+          observacao_acessibilidade: String(observacaoAcessibilidade || ""),
+          necessidadeAcessibilidadeTemporaria: Boolean(necessidadeTemporaria),
+          necessidadeAcessibilidadePermanente: Boolean(necessidadePermanente),
+          observacaoAcessibilidade: String(observacaoAcessibilidade || ""),
         };
       })
       .filter(Boolean);
