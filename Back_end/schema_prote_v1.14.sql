@@ -818,12 +818,12 @@ INSERT INTO presenca (
     tipo,
     status
 ) VALUES
-(4, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
-(1, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
-(7, '2026-08-31', 'MANHA', 'IDA', 'AUSENTE'),
-(6, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE'),
-(2, '2026-08-31', 'MANHA', 'IDA', 'AUSENTE'),
-(5, '2026-08-31', 'MANHA', 'IDA', 'PRESENTE');
+(4, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
+(1, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
+(7, '2026-09-12', 'MANHA', 'IDA', 'AUSENTE'),
+(6, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
+(2, '2026-09-12', 'MANHA', 'IDA', 'AUSENTE'),
+(5, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE');
 
 
 -- TARDE
@@ -835,12 +835,12 @@ INSERT INTO presenca (
     tipo,
     status
 ) VALUES
-(10, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE'),
-(13, '2026-08-31', 'TARDE', 'IDA', 'AUSENTE'),
-(9, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE'),
-(11, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE'),
-(12, '2026-08-31', 'TARDE', 'VOLTA', 'AUSENTE'),
-(8, '2026-08-31', 'TARDE', 'VOLTA', 'PRESENTE');
+(10, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
+(13, '2026-09-12', 'TARDE', 'IDA', 'AUSENTE'),
+(9, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
+(11, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
+(12, '2026-09-12', 'TARDE', 'VOLTA', 'AUSENTE'),
+(8, '2026-09-12', 'TARDE', 'VOLTA', 'PRESENTE');
 
 
 -- TESTE CRÍTICO:
@@ -853,7 +853,7 @@ INSERT INTO presenca (
     tipo,
     status
 ) VALUES
-(1, '2026-08-31', 'TARDE', 'IDA', 'PRESENTE');
+(1, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE');
 
 
 -- OUTRA DATA
@@ -865,11 +865,11 @@ INSERT INTO presenca (
     tipo,
     status
 ) VALUES
-(4, '2026-08-29', 'MANHA', 'IDA', 'PRESENTE'),
-(1, '2026-08-29', 'MANHA', 'IDA', 'AUSENTE'),
-(7, '2026-08-29', 'MANHA', 'IDA', 'PRESENTE'),
-(10, '2026-08-29', 'TARDE', 'IDA', 'PRESENTE'),
-(9, '2026-08-29', 'TARDE', 'IDA', 'AUSENTE');
+(4, '2026-09-10', 'MANHA', 'IDA', 'PRESENTE'),
+(1, '2026-09-10', 'MANHA', 'IDA', 'AUSENTE'),
+(7, '2026-09-10', 'MANHA', 'IDA', 'PRESENTE'),
+(10, '2026-09-10', 'TARDE', 'IDA', 'PRESENTE'),
+(9, '2026-09-10', 'TARDE', 'IDA', 'AUSENTE');
 
 
 -- =====================================================
@@ -885,19 +885,19 @@ INSERT INTO mensalidade (
     id_condutor,
     mes_referencia
 ) VALUES
-(1, 480.00, '2026-08-05', NULL,         'ATRASADO', 1, '2026-08'),
-(2, 460.00, '2026-08-10', '2026-08-08', 'PAGO',     1, '2026-08'),
-(3, 450.00, '2026-08-10', NULL,         'ATRASADO', 1, '2026-08'),
-(4, 520.00, '2026-08-12', '2026-08-11', 'PAGO',     1, '2026-08'),
-(5, 500.00, '2026-08-15', NULL,         'ATRASADO', 1, '2026-08'),
-(6, 470.00, '2026-08-18', NULL,         'PENDENTE', 1, '2026-08'),
-(7, 550.00, '2026-08-20', '2026-08-19', 'PAGO',     1, '2026-08'),
-(8, 450.00, '2026-08-10', NULL,         'ATRASADO', 1, '2026-08'),
-(9, 500.00, '2026-08-15', '2026-08-14', 'PAGO',     1, '2026-08'),
-(10, 600.00, '2026-08-16', NULL,         'ATRASADO', 1, '2026-08'),
-(11, 470.00, '2026-08-20', NULL,         'PENDENTE', 1, '2026-08'),
-(12, 430.00, '2026-08-25', NULL,         'PENDENTE', 1, '2026-08'),
-(13, 620.00, '2026-08-28', NULL,         'PENDENTE', 1, '2026-08');
+(1, 480.00, '2026-09-05', NULL,         'ATRASADO', 1, '2026-09'),
+(2, 460.00, '2026-09-10', '2026-09-08', 'PAGO',     1, '2026-09'),
+(3, 450.00, '2026-09-10', NULL,         'ATRASADO', 1, '2026-09'),
+(4, 520.00, '2026-09-12', '2026-09-11', 'PAGO',     1, '2026-09'),
+(5, 500.00, '2026-09-12', NULL,         'ATRASADO', 1, '2026-09'),
+(6, 470.00, '2026-09-14', NULL,         'PENDENTE', 1, '2026-09'),
+(7, 550.00, '2026-09-13', '2026-09-13', 'PAGO',     1, '2026-09'),
+(8, 450.00, '2026-09-10', NULL,         'ATRASADO', 1, '2026-09'),
+(9, 500.00, '2026-09-12', '2026-09-11', 'PAGO',     1, '2026-09'),
+(10, 600.00, '2026-09-14', NULL,         'PENDENTE', 1, '2026-09'),
+(11, 470.00, '2026-09-15', NULL,         'PENDENTE', 1, '2026-09'),
+(12, 430.00, '2026-09-20', NULL,         'PENDENTE', 1, '2026-09'),
+(13, 620.00, '2026-09-25', NULL,         'PENDENTE', 1, '2026-09');
 
 
 -- =====================================================
@@ -933,7 +933,7 @@ INSERT INTO orcamento (
     520.00,
     'PENDENTE',
     FALSE,
-    '2026-08-20',
+    '2026-09-10',
     1
 ),
 (
@@ -949,7 +949,7 @@ INSERT INTO orcamento (
     850.00,
     'PENDENTE',
     FALSE,
-    '2026-08-21',
+    '2026-09-11',
     1
 ),
 (
@@ -965,7 +965,7 @@ INSERT INTO orcamento (
     480.00,
     'EM_CADASTRO',
     FALSE,
-    '2026-08-22',
+    '2026-09-12',
     1
 );
 
@@ -990,15 +990,15 @@ INSERT INTO documento (
 ),
 (
     'CRLV Perua',
-    '2025-08-20',
     '2026-08-20',
+    '2027-08-20',
     'VALIDO',
     1
 ),
 (
     'Vistoria Inspeção DETRAN',
-    '2025-07-01',
-    '2026-07-01',
+    '2026-06-01',
+    '2026-09-01',
     'VENCIDO',
     1
 );
@@ -1019,35 +1019,35 @@ INSERT INTO despesa (
     'Combustível',
     'Abastecimento do veículo escolar - agosto/2026',
     850.00,
-    '2026-08-03',
+    '2026-09-03',
     1
 ),
 (
     'Manutenção',
     'Troca de óleo e revisão preventiva',
     420.00,
-    '2026-08-06',
+    '2026-09-06',
     1
 ),
 (
     'Seguro do veículo',
     'Parcela mensal do seguro do veículo escolar',
     380.00,
-    '2026-08-10',
+    '2026-09-10',
     1
 ),
 (
     'IPVA',
     'Parcela mensal do IPVA 2026',
     210.00,
-    '2026-08-10',
+    '2026-09-10',
     1
 ),
 (
     'Salário do monitor',
     'Pagamento mensal da monitora Fernanda Oliveira Souza',
     1500.00,
-    '2026-08-05',
+    '2026-09-05',
     1
 );
 
@@ -1117,7 +1117,7 @@ INNER JOIN (
 ) primeira_rota
     ON primeira_rota.id_itinerario = ia.id_itinerario
 WHERE
-    p.data = '2026-08-31'
+    p.data = '2026-09-12'
     AND p.turno = 'MANHA'
     AND p.status = 'PRESENTE'
 ORDER BY
@@ -1136,7 +1136,7 @@ SELECT
 FROM presenca
 WHERE
     id_aluno = 1
-    AND data = '2026-08-31'
+    AND data = '2026-09-12'
 ORDER BY turno;
 
 

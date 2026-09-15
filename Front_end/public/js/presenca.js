@@ -196,8 +196,8 @@
           escola: item.escola || null,
           tipo,
           ordem: Number.isFinite(Number(item.ordem)) ? Number(item.ordem) : Number.MAX_SAFE_INTEGER,
-          necessidade_acessibilidade_temporaria: Boolean(item.necessidade_acessibilidade_temporaria ?? item.necessidadeAcessibilidadeTemporaria ?? item.aluno?.necessidade_acessibilidade_temporaria ?? item.aluno?.necessidadeAcessibilidadeTemporaria ?? false),
-          necessidade_acessibilidade_permanente: Boolean(item.necessidade_acessibilidade_permanente ?? item.necessidadeAcessibilidadePermanente ?? item.aluno?.necessidade_acessibilidade_permanente ?? item.aluno?.necessidadeAcessibilidadePermanente ?? false),
+          necessidade_acessibilidade_temporaria: valorBooleano(item.necessidade_acessibilidade_temporaria ?? item.necessidadeAcessibilidadeTemporaria ?? item.aluno?.necessidade_acessibilidade_temporaria ?? item.aluno?.necessidadeAcessibilidadeTemporaria),
+          necessidade_acessibilidade_permanente: valorBooleano(item.necessidade_acessibilidade_permanente ?? item.necessidadeAcessibilidadePermanente ?? item.aluno?.necessidade_acessibilidade_permanente ?? item.aluno?.necessidadeAcessibilidadePermanente),
           observacao_acessibilidade: String(item.observacao_acessibilidade ?? item.observacaoAcessibilidade ?? item.aluno?.observacao_acessibilidade ?? item.aluno?.observacaoAcessibilidade ?? ""),
         };
       })
@@ -255,11 +255,11 @@
           escola: item.escola || null,
           tipo: String(item.tipo || "ida").toLowerCase(),
           ordem: Number.isFinite(ordem) ? ordem : index + 1,
-          necessidade_acessibilidade_temporaria: Boolean(necessidadeTemporaria),
-          necessidade_acessibilidade_permanente: Boolean(necessidadePermanente),
+          necessidade_acessibilidade_temporaria: valorBooleano(necessidadeTemporaria),
+          necessidade_acessibilidade_permanente: valorBooleano(necessidadePermanente),
           observacao_acessibilidade: String(observacaoAcessibilidade || ""),
-          necessidadeAcessibilidadeTemporaria: Boolean(necessidadeTemporaria),
-          necessidadeAcessibilidadePermanente: Boolean(necessidadePermanente),
+          necessidadeAcessibilidadeTemporaria: valorBooleano(necessidadeTemporaria),
+          necessidadeAcessibilidadePermanente: valorBooleano(necessidadePermanente),
           observacaoAcessibilidade: String(observacaoAcessibilidade || ""),
         };
       })
@@ -418,8 +418,27 @@
       .replace(/>/g, "&gt;");
   }
 
+  function valorBooleano(valor) {
+    if (typeof valor === "boolean") return valor;
+    if (typeof valor === "number") return valor === 1;
+    return ["true", "1", "sim", "yes"].includes(String(valor || "").trim().toLowerCase());
+  }
+
   function linhaAlunoHTML(item) {
     const desabilitado = item.salvando ? "disabled" : "";
+    const badgesAcessibilidade = [];
+
+    if (valorBooleano(item.necessidade_acessibilidade_temporaria ?? item.necessidadeAcessibilidadeTemporaria)) {
+      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">♿ Temporária</span>');
+    }
+
+    if (valorBooleano(item.necessidade_acessibilidade_permanente ?? item.necessidadeAcessibilidadePermanente)) {
+      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Permanente</span>');
+    }
+
+    if (String(item.observacao_acessibilidade ?? item.observacaoAcessibilidade ?? "").trim()) {
+      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--observacao" title="Observação de saúde ou acessibilidade" aria-label="Observação de saúde ou acessibilidade">🩺 Observação</span>');
+    }
 
     const observacaoHTML =
       item.status === "AUSENTE"
@@ -451,6 +470,7 @@
                   ? `<div class="escola-aluno-presenca">${item.escola}</div>`
                   : ""
               }
+              ${badgesAcessibilidade.length ? `<div class="acessibilidade-badges">${badgesAcessibilidade.join("")}</div>` : ""}
             </div>
           </div>
 

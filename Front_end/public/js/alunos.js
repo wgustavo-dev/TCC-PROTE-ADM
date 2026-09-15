@@ -168,6 +168,12 @@ function toUrlFoto(pathFoto) {
   return `http://localhost:3000${pathFoto}`;
 }
 
+function valorBooleano(valor) {
+  if (typeof valor === "boolean") return valor;
+  if (typeof valor === "number") return valor === 1;
+  return ["true", "1", "sim", "yes"].includes(String(valor || "").trim().toLowerCase());
+}
+
 function mapearAlunoApi(item) {
   return {
     id: item.id_aluno,
@@ -182,8 +188,8 @@ function mapearAlunoApi(item) {
     // vencimento: item.vencimento || "",
     tipoTrajeto: item.tipo_trajeto === "IDA" ? "ir" : item.tipo_trajeto === "VOLTA" ? "voltar" : "ambos",
     periodo: item.turno ? item.turno.toLowerCase() : "manha",
-    necessidade_acessibilidade_temporaria: Boolean(item.necessidade_acessibilidade_temporaria),
-    necessidade_acessibilidade_permanente: Boolean(item.necessidade_acessibilidade_permanente),
+    necessidade_acessibilidade_temporaria: valorBooleano(item.necessidade_acessibilidade_temporaria),
+    necessidade_acessibilidade_permanente: valorBooleano(item.necessidade_acessibilidade_permanente),
     observacao_acessibilidade: item.observacao_acessibilidade || "",
   };
 }
@@ -680,11 +686,11 @@ function renderizarTabela(lista) {
     .map((aluno) => {
       const badgesAcessibilidade = [];
 
-      if (aluno.necessidade_acessibilidade_temporaria || aluno.necessidadeAcessibilidadeTemporaria) {
+      if (valorBooleano(aluno.necessidade_acessibilidade_temporaria || aluno.necessidadeAcessibilidadeTemporaria)) {
         badgesAcessibilidade.push('<span class="badge-acessibilidade temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">♿ Temporária</span>');
       }
 
-      if (aluno.necessidade_acessibilidade_permanente || aluno.necessidadeAcessibilidadePermanente) {
+      if (valorBooleano(aluno.necessidade_acessibilidade_permanente || aluno.necessidadeAcessibilidadePermanente)) {
         badgesAcessibilidade.push('<span class="badge-acessibilidade permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Permanente</span>');
       }
 
