@@ -82,13 +82,10 @@
   color: #d88a00;
 }
 
-.aba-status.active[data-status="aprovado"] {
+.aba-status.active[data-status="convertido"] {
   color: #16a34a;
 }
 
-.aba-status.active[data-status="reprovado"] {
-  color: var(--vermelho);
-}
 
 /* Busca */
 .caixa-busca-orcamento {

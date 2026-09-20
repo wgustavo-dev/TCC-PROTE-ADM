@@ -429,11 +429,11 @@
     const badgesAcessibilidade = [];
 
     if (valorBooleano(item.necessidade_acessibilidade_temporaria ?? item.necessidadeAcessibilidadeTemporaria)) {
-      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">♿ Temporária</span>');
+      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">✚ Temporária</span>');
     }
 
     if (valorBooleano(item.necessidade_acessibilidade_permanente ?? item.necessidadeAcessibilidadePermanente)) {
-      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Permanente</span>');
+      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Contínua</span>');
     }
 
     const observacaoAcessibilidade = String(item.observacao_acessibilidade ?? item.observacaoAcessibilidade ?? "").trim();
@@ -441,14 +441,11 @@
     const temPermanente = valorBooleano(item.necessidade_acessibilidade_permanente ?? item.necessidadeAcessibilidadePermanente);
     const temCuidadoEspecial = temTemporaria || temPermanente || Boolean(observacaoAcessibilidade);
 
-    if (observacaoAcessibilidade) {
-      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--observacao" title="Observação de saúde ou acessibilidade" aria-label="Observação de saúde ou acessibilidade">🩺 Observação</span>');
-    }
 
     let textoNecessidade = "Nenhuma necessidade registrada.";
     if (temTemporaria && temPermanente) textoNecessidade = "Temporária e permanente";
     else if (temTemporaria) textoNecessidade = "Temporária";
-    else if (temPermanente) textoNecessidade = "Permanente";
+    else if (temPermanente) textoNecessidade = "Contínua";
 
     const observacaoHTML =
       item.status === "AUSENTE"

@@ -293,12 +293,6 @@ function aplicarMascaraEndereco(valor) {
     .slice(0, 255);
 }
 
-function aplicarMascaraBairro(valor) {
-  return String(valor || "")
-    .replace(/[^A-Za-zÀ-ÖØ-öø-ÿ0-9\s\-]/g, "")
-    .replace(/\s{2,}/g, " ")
-    .slice(0, 100);
-}
 
 function validarTurno(valor) {
   const turno = String(valor || "").trim().toUpperCase();
@@ -314,7 +308,7 @@ function configurarMascaras() {
   const camposNome = [el.nomeAluno, el.nomeResponsavel1];
   const camposTelefone = [el.telefoneResponsavel1];
   const camposEndereco = [el.enderecoEmbarque, el.enderecoDesembarque];
-  const camposBairro = [el.bairroAluno];
+  
 
   camposNome.forEach((campo) => campo && campo.addEventListener("input", () => (campo.value = aplicarMascaraNome(campo.value))));
   camposTelefone.forEach((campo) =>
@@ -323,9 +317,7 @@ function configurarMascaras() {
   camposEndereco.forEach((campo) =>
     campo && campo.addEventListener("input", () => (campo.value = aplicarMascaraEndereco(campo.value)))
   );
-  camposBairro.forEach((campo) =>
-    campo && campo.addEventListener("input", () => (campo.value = aplicarMascaraBairro(campo.value)))
-  );
+ 
 }
 
 function configurarAutocompletarResponsavel() {
@@ -453,9 +445,6 @@ async function salvarAluno(payload, idResponsavel) {
     form.append("endereco_desembarque", payload.endereco_desembarque);
   }
 
-  if (payload.bairro) {
-    form.append("bairro", payload.bairro);
-  }
 
   if (payload.foto) {
     form.append("foto", payload.foto);
@@ -607,9 +596,12 @@ function aplicarVisibilidadeEnderecos() {
   const tipo = String(el.tipoTrajetoAluno.value || "").toUpperCase();
   const mostrarEmbarque = tipo !== "VOLTA";
   const mostrarDesembarque = tipo !== "IDA";
-
-  if (el.grupoEnderecoEmbarque) {
-    el.grupoEnderecoEmbarque.style.display = mostrarEmbarque ? "" : "none";
+if (el.grupoEnderecoEmbarque) {
+    if (mostrarEmbarque) {
+      el.grupoEnderecoEmbarque.style.removeProperty("display");
+    } else {
+      el.grupoEnderecoEmbarque.style.setProperty("display", "none", "important");
+    }
   }
   if (el.enderecoEmbarque) {
     el.enderecoEmbarque.required = mostrarEmbarque;
@@ -617,7 +609,11 @@ function aplicarVisibilidadeEnderecos() {
   }
 
   if (el.grupoEnderecoDesembarque) {
-    el.grupoEnderecoDesembarque.style.display = mostrarDesembarque ? "" : "none";
+    if (mostrarDesembarque) {
+      el.grupoEnderecoDesembarque.style.removeProperty("display");
+    } else {
+      el.grupoEnderecoDesembarque.style.setProperty("display", "none", "important");
+    }
   }
   if (el.enderecoDesembarque) {
     el.enderecoDesembarque.required = mostrarDesembarque;
@@ -687,16 +683,13 @@ function renderizarTabela(lista) {
       const badgesAcessibilidade = [];
 
       if (valorBooleano(aluno.necessidade_acessibilidade_temporaria || aluno.necessidadeAcessibilidadeTemporaria)) {
-        badgesAcessibilidade.push('<span class="badge-acessibilidade temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">♿ Temporária</span>');
+        badgesAcessibilidade.push('<span class="badge-acessibilidade temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">✚ Temporária</span>');
       }
 
       if (valorBooleano(aluno.necessidade_acessibilidade_permanente || aluno.necessidadeAcessibilidadePermanente)) {
-        badgesAcessibilidade.push('<span class="badge-acessibilidade permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Permanente</span>');
+        badgesAcessibilidade.push('<span class="badge-acessibilidade permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Contínua</span>');
       }
 
-      if ((aluno.observacao_acessibilidade || aluno.observacaoAcessibilidade || "").trim()) {
-        badgesAcessibilidade.push('<span class="badge-acessibilidade observacao" title="Observação de saúde/acessibilidade" aria-label="Observação de saúde ou acessibilidade">🩺 Observação</span>');
-      }
 
       return `
     <tr class="aluno-resumo" data-aluno-id="${aluno.id}" tabindex="0" aria-expanded="false">
@@ -1029,7 +1022,6 @@ function obterElementos() {
     nomeAluno: document.getElementById("nomeAluno"),
     nomeResponsavel1: document.getElementById("nomeResponsavel1"),
     telefoneResponsavel1: document.getElementById("telefoneResponsavel1"),
-    bairroAluno: document.getElementById("bairroAluno"),
     enderecoEmbarque: document.getElementById("enderecoEmbarque"),
     enderecoDesembarque: document.getElementById("enderecoDesembarque"),
     grupoEnderecoEmbarque: document.getElementById("grupoEnderecoEmbarque"),
@@ -1074,7 +1066,6 @@ function abrirModalNovo() {
     el.telefoneResponsavel1.required = false;
     el.telefoneResponsavel1.readOnly = false;
   }
-  if (el.bairroAluno) el.bairroAluno.value = "";
   if (el.linkFotoAluno) el.linkFotoAluno.value = "";
   if (el.necessidadeAcessibilidadeTemporaria) el.necessidadeAcessibilidadeTemporaria.checked = false;
   if (el.necessidadeAcessibilidadePermanente) el.necessidadeAcessibilidadePermanente.checked = false;
@@ -1089,7 +1080,7 @@ function abrirModalEditar(aluno) {
   if (!el.modalTitulo) return;
   el.modalTitulo.textContent = "Editar aluno";
   if (el.nomeResponsavel1) el.nomeResponsavel1.readOnly = false;
-  if (el.telefoneResponsavel1) el.telefoneResponsavel1.readOnly = false;
+  if (el.telefoneResponsavel1) el.telefoneResponsavel1.readOnly = true;
   if (el.alunoId) el.alunoId.value = aluno.id || "";
   if (el.nomeAluno) el.nomeAluno.value = aplicarMascaraNome(aluno.nome || "");
   if (el.nomeResponsavel1) el.nomeResponsavel1.value = aplicarMascaraNome(aluno.responsavel1 || "");

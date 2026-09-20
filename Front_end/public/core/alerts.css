@@ -41,6 +41,9 @@
   background-color: #d1d5db !important;
 }
 
+.swal2-actions {
+    gap: 14px !important;
+}
 /* Popup "Registrar renovação" (documentos) */
 .prote-input-compacto {
   width: auto !important;
