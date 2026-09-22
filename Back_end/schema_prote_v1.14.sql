@@ -142,6 +142,7 @@ CREATE TABLE escola (
 CREATE TABLE aluno (
     id_aluno INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
+    bairro VARCHAR(100),
     id_escola INT NOT NULL,
     turno ENUM('MANHA','TARDE'),
     endereco_embarque VARCHAR(255),
@@ -554,6 +555,7 @@ INSERT INTO responsavel (
 
 INSERT INTO aluno (
     nome,
+    bairro,
     id_escola,
     turno,
     endereco_embarque,
