@@ -356,19 +356,71 @@ function obterDocumentosFiltrados() {
 }
   
 async function renovarDocumento(documento) {
-  const confirmar = await showConfirm(
-    'Confirma que este documento já foi renovado?'
-  );
-
-  if (!confirmar.isConfirmed) return;
-
   const hoje = new Date().toISOString().split('T')[0];
+
+  const { value: dataRenovacao } = await Swal.fire({
+    title: 'Registrar renovação',
+    html: `
+      <div style="text-align:left;">
+        <label for="swalDataRenovacao" style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:#334155;">
+          Data de renovação
+        </label>
+        <input type="date" id="swalDataRenovacao" class="swal2-input prote-input-compacto" value="${hoje}" max="${hoje}">
+
+        <div class="prote-vigencia-destaque">
+          <span class="prote-vigencia-rotulo">Nova data de vigência</span>
+          <span id="swalNovaValidade" class="prote-vigencia-valor">-</span>
+        </div>
+      </div>
+    `,
+    confirmButtonText: 'Confirmar renovação',
+    cancelButtonText: 'Cancelar',
+    showCancelButton: true,
+    focusConfirm: false,
+    customClass: {
+      popup: 'prote-alert',
+      title: 'prote-alert-title',
+      confirmButton: 'prote-alert-button',
+      cancelButton: 'prote-alert-cancel-button',
+      actions: 'prote-alert-actions-igual'
+    },
+    buttonsStyling: false,
+    didOpen: () => {
+      const input = document.getElementById('swalDataRenovacao');
+      const preview = document.getElementById('swalNovaValidade');
+
+      const atualizarPreview = () => {
+        if (!input.value) {
+          preview.textContent = '-';
+          return;
+        }
+        const validade = calcularValidade(documento.tipo, input.value);
+        preview.textContent = formatarData(validade);
+      };
+
+      atualizarPreview();
+      input.addEventListener('input', atualizarPreview);
+    },
+    preConfirm: () => {
+      const valor = document.getElementById('swalDataRenovacao').value;
+      if (!valor) {
+        Swal.showValidationMessage('Informe a data de renovação.');
+        return false;
+      }
+      return valor;
+    }
+  });
+
+  if (!dataRenovacao) return;
+
+  const novaValidade = calcularValidade(documento.tipo, dataRenovacao);
+  const novoStatus = calcularStatus(novaValidade);
 
   const payload = {
     tipo_documento: documento.tipo,
-    data_emissao: hoje,
-    data_validade: calcularValidade(documento.tipo, hoje),
-    status: 'VALIDO'
+    data_emissao: dataRenovacao,
+    data_validade: novaValidade,
+    status: novoStatus === 'Vencido' ? 'VENCIDO' : 'VALIDO'
   };
 
   try {
@@ -377,7 +429,7 @@ async function renovarDocumento(documento) {
     await carregarDocumentosDoBackend();
     renderizarTudo();
 
-    showSuccess('Documento renovado com sucesso!');
+    showSuccess(`Documento renovado com sucesso! Nova data de vigência: ${formatarData(novaValidade)}`);
   } catch (error) {
     console.error(error);
     showError(error.message || 'Não foi possível renovar o documento.');

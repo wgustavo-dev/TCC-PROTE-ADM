@@ -251,6 +251,15 @@
   border: 1px solid var(--borda);
 }
 
+.aluno-presenca {
+  background: var(--fundo-card);
+  margin: 0 18px 12px;
+  padding: 14px 18px;
+  border-radius: var(--arredondamento-medio);
+  border: 1px solid var(--borda);
+  cursor: pointer;
+}
+
 .linha-principal-presenca {
   display: flex;
   align-items: center;
@@ -262,6 +271,29 @@
   display: flex;
   align-items: center;
   gap: 14px;
+}
+
+.aluno-presenca--cuidado {
+  border-color: rgba(103, 174, 255, 0.35);
+}
+
+.aluno-presenca-detalhes {
+  margin-top: 12px;
+}
+
+.item-detalhes-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 12px 14px 14px;
+}
+
+.item-detalhes-observacao span {
+  white-space: pre-wrap;
+}
+
+@media (max-width: 520px) {
+  .item-detalhes-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .escola-aluno-presenca {
@@ -285,6 +317,14 @@
 
 .campo-observacao:disabled {
   opacity: 0.6;
+}
+
+.aluno-presenca .botao-status,
+.aluno-presenca .campo-observacao {
+  cursor: pointer;
+}
+.aluno-presenca .campo-observacao {
+  cursor: text;
 }
 
 .avatar-presenca {

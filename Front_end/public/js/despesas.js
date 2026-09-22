@@ -316,6 +316,9 @@ botaoNovaDespesa.addEventListener('click', function() {
 
 /* Fecha ao clicar em Cancelar ou fora da caixa do modal */
 botaoCancelar.addEventListener('click', () => fecharModalSeguro(fundoModal, fecharModal));
+document.getElementById('botaoFecharModal').addEventListener('click', function() {
+  fecharModalSeguro(fundoModal, fecharModal);
+});
 fundoModal.addEventListener('click', function(e) {
   if (e.target === fundoModal) fecharModalSeguro(fundoModal, fecharModal);
 });

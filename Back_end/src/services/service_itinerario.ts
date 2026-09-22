@@ -86,62 +86,60 @@ export class ServiceItinerario {
   // período certo. Usada tanto pelo cadastro/edição de aluno (hook
   // chamado de dentro de service_aluno.ts) quanto pela sincronização em
   // massa que roda a cada fetch (sincronizarTodos).
-  async sincronizarAluno(aluno: Aluno): Promise<void> {
+  // DEPOIS
+async sincronizarAluno(aluno: Aluno): Promise<void> {
     const existentes = await this.itinerarioRepository.find({
       where: { id_aluno: aluno.id_aluno },
     });
 
     if (!aluno.id_condutor) {
-      // Sem condutor vinculado não há como saber em qual rota encaixar
-      // o aluno — remove qualquer entrada antiga que tenha sobrado.
       for (const item of existentes) {
         await this.itinerarioRepository.remove(item);
       }
       return;
     }
 
-    const esperados = registrosEsperados(aluno);
+    const tiposNecessarios: TipoRegistro[] = aluno.tipo_trajeto
+      ? TIPOS_POR_TRAJETO[aluno.tipo_trajeto] || []
+      : [];
 
-    // remove o que não é mais válido
+    // Remove só o que não faz mais parte do trajeto do aluno (ex: trajeto
+    // mudou de AMBOS pra IDA, então o registro de VOLTA some). NÃO removemos
+    // por causa do turno — o turno de um registro que já existe pode ter
+    // sido definido manualmente (arrastar-e-soltar no itinerário) e essa
+    // escolha precisa ser preservada entre sincronizações.
     for (const item of existentes) {
-      const aindaVale = esperados.some(
-        (esperado) => esperado.periodo === item.turno && esperado.tipo === item.tipo
-      );
-
-      if (!aindaVale) {
+      if (!tiposNecessarios.includes(item.tipo)) {
         await this.itinerarioRepository.remove(item);
       }
     }
 
-    // cria o que está faltando
-    for (const esperado of esperados) {
-      const jaExiste = await this.itinerarioRepository.findOne({
-        where: {
-          id_aluno: aluno.id_aluno,
-          turno: esperado.periodo,
-          tipo: esperado.tipo,
-        },
-      });
+    // Cria só os tipos (IDA/VOLTA) que ainda não existem pra esse aluno.
+    // O período aqui é só um valor INICIAL, derivado do turno escolar —
+    // depois de criado, o condutor pode mover o item pra outro período
+    // livremente, e essa escolha nunca mais é recalculada por esta função.
+    for (const tipo of tiposNecessarios) {
+      const jaExiste = existentes.find((item) => item.tipo === tipo);
 
       if (!jaExiste) {
-        const ordem = await this.proximaOrdem(aluno.id_condutor, esperado.periodo);
+        const periodoInicial = derivarPeriodo(aluno.turno, tipo);
+        const ordem = await this.proximaOrdem(aluno.id_condutor, periodoInicial);
+
         const novoItem = this.itinerarioRepository.create({
           id_aluno: aluno.id_aluno,
           id_condutor: aluno.id_condutor,
-          turno: esperado.periodo,
-          tipo: esperado.tipo,
+          turno: periodoInicial,
+          tipo,
           ordem,
         });
+
         await this.itinerarioRepository.save(novoItem);
       } else if (jaExiste.id_condutor !== aluno.id_condutor) {
-        // O aluno pode ter sido transferido para outro condutor. Nesse
-        // caso, a entrada existente não pode continuar apontando para a
-        // rota antiga.
         jaExiste.id_condutor = aluno.id_condutor;
         await this.itinerarioRepository.save(jaExiste);
       }
     }
-  }
+}
 
   // Roda a sincronização para TODOS os alunos de um condutor de uma vez.
   // Chamada no início de `listarAgrupado`, então toda vez que a tela de
@@ -211,7 +209,8 @@ export class ServiceItinerario {
   // Recebe { manha: [{itemId, ordem}], tarde: [...], noite: [...] } e
   // grava a nova ordem de arrastar-e-soltar, uma por uma, só para itens
   // que realmente pertencem ao condutor autenticado.
-  async atualizarOrdem(idCondutor: number, payload: Record<string, ItemOrdem[]>): Promise<void> {
+  // DEPOIS
+async atualizarOrdem(idCondutor: number, payload: Record<string, ItemOrdem[]>): Promise<void> {
     const periodos: Periodo[] = ["MANHA", "TARDE", "NOITE"];
 
     await AppDataSource.transaction(async (manager) => {
@@ -224,12 +223,12 @@ export class ServiceItinerario {
         for (const item of itens) {
           await repoTransacional.update(
             { id_itinerario: Number(item.itemId), id_condutor: idCondutor },
-            { ordem: item.ordem }
+            { ordem: item.ordem, turno: periodo } // NOVO: grava também o período pra onde o item foi movido
           );
         }
       }
     });
-  }
+}
 
   // Usada pela exclusão de aluno (service_aluno.ts). Existe separada de
   // sincronizarTodos/sincronizarAluno porque aqui o aluno já não existe

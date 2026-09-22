@@ -325,7 +325,8 @@ function limparFormularioOrcamento() {
       .closest(".grupo-campo")
       ?.style.setProperty(
         "display",
-        "none"
+        "none",
+        "important"
       );
   }
 
@@ -337,7 +338,8 @@ function limparFormularioOrcamento() {
       .closest(".grupo-campo")
       ?.style.setProperty(
         "display",
-        "none"
+        "none",
+        "important"
       );
   }
 }
@@ -366,47 +368,38 @@ function atualizarCamposTrajeto() {
 
 
   if (campoEmbarque) {
-    const grupoEmbarque =
-      campoEmbarque.closest(
-        ".grupo-campo"
-      );
-
-    campoEmbarque.disabled =
-      !permiteEmbarque;
+    const grupoEmbarque = campoEmbarque.closest(".grupo-campo");
+    campoEmbarque.disabled = !permiteEmbarque;
 
     if (grupoEmbarque) {
-      grupoEmbarque.style.display =
-        permiteEmbarque
-          ? ""
-          : "none";
+      if (permiteEmbarque) {
+        grupoEmbarque.style.removeProperty("display");
+      } else {
+        grupoEmbarque.style.setProperty("display", "none", "important");
+      }
     }
 
     if (!permiteEmbarque) {
       campoEmbarque.value = "";
     }
-  }
+}
 
-
-  if (campoDesembarque) {
-    const grupoDesembarque =
-      campoDesembarque.closest(
-        ".grupo-campo"
-      );
-
-    campoDesembarque.disabled =
-      !permiteDesembarque;
+if (campoDesembarque) {
+    const grupoDesembarque = campoDesembarque.closest(".grupo-campo");
+    campoDesembarque.disabled = !permiteDesembarque;
 
     if (grupoDesembarque) {
-      grupoDesembarque.style.display =
-        permiteDesembarque
-          ? ""
-          : "none";
+      if (permiteDesembarque) {
+        grupoDesembarque.style.removeProperty("display");
+      } else {
+        grupoDesembarque.style.setProperty("display", "none", "important");
+      }
     }
 
     if (!permiteDesembarque) {
       campoDesembarque.value = "";
     }
-  }
+}
 }
 
 
