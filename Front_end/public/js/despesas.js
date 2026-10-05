@@ -92,6 +92,19 @@ function formatarDataBR(dataISO) {
   return partes[2] + '/' + partes[1] + '/' + partes[0];
 }
 
+function obterMesAnoAtual() {
+  var hoje = new Date();
+  return hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
+}
+
+function obterDespesasDoMesSelecionado(lista) {
+  var listaBase = Array.isArray(lista) ? lista : [];
+  var mesAno = filtroMesAno && filtroMesAno.value ? filtroMesAno.value : obterMesAnoAtual();
+  return listaBase.filter(function(d) {
+    return d && d.data && String(d.data).slice(0, 7) === mesAno;
+  });
+}
+
 /* Escapa HTML para evitar XSS ao inserir texto via innerHTML */
 function escaparHTML(texto) {
   return String(texto)
@@ -177,12 +190,13 @@ function obterDespesasFiltradas() {
  */
 function renderizar() {
   var filtradas = obterDespesasFiltradas();
+  var despesasDoMes = obterDespesasDoMesSelecionado(despesas);
 
-  /* Cards de resumo — calculados sobre TODAS as despesas,
-     não só as filtradas, para o total não mudar ao buscar */
-  var total = despesas.reduce(function(acc, d) { return acc + d.valor; }, 0);
-  var media = despesas.length ? total / despesas.length : 0;
-  var qtd   = despesas.length;
+  /* Cards de resumo devem refletir o somatório do mês selecionado
+     e não o total geral de todas as despesas já cadastradas. */
+  var total = despesasDoMes.reduce(function(acc, d) { return acc + d.valor; }, 0);
+  var media = despesasDoMes.length ? total / despesasDoMes.length : 0;
+  var qtd = despesasDoMes.length;
 
   totalMensal.textContent        = formatarBRL(total);
   mediaDespesas.textContent      = formatarBRL(media);

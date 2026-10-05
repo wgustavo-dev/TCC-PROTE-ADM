@@ -277,6 +277,16 @@ function mesAnoAtual() {
   return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function obterMensalidadesDoMesSelecionado(lista = mensalidades) {
+  const mesSelecionado = filtroVencimento && filtroVencimento.value
+    ? filtroVencimento.value
+    : mesAnoAtual();
+
+  return (Array.isArray(lista) ? lista : []).filter((item) => {
+    return item && item.vencimento && String(item.vencimento).startsWith(mesSelecionado);
+  });
+}
+
 /* =========================================================
    INICIALIZAÇÃO DO MENU
    ========================================================= */
@@ -589,7 +599,11 @@ function renderizarTabela() {
    ========================================================= */
 
 function atualizarResumo() {
-  const total = mensalidades.reduce((acc, x) => acc + x.valor, 0);
+  const mensalidadesDoMes = obterMensalidadesDoMesSelecionado();
+  const total = mensalidadesDoMes.reduce((acc, x) => acc + x.valor, 0);
+
+  // Os cards de status refletem o universo completo de mensalidades,
+  // independentemente do filtro de mês escolhido no painel.
   const pago = mensalidades.filter((x) => x.status === "pago").length;
   const atrasadas = mensalidades.filter((x) => x.status === "atrasado").length;
   const pendentes = mensalidades.filter((x) => x.status === "pendente").length;
