@@ -33,7 +33,9 @@ const PUBLIC_PATHS = [
   "/",
   "/login.html",
   "/esqueceu_senha.html",
-  "/redefinir_senha.html"
+  "/redefinir_senha.html",
+  "/manifest.webmanifest",
+  "/service-worker.js"
 ];
 
 const PUBLIC_PREFIXES = [
@@ -41,7 +43,8 @@ const PUBLIC_PREFIXES = [
   "/css/",
   "/js/",
   "/core/",
-  "/uploads/"
+  "/uploads/",
+  "/icons/"
 ];
 
 
@@ -121,6 +124,56 @@ app.use(
 
 app.use(
   express.json()
+);
+
+
+/*
+=========================================================
+PWA: injetar manifest, tema e service worker nas páginas HTML
+=========================================================
+*/
+
+app.use(
+  (req, res, next) => {
+
+    const originalSend =
+      res.send.bind(res);
+
+    const pwaTags = `
+      <meta name="theme-color" content="#0f172a" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      <meta name="apple-mobile-web-app-title" content="PROTE" />
+      <link rel="manifest" href="/manifest.webmanifest" />
+      <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+    `;
+
+    res.send = (body: any) => {
+
+      if (
+        typeof body !== "string" ||
+        !(req.path === "/" || req.path.endsWith(".html"))
+      ) {
+        return originalSend(body);
+      }
+
+      const htmlComManifesto =
+        body.replace(
+          /<\/head>/i,
+          `${pwaTags}\n</head>`
+        );
+
+      const htmlFinal =
+        htmlComManifesto.replace(
+          /<\/body>/i,
+          `<script defer src="/core/pwa.js"></script>\n</body>`
+        );
+
+      return originalSend(htmlFinal);
+    };
+
+    next();
+  }
 );
 
 
@@ -231,6 +284,25 @@ app.get(
 ARQUIVOS FRONT-END
 =========================================================
 */
+
+app.use(
+  (req, res, next) => {
+
+    const isPwaAsset =
+      req.path === "/service-worker.js" ||
+      req.path === "/manifest.webmanifest" ||
+      req.path.startsWith("/icons/");
+
+    if (isPwaAsset) {
+      res.setHeader(
+        "Cache-Control",
+        "no-cache, no-store, must-revalidate"
+      );
+    }
+
+    next();
+  }
+);
 
 app.use(
   express.static(
