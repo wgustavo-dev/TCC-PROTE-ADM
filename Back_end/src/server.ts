@@ -14,7 +14,10 @@ dotenv.config();
 
 const app = express();
 
-const link = "http://localhost:3000";
+const link =
+  process.env.APP_URL ||
+  process.env.RENDER_EXTERNAL_URL ||
+  "http://localhost:3000";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "prote_secret";

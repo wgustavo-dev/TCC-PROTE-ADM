@@ -1,5 +1,16 @@
 (function () {
-  const API_BASE_URL = window.API_BASE_URL || "http://localhost:3000/api";
+  function getDefaultApiBaseUrl() {
+    const origin = window.location.origin || "http://localhost:3000";
+    const isLocalhost = /localhost|127\.0\.0\.1/.test(origin);
+
+    if (isLocalhost) {
+      return "http://localhost:3000/api";
+    }
+
+    return `${origin.replace(/\/$/, "")}/api`;
+  }
+
+  const API_BASE_URL = window.API_BASE_URL || getDefaultApiBaseUrl();
   const PUBLIC_PAGES = ["/login.html", "/esqueceu_senha.html", "/redefinir_senha.html"];
   const currentPath = window.location.pathname;
 

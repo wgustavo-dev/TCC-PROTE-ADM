@@ -79,7 +79,8 @@ export class ServiceAuth {
     registro.user.expiracao_recuperacao = expiracao;
 
     await (registro.repository as any).save(registro.user);
-    const resetUrl = `${process.env.APP_URL || "http://localhost:3000"}/redefinir_senha.html?token=${resetToken}`;
+    const appUrl = process.env.APP_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:3000";
+    const resetUrl = `${appUrl}/redefinir_senha.html?token=${resetToken}`;
 
     // Envia o e-mail (se configurado). Se o envio falhar, lança erro para o controlador
     try {
@@ -120,7 +121,7 @@ export class ServiceAuth {
 
   private async enviarEmailRecuperacao(email: string, token: string) {
     const resend = this.createResendClient();
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const appUrl = process.env.APP_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:3000";
     const resetUrl = `${appUrl}/redefinir_senha.html?token=${token}`;
     const fromAddress =
       process.env.EMAIL_FROM || process.env.SMTP_FROM || "PROTE <onboarding@resend.dev>";
