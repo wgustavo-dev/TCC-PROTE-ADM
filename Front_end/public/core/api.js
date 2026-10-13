@@ -11,6 +11,8 @@
   }
 
   const API_BASE_URL = window.API_BASE_URL || getDefaultApiBaseUrl();
+  window.API_BASE_URL = API_BASE_URL;
+  window.API_ORIGIN = new URL(API_BASE_URL, window.location.origin).origin;
   const PUBLIC_PAGES = ["/login.html", "/esqueceu_senha.html", "/redefinir_senha.html"];
   const currentPath = window.location.pathname;
 

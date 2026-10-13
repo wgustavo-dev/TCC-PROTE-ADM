@@ -165,7 +165,7 @@ function initMenu() {
 function toUrlFoto(pathFoto) {
   if (!pathFoto) return "";
   if (pathFoto.startsWith("http")) return pathFoto;
-  return `http://localhost:3000${pathFoto}`;
+  return `${window.API_ORIGIN}${pathFoto}`;
 }
 
 function valorBooleano(valor) {

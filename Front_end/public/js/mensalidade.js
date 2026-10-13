@@ -376,7 +376,7 @@ function mapearMensalidade(item, alunosPorId = new Map()) {
     contato: [aplicarMascaraTelefoneMensalidade(responsavelRelacionado.telefone)].filter(Boolean),
     escola: escolaNome,
     idEscola: escolaId,
-    foto: alunoRelacionado.foto ? `http://localhost:3000${alunoRelacionado.foto}` : "",
+    foto: alunoRelacionado.foto ? `${window.API_ORIGIN}${alunoRelacionado.foto}` : "",
   };
 }
 
