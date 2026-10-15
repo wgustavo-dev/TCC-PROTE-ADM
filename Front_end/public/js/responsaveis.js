@@ -157,6 +157,34 @@ function obterParametrosFluxo() {
    NORMALIZAÇÃO
 ========================================================= */
 
+function normalizarTextoParaComparacao(valor = '') {
+  return String(valor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase();
+}
+
+function encontrarResponsavelDuplicado(dados) {
+  if (!dados || !dados.nome || !dados.telefone) return null;
+
+  const nomeNormalizado = normalizarTextoParaComparacao(dados.nome);
+  const telefoneNormalizado = normalizarTextoParaComparacao(dados.telefone);
+  const enderecoNormalizado = normalizarTextoParaComparacao(dados.endereco || '');
+
+  return responsaveis.find((item) => {
+    const nomeItem = normalizarTextoParaComparacao(item.nome || '');
+    const telefoneItem = normalizarTextoParaComparacao(item.telefone || '');
+    const enderecoItem = normalizarTextoParaComparacao(item.endereco || '');
+
+    const mesmoNome = nomeItem === nomeNormalizado;
+    const mesmoTelefone = telefoneItem === telefoneNormalizado;
+    const mesmoEndereco = !enderecoNormalizado || enderecoItem === enderecoNormalizado || !enderecoItem;
+
+    return (mesmoNome && mesmoTelefone) || (mesmoTelefone && mesmoEndereco);
+  }) || null;
+}
+
 function normalizarResponsavel(item) {
   return {
     id: item.id_responsavel,
@@ -218,6 +246,23 @@ async function carregarOrcamentoDoFluxo() {
     );
 
     orcamentoFluxo = orcamento;
+
+    const responsavelExistente = encontrarResponsavelDuplicado({
+      nome: orcamento.nome_responsavel || '',
+      telefone: orcamento.telefone || '',
+      endereco: orcamento.endereco_embarque || ''
+    });
+
+    if (responsavelExistente) {
+      const params = new URLSearchParams();
+      params.set('fluxo', 'orcamento');
+      params.set('id_orcamento', String(idOrcamentoFluxo));
+      params.set('id_responsavel', String(responsavelExistente.id));
+      params.set('alunoAtual', '1');
+      params.set('totalAlunos', String(Number(orcamento.quantidade_alunos || responsavelExistente.quantidade || 1)));
+      window.location.href = `alunos.html?${params.toString()}`;
+      return;
+    }
 
     abrirModal(false, null, true);
 
@@ -834,6 +879,27 @@ async function salvarFormulario(e) {
 
       showSuccess(
         'Responsável atualizado com sucesso.'
+      );
+
+      return;
+    }
+
+    const responsavelExistente =
+      encontrarResponsavelDuplicado(
+        payload
+      );
+
+    if (responsavelExistente) {
+      modalOverlay.classList.add(
+        'hidden'
+      );
+
+      redirecionarParaAluno(
+        {
+          id_responsavel:
+            responsavelExistente.id
+        },
+        payload.quantidade_alunos
       );
 
       return;
