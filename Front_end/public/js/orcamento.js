@@ -506,7 +506,7 @@ function normalizarStatus(
        */
       valor: "em_cadastro",
       texto: "EM CADASTRO",
-      classe: "pendente",
+      classe: "em-cadastro",
     },
 
     CONVERTIDO: {
@@ -764,8 +764,53 @@ function renderizarOrcamentos() {
 
   tabelaLinhas.innerHTML =
     filtrados
-      .map(
-        (o) => `
+      .map((o) => {
+        const botaoContinuar =
+          o.status === "em_cadastro"
+            ? `
+              <button
+                class="botao-acao continuar-cadastro"
+                data-id="${o.id}"
+                title="Continuar cadastro"
+              >
+                Continuar
+              </button>
+            `
+            : `
+              <button
+                class="
+                  botao-acao
+                  aprovar
+                "
+                data-id="${o.id}"
+                title="Aprovar"
+                ${
+                  o.status !==
+                  "pendente"
+                    ? "disabled"
+                    : ""
+                }
+              >
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline
+                    points="
+                      20 6
+                      9 17
+                      4 12
+                    "
+                  ></polyline>
+                </svg>
+
+              </button>
+            `;
+
+        return `
           <tr>
 
             <td>
@@ -806,39 +851,7 @@ function renderizarOrcamentos() {
                   Editar
                 </button>
 
-
-                <button
-                  class="
-                    botao-acao
-                    aprovar
-                  "
-                  data-id="${o.id}"
-                  title="Aprovar"
-                  ${
-                    o.status !==
-                    "pendente"
-                      ? "disabled"
-                      : ""
-                  }
-                >
-
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <polyline
-                      points="
-                        20 6
-                        9 17
-                        4 12
-                      "
-                    ></polyline>
-                  </svg>
-
-                </button>
-
+                ${botaoContinuar}
 
                 <button
                   class="
@@ -902,8 +915,8 @@ function renderizarOrcamentos() {
             </td>
 
           </tr>
-        `
-      )
+        `;
+      })
       .join("");
 
 
@@ -1072,6 +1085,44 @@ async function handleTabelaClick(
 
 
   // ----------------------------------------------------------
+  // CONTINUAR CADASTRO
+  // ----------------------------------------------------------
+
+  if (
+    btn.classList.contains(
+      "continuar-cadastro"
+    )
+  ) {
+    const confirmado =
+      await showConfirm(
+        "Continuar o cadastro deste orçamento?"
+      );
+
+    if (
+      confirmado.isConfirmed
+    ) {
+      const params =
+        new URLSearchParams();
+
+      params.set(
+        "fluxo",
+        "orcamento"
+      );
+
+      params.set(
+        "id_orcamento",
+        String(id)
+      );
+
+      window.location.href =
+        `responsaveis.html?${params.toString()}`;
+    }
+
+    return;
+  }
+
+
+  // ----------------------------------------------------------
   // APROVAR
   // ----------------------------------------------------------
 
@@ -1108,7 +1159,7 @@ async function handleTabelaClick(
   ) {
     const confirmado =
       await showConfirm(
-        "Excluir este orçamento?"
+        "Excluir este orçamento?\n\nEssa ação também removerá o responsável, os alunos e as mensalidades já cadastrados no fluxo para evitar registros órfãos no sistema."
       );
 
     if (
