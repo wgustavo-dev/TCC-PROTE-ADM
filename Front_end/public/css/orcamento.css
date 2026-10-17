@@ -82,6 +82,10 @@
   color: #d88a00;
 }
 
+.aba-status.active[data-status="em_cadastro"] {
+  color: var(--cor-principal);
+}
+
 .aba-status.active[data-status="convertido"] {
   color: #16a34a;
 }
@@ -178,12 +182,17 @@
 }
 
 .status-pendente {
-  background: #fecaca;
-  color: var(--vermelho);
+  background: #fef3c7;
+  color: #d88a00;
+}
+
+.status-em-cadastro {
+  background: #dbeafe;
+  color: var(--cor-principal);
 }
 
 .status-aprovado {
-  background: #d9f99d;
+  background: #dcfce7;
   color: #16a34a;
 }
 
@@ -212,8 +221,18 @@
 
 /* Editar — azul */
 .botao-acao.editar,
-.botao-acao.editar svg    { color: var(--cor-principal); stroke: currentColor; }
-.botao-acao.editar:hover  { background: var(--cor-principal-clara); }
+.botao-acao.editar svg,
+.botao-acao.continuar-cadastro,
+.botao-acao.continuar-cadastro svg {
+  color: var(--cor-principal);
+  stroke: currentColor;
+}
+.botao-acao.editar:hover,
+.botao-acao.continuar-cadastro:hover { background: var(--cor-principal-clara); }
+
+.botao-acao.continuar-cadastro {
+  font-weight: 400;
+}
 
 /* Aprovar — verde */
 .botao-acao.aprovar svg         { stroke: #16a34a; }

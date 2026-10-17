@@ -1,5 +1,10 @@
 import { AppDataSource } from '../config/database';
 import { Orcamento } from '../models/model_orcamento';
+import { Responsavel } from '../models/model_responsavel';
+import { Aluno } from '../models/model_aluno';
+import { Mensalidade } from '../models/model_mensalidade';
+import { Presenca } from '../models/model_presenca';
+import { ItinerarioAluno } from '../models/model_itinerario';
 
 export class ServiceOrcamento {
   private normalizarTextoCurto(
@@ -266,6 +271,48 @@ export class ServiceOrcamento {
   // DELETAR
   // =========================================================
 
+  private normalizarBuscaTexto(valor: unknown): string {
+    return String(valor ?? '').trim().replace(/\s+/g, ' ');
+  }
+
+  private normalizarBuscaTelefone(valor: unknown): string {
+    return String(valor ?? '').replace(/\D/g, '');
+  }
+
+  private async excluirFluxoVinculado(orcamento: Orcamento) {
+    const nomeBusca = this.normalizarBuscaTexto(orcamento.nome_responsavel);
+    const telefoneBusca = this.normalizarBuscaTelefone(orcamento.telefone);
+
+    if (!nomeBusca || !telefoneBusca) {
+      return;
+    }
+
+    const responsaveis = await AppDataSource.getRepository(Responsavel).find();
+
+    const candidatos = responsaveis.filter((responsavel) => {
+      const nome = this.normalizarBuscaTexto(responsavel.nome);
+      const telefone = this.normalizarBuscaTelefone(responsavel.telefone);
+
+      return nome === nomeBusca && telefone === telefoneBusca;
+    });
+
+    for (const responsavel of candidatos) {
+      const alunos = await AppDataSource.getRepository(Aluno).find({
+        where: { id_responsavel: responsavel.id_responsavel },
+        select: { id_aluno: true },
+      });
+
+      for (const aluno of alunos) {
+        await AppDataSource.getRepository(Presenca).delete({ id_aluno: aluno.id_aluno });
+        await AppDataSource.getRepository(Mensalidade).delete({ id_aluno: aluno.id_aluno });
+        await AppDataSource.getRepository(ItinerarioAluno).delete({ id_aluno: aluno.id_aluno });
+      }
+
+      await AppDataSource.getRepository(Aluno).delete({ id_responsavel: responsavel.id_responsavel });
+      await AppDataSource.getRepository(Responsavel).delete({ id_responsavel: responsavel.id_responsavel });
+    }
+  }
+
   async deletar(
     id_orcamento: number
   ) {
@@ -284,9 +331,45 @@ export class ServiceOrcamento {
       );
     }
 
-    await orcamentoRepository.remove(
-      orcamento
-    );
+    await AppDataSource.transaction(async (manager) => {
+      const responsavelRepository = manager.getRepository(Responsavel);
+      const alunoRepository = manager.getRepository(Aluno);
+      const mensalidadeRepository = manager.getRepository(Mensalidade);
+      const presencaRepository = manager.getRepository(Presenca);
+      const itinerarioRepository = manager.getRepository(ItinerarioAluno);
+
+      const nomeBusca = this.normalizarBuscaTexto(orcamento.nome_responsavel);
+      const telefoneBusca = this.normalizarBuscaTelefone(orcamento.telefone);
+
+      if (nomeBusca && telefoneBusca) {
+        const responsaveis = await responsavelRepository.find();
+
+        for (const responsavel of responsaveis) {
+          const nome = this.normalizarBuscaTexto(responsavel.nome);
+          const telefone = this.normalizarBuscaTelefone(responsavel.telefone);
+
+          if (nome !== nomeBusca || telefone !== telefoneBusca) {
+            continue;
+          }
+
+          const alunos = await alunoRepository.find({
+            where: { id_responsavel: responsavel.id_responsavel },
+            select: { id_aluno: true },
+          });
+
+          for (const aluno of alunos) {
+            await presencaRepository.delete({ id_aluno: aluno.id_aluno });
+            await mensalidadeRepository.delete({ id_aluno: aluno.id_aluno });
+            await itinerarioRepository.delete({ id_aluno: aluno.id_aluno });
+          }
+
+          await alunoRepository.delete({ id_responsavel: responsavel.id_responsavel });
+          await responsavelRepository.delete({ id_responsavel: responsavel.id_responsavel });
+        }
+      }
+
+      await manager.getRepository(Orcamento).remove(orcamento);
+    });
 
     return {
       message:

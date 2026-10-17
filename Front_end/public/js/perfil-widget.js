@@ -88,7 +88,7 @@
     var link = document.createElement("link");
     link.id = "pw-styles";
     link.rel = "stylesheet";
-    link.href = getScriptDir() + "perfil-widget.css";
+    link.href = getScriptDir() + "../css/perfil-widget.css";
     document.head.appendChild(link);
   }
 

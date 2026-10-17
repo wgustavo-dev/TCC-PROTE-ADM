@@ -2,11 +2,6 @@
 // CONFIGURAÇÃO DA API
 // ============================================================
 
-const API_BASE_URL =
-  window.API_BASE_URL ||
-  "http://localhost:3000/api";
-
-
 // ============================================================
 // ELEMENTOS DA PÁGINA
 // ============================================================
@@ -83,96 +78,9 @@ let idEmEdicao = null;
 
 
 // ============================================================
-// REQUEST
-// ============================================================
-
-async function request(
-  path,
-  options = {}
-) {
-  const token =
-    window.localStorage.getItem(
-      "prote_token"
-    );
-
-  const headers = {
-    ...(options.headers || {}),
-  };
-
-  if (token) {
-    headers.Authorization =
-      `Bearer ${token}`;
-  }
-
-  if (
-    !(options.body instanceof FormData) &&
-    options.body !== undefined &&
-    headers["Content-Type"] === undefined
-  ) {
-    headers["Content-Type"] =
-      "application/json";
-  }
-
-  const response = await fetch(
-    `${API_BASE_URL}${path}`,
-    {
-      ...options,
-      headers,
-      credentials: "include",
-    }
-  );
-
-  const contentType =
-    response.headers.get(
-      "content-type"
-    ) || "";
-
-  const payload =
-    contentType.includes(
-      "application/json"
-    )
-      ? await response.json()
-      : null;
-
-  if (!response.ok) {
-    const message =
-      payload?.error ||
-      payload?.erro ||
-      payload?.message ||
-      `Erro HTTP ${response.status}`;
-
-    throw new Error(message);
-  }
-
-  return payload;
-}
-
-
-const api = {
-  get: (path) =>
-    request(path, {
-      method: "GET",
-    }),
-
-  post: (path, body) =>
-    request(path, {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
-
-  put: (path, body) =>
-    request(path, {
-      method: "PUT",
-      body: JSON.stringify(
-        body ?? {}
-      ),
-    }),
-
-  del: (path) =>
-    request(path, {
-      method: "DELETE",
-    }),
-};
+// A camada compartilhada em core/api.js resolve a API conforme o ambiente
+// e também aplica autenticação, cookies e tratamento de sessão expirada.
+const api = window.API;
 
 
 // ============================================================
@@ -598,7 +506,7 @@ function normalizarStatus(
        */
       valor: "em_cadastro",
       texto: "EM CADASTRO",
-      classe: "pendente",
+      classe: "em-cadastro",
     },
 
     CONVERTIDO: {
@@ -856,8 +764,53 @@ function renderizarOrcamentos() {
 
   tabelaLinhas.innerHTML =
     filtrados
-      .map(
-        (o) => `
+      .map((o) => {
+        const botaoContinuar =
+          o.status === "em_cadastro"
+            ? `
+              <button
+                class="botao-acao continuar-cadastro"
+                data-id="${o.id}"
+                title="Continuar cadastro"
+              >
+                Continuar
+              </button>
+            `
+            : `
+              <button
+                class="
+                  botao-acao
+                  aprovar
+                "
+                data-id="${o.id}"
+                title="Aprovar"
+                ${
+                  o.status !==
+                  "pendente"
+                    ? "disabled"
+                    : ""
+                }
+              >
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline
+                    points="
+                      20 6
+                      9 17
+                      4 12
+                    "
+                  ></polyline>
+                </svg>
+
+              </button>
+            `;
+
+        return `
           <tr>
 
             <td>
@@ -898,39 +851,7 @@ function renderizarOrcamentos() {
                   Editar
                 </button>
 
-
-                <button
-                  class="
-                    botao-acao
-                    aprovar
-                  "
-                  data-id="${o.id}"
-                  title="Aprovar"
-                  ${
-                    o.status !==
-                    "pendente"
-                      ? "disabled"
-                      : ""
-                  }
-                >
-
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <polyline
-                      points="
-                        20 6
-                        9 17
-                        4 12
-                      "
-                    ></polyline>
-                  </svg>
-
-                </button>
-
+                ${botaoContinuar}
 
                 <button
                   class="
@@ -994,8 +915,8 @@ function renderizarOrcamentos() {
             </td>
 
           </tr>
-        `
-      )
+        `;
+      })
       .join("");
 
 
@@ -1164,6 +1085,44 @@ async function handleTabelaClick(
 
 
   // ----------------------------------------------------------
+  // CONTINUAR CADASTRO
+  // ----------------------------------------------------------
+
+  if (
+    btn.classList.contains(
+      "continuar-cadastro"
+    )
+  ) {
+    const confirmado =
+      await showConfirm(
+        "Continuar o cadastro deste orçamento?"
+      );
+
+    if (
+      confirmado.isConfirmed
+    ) {
+      const params =
+        new URLSearchParams();
+
+      params.set(
+        "fluxo",
+        "orcamento"
+      );
+
+      params.set(
+        "id_orcamento",
+        String(id)
+      );
+
+      window.location.href =
+        `responsaveis.html?${params.toString()}`;
+    }
+
+    return;
+  }
+
+
+  // ----------------------------------------------------------
   // APROVAR
   // ----------------------------------------------------------
 
@@ -1200,7 +1159,7 @@ async function handleTabelaClick(
   ) {
     const confirmado =
       await showConfirm(
-        "Excluir este orçamento?"
+        "Excluir este orçamento?\n\nEssa ação também removerá o responsável, os alunos e as mensalidades já cadastrados no fluxo para evitar registros órfãos no sistema."
       );
 
     if (

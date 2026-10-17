@@ -95,6 +95,25 @@ function redirecionarParaMensalidade(alunoSalvo) {
 async function iniciarFluxoCadastro() {
   if (!obterParametrosFluxo()) return;
 
+  if (fluxoCadastro === "orcamento" && idResponsavelFluxo) {
+    const alunosResponsavel = alunos.filter(
+      (aluno) => Number(aluno.idResponsavel) === Number(idResponsavelFluxo)
+    );
+
+    if (alunosResponsavel.length > 0 && idOrcamentoFluxo) {
+      const primeiroAluno = alunosResponsavel[0];
+      const params = new URLSearchParams();
+      params.set("fluxo", "orcamento");
+      params.set("id_responsavel", String(idResponsavelFluxo));
+      params.set("id_aluno", String(primeiroAluno.id));
+      params.set("alunoAtual", "1");
+      params.set("totalAlunos", String(Math.max(alunosResponsavel.length, Number(totalAlunosFluxo || 1))));
+      params.set("id_orcamento", String(idOrcamentoFluxo));
+      window.location.href = `mensalidade.html?${params.toString()}`;
+      return;
+    }
+  }
+
   const responsavel = responsaveis.find(
     (item) => Number(item.id_responsavel) === idResponsavelFluxo
   );
@@ -165,7 +184,7 @@ function initMenu() {
 function toUrlFoto(pathFoto) {
   if (!pathFoto) return "";
   if (pathFoto.startsWith("http")) return pathFoto;
-  return `http://localhost:3000${pathFoto}`;
+  return `${window.API_ORIGIN}${pathFoto}`;
 }
 
 function valorBooleano(valor) {
@@ -177,6 +196,7 @@ function valorBooleano(valor) {
 function mapearAlunoApi(item) {
   return {
     id: item.id_aluno,
+    idResponsavel: Number(item.id_responsavel ?? item.responsavel?.id_responsavel ?? 0) || null,
     nome: item.nome || "",
     responsavel1: item.responsavel?.nome || "",
     telefone1: aplicarMascaraTelefone(item.responsavel?.telefone || ""),
