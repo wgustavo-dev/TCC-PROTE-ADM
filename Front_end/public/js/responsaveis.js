@@ -39,6 +39,7 @@ const camposForm = {
   quantidade: document.getElementById('quantidade'),
   email: document.getElementById('email'),
   telefone: document.getElementById('telefone'),
+  telefoneEmergencia: document.getElementById('telefoneEmergencia'),
   endereco: document.getElementById('endereco')
 };
 
@@ -187,6 +188,7 @@ function encontrarResponsavelDuplicado(dados) {
 
 function encontrarConflitoContato(dados, idIgnorado = null) {
   const telefone = limparMascaraTelefone(dados.telefone);
+  const telefoneEmergencia = limparMascaraTelefone(dados.telefone_emergencia);
   const email = normalizarEmail(dados.email);
 
   const conflitos = responsaveis.filter((item) => {
@@ -195,16 +197,24 @@ function encontrarConflitoContato(dados, idIgnorado = null) {
     }
 
     return (
-      (telefone && limparMascaraTelefone(item.telefone) === telefone) ||
+      [telefone, telefoneEmergencia].some((numero) =>
+        numero && [
+          limparMascaraTelefone(item.telefone),
+          limparMascaraTelefone(item.telefoneEmergencia)
+        ].includes(numero)
+      ) ||
       (email && normalizarEmail(item.email) === email)
     );
   });
 
+  const telefonesInformados = [telefone, telefoneEmergencia].filter(Boolean);
+  const telefonesExistentes = conflitos.flatMap((item) => [
+    limparMascaraTelefone(item.telefone),
+    limparMascaraTelefone(item.telefoneEmergencia)
+  ]);
+
   return {
-    telefone: Boolean(
-      telefone &&
-      conflitos.some((item) => limparMascaraTelefone(item.telefone) === telefone)
-    ),
+    telefone: telefonesInformados.some((numero) => telefonesExistentes.includes(numero)),
     email: Boolean(
       email &&
       conflitos.some((item) => normalizarEmail(item.email) === email)
@@ -213,6 +223,14 @@ function encontrarConflitoContato(dados, idIgnorado = null) {
 }
 
 function validarContatosUnicos(dados, idIgnorado = null) {
+  const telefone = limparMascaraTelefone(dados.telefone);
+  const telefoneEmergencia = limparMascaraTelefone(dados.telefone_emergencia);
+
+  if (telefone && telefoneEmergencia && telefone === telefoneEmergencia) {
+    showError('O telefone principal e o telefone de emergência devem ser diferentes.');
+    return false;
+  }
+
   const conflitos = encontrarConflitoContato(dados, idIgnorado);
   const camposDuplicados = [];
 
@@ -238,6 +256,8 @@ function normalizarResponsavel(item) {
     quantidade: Number(item.quantidade_alunos || 0),
 
     telefone: aplicarMascaraTelefone(item.telefone || ''),
+
+    telefoneEmergencia: aplicarMascaraTelefone(item.telefone_emergencia || ''),
 
     email: item.email || '',
 
@@ -528,6 +548,10 @@ function abrirDetalhes(id, linhaClicada) {
   ).textContent = r.telefone || '-';
 
   document.getElementById(
+    'detTelefoneEmergencia'
+  ).textContent = r.telefoneEmergencia || '-';
+
+  document.getElementById(
     'detEmail'
   ).textContent = r.email || '-';
 
@@ -717,6 +741,9 @@ function abrirModal(
     camposForm.telefone.value =
       item.telefone;
 
+    camposForm.telefoneEmergencia.value =
+      item.telefoneEmergencia || '';
+
     camposForm.endereco.value =
       item.endereco || '';
 
@@ -770,6 +797,11 @@ function montarPayload() {
       limparMascaraTelefone(
         camposForm.telefone.value
       ),
+
+    telefone_emergencia:
+      limparMascaraTelefone(
+        camposForm.telefoneEmergencia.value
+      ) || null,
 
     endereco:
       aplicarMascaraEndereco(
@@ -872,6 +904,17 @@ async function salvarFormulario(e) {
   }
 
   if (
+    payload.telefone_emergencia &&
+    !validarTelefone(payload.telefone_emergencia)
+  ) {
+    showError(
+      'Informe um telefone de emergência válido com DDD e 10 ou 11 dígitos.'
+    );
+
+    return;
+  }
+
+  if (
     !payload.endereco ||
     payload.endereco.length < 5
   ) {
@@ -929,6 +972,14 @@ async function salvarFormulario(e) {
         'Responsável atualizado com sucesso.'
       );
 
+      return;
+    }
+
+    if (
+      payload.telefone_emergencia &&
+      payload.telefone_emergencia === payload.telefone
+    ) {
+      showError('O telefone principal e o telefone de emergência devem ser diferentes.');
       return;
     }
 
@@ -1201,6 +1252,16 @@ camposForm.telefone.addEventListener(
     camposForm.telefone.value =
       aplicarMascaraTelefone(
         camposForm.telefone.value
+      );
+  }
+);
+
+camposForm.telefoneEmergencia.addEventListener(
+  'input',
+  () => {
+    camposForm.telefoneEmergencia.value =
+      aplicarMascaraTelefone(
+        camposForm.telefoneEmergencia.value
       );
   }
 );

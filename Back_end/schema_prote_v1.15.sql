@@ -1,7 +1,10 @@
 -- =====================================================
--- SCHEMA PROTE ADM - v1.14
+-- SCHEMA PROTE ADM - v1.15
 -- =====================================================
 -- Estrutura completa + seed de testes
+--
+-- Alterações da v1.15:
+-- 1) Adicionado telefone_emergencia opcional para responsáveis.
 --
 -- Alterações da v1.14:
 -- 1) Adicionada tabela de notificações.
@@ -115,16 +118,90 @@ CREATE TABLE responsavel (
     id_responsavel INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     telefone VARCHAR(20) NOT NULL,
+    telefone_emergencia VARCHAR(20),
     email VARCHAR(100),
     endereco VARCHAR(255) NOT NULL,
     quantidade_alunos INT NOT NULL DEFAULT 1,
 
     UNIQUE KEY uk_responsavel_telefone (telefone),
+    UNIQUE KEY uk_responsavel_telefone_emergencia (telefone_emergencia),
     UNIQUE KEY uk_responsavel_email (email),
+
+    CONSTRAINT chk_responsavel_telefones_diferentes
+        CHECK (
+            telefone_emergencia IS NULL
+            OR telefone_emergencia <> telefone
+        ),
+
+    CONSTRAINT chk_responsavel_telefone_formato
+        CHECK (telefone REGEXP '^[0-9]{10,11}$'),
+
+    CONSTRAINT chk_responsavel_telefone_emergencia_formato
+        CHECK (
+            telefone_emergencia IS NULL
+            OR telefone_emergencia REGEXP '^[0-9]{10,11}$'
+        ),
 
     CONSTRAINT chk_responsavel_quantidade_alunos
         CHECK (quantidade_alunos >= 1)
 );
+
+DELIMITER //
+CREATE TRIGGER trg_responsavel_telefone_unico_insert
+BEFORE INSERT ON responsavel
+FOR EACH ROW
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM responsavel r
+        WHERE r.telefone = NEW.telefone
+           OR (
+                NEW.telefone_emergencia IS NOT NULL
+                AND r.telefone = NEW.telefone_emergencia
+           )
+           OR (
+                r.telefone_emergencia IS NOT NULL
+                AND r.telefone_emergencia = NEW.telefone
+           )
+           OR (
+                NEW.telefone_emergencia IS NOT NULL
+                AND r.telefone_emergencia = NEW.telefone_emergencia
+           )
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Telefone já cadastrado para outro responsável.';
+    END IF;
+END//
+
+CREATE TRIGGER trg_responsavel_telefone_unico_update
+BEFORE UPDATE ON responsavel
+FOR EACH ROW
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM responsavel r
+        WHERE r.id_responsavel <> NEW.id_responsavel
+          AND (
+                r.telefone = NEW.telefone
+             OR (
+                    NEW.telefone_emergencia IS NOT NULL
+                    AND r.telefone = NEW.telefone_emergencia
+                )
+             OR (
+                    r.telefone_emergencia IS NOT NULL
+                    AND r.telefone_emergencia = NEW.telefone
+                )
+             OR (
+                    NEW.telefone_emergencia IS NOT NULL
+                    AND r.telefone_emergencia = NEW.telefone_emergencia
+                )
+          )
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Telefone já cadastrado para outro responsável.';
+    END IF;
+END//
+DELIMITER ;
 
 
 -- =====================================================
@@ -504,48 +581,55 @@ INSERT INTO escola (
 INSERT INTO responsavel (
     nome,
     telefone,
+    telefone_emergencia,
     email,
     endereco,
     quantidade_alunos
 ) VALUES
 (
     'Ana Beatriz Souza',
-    '(11) 91111-0001',
+    '11911110001',
+    '11988880001',
     'ana.souza@gmail.com',
     'Rua das Palmeiras, 120 - Centro',
     3
 ),
 (
     'Roberto Carlos Mendes',
-    '(11) 91111-0002',
+    '11911110002',
+    '11988880002',
     'roberto.mendes@gmail.com',
     'Av. das Laranjeiras, 88 - Jardim Europa',
     2
 ),
 (
     'Juliana Ferreira Lima',
-    '(11) 91111-0003',
+    '11911110003',
+    '11988880003',
     'juliana.lima@gmail.com',
     'Rua Sete de Setembro, 340 - Centro',
     3
 ),
 (
     'Marcos Paulo Rocha',
-    '(11) 91111-0004',
+    '11911110004',
+    '11988880004',
     'marcos.rocha@gmail.com',
     'Rua dos Ipês, 55 - Vila Nova',
     1
 ),
 (
     'Patricia Gomes Alves',
-    '(11) 91111-0005',
+    '11911110005',
+    '11988880005',
     'patricia.alves@gmail.com',
     'Av. Central, 900 - Jardim das Flores',
     2
 ),
 (
     'Ricardo Martins Oliveira',
-    '(11) 91111-0006',
+    '11911110006',
+    '11988880006',
     'ricardo.oliveira@gmail.com',
     'Rua Bela Vista, 210 - Centro',
     2

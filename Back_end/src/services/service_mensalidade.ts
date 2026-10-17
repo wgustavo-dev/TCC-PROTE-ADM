@@ -81,17 +81,34 @@ export class ServiceMensalidade {
   }
 
   private validarValor(valor: any) {
-    const texto = String(valor ?? "").trim();
-    if (!texto) {
+    if (valor === null || valor === undefined || valor === "") {
       throw new Error("Valor da mensalidade deve ser maior que zero");
     }
 
-    const valorNumerico = Number(
-      texto
-        .replace(/[R$\s]/g, "")
-        .replace(/\./g, "")
-        .replace(",", ".")
-    );
+    let valorNumerico: number;
+
+    if (typeof valor === "number") {
+      valorNumerico = valor;
+    } else {
+      const texto = String(valor).trim().replace(/[R$\s]/g, "");
+      if (!texto) {
+        throw new Error("Valor da mensalidade deve ser maior que zero");
+      }
+
+      const formatoBrasileiro = texto.includes(",");
+      const separadorMilhar = /^\d{1,3}(?:\.\d{3})+$/;
+      const normalizado = formatoBrasileiro
+        ? texto.replace(/\./g, "").replace(",", ".")
+        : separadorMilhar.test(texto)
+          ? texto.replace(/\./g, "")
+          : texto;
+
+      if (!/^\d+(?:\.\d+)?$/.test(normalizado)) {
+        throw new Error("Valor da mensalidade deve ser maior que zero");
+      }
+
+      valorNumerico = Number(normalizado);
+    }
 
     if (!Number.isFinite(valorNumerico) || valorNumerico <= 0) {
       throw new Error("Valor da mensalidade deve ser maior que zero");

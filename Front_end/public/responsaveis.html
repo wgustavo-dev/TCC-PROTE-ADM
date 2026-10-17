@@ -285,8 +285,11 @@
             <div class="responsavel-identificacao">
               <div class="avatar" id="detAvatar">RA</div>
               <div>
-                <strong>Contato principal</strong>
-                <span id="detTelefone">(00) 00000-0000</span>
+                <strong>Telefones</strong>
+                <div class="responsavel-telefones">
+                  <span id="detTelefone">(00) 00000-0000</span>
+                  <span id="detTelefoneEmergencia">-</span>
+                </div>
                 <span id="detEmail">email@email.com</span>
               </div>
             </div>
@@ -372,6 +375,14 @@
           <label class="label-filtro" for="telefone">Telefone</label>
 
           <input type="text" id="telefone" class="input-filtro" placeholder="(11) 99999-9999" required />
+        </div>
+
+        <div class="grupo-filtro">
+          <label class="label-filtro" for="telefoneEmergencia">
+            Telefone para emergências (opcional)
+          </label>
+
+          <input type="text" id="telefoneEmergencia" class="input-filtro" placeholder="(11) 99999-9999" />
         </div>
 
         <div class="grupo-filtro">

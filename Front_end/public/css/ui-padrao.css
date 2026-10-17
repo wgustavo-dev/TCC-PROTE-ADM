@@ -763,6 +763,12 @@ textarea:focus-visible {
   gap: 3px;
 }
 
+.responsavel-telefones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
 .aluno-detalhes-grid div,
 .mensalidade-detalhes-grid div {
   display: flex;

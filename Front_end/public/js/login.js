@@ -91,7 +91,10 @@ botaoEntrar.addEventListener('click', async function () {
             localStorage.setItem('prote_user', JSON.stringify(resposta.usuario));
         }
 
-        window.location.replace('index.html');
+        var paginaInicial = resposta?.usuario?.role === 'MONITOR'
+            ? 'presenca.html'
+            : 'index.html';
+        window.location.replace(paginaInicial);
 
     } catch (erro) {
         erroLogin.textContent = erro.message || 'E-mail ou senha incorretos.';

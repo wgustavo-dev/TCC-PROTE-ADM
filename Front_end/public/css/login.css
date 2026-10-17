@@ -222,6 +222,8 @@ body {
 .mensagem-erro-geral {
   text-align: center;
   margin-top: 6px;
+  min-height: 32px;
+  line-height: 1.4;
 }
 
 

@@ -56,37 +56,74 @@ export class ServiceResponsavel {
     return valor;
   }
 
+  private normalizarTelefoneEmergencia(telefone: any): string | null {
+    const valor = String(telefone ?? "").replace(/\D/g, "");
+
+    if (!valor) {
+      return null;
+    }
+
+    if (!/^\d{10,11}$/.test(valor)) {
+      throw new Error(
+        "Telefone de emergência inválido. Use DDD + 8 ou 9 dígitos."
+      );
+    }
+
+    return valor;
+  }
+
   private async validarContatosUnicos(
     telefone: string,
+    telefoneEmergencia: string | null,
     email: string | null,
     idIgnorado?: number
   ): Promise<void> {
+    if (telefoneEmergencia && telefone === telefoneEmergencia) {
+      throw new Error(
+        "O telefone principal e o telefone de emergência devem ser diferentes."
+      );
+    }
+
     const responsaveis = await this.responsavelRepository.find({
       select: {
         id_responsavel: true,
         telefone: true,
+        telefone_emergencia: true,
         email: true,
       },
     });
 
+    const telefonesInformados = [telefone, telefoneEmergencia].filter(
+      (numero): numero is string => numero !== null
+    );
     const outrosResponsaveis = responsaveis.filter((responsavel) => {
       if (responsavel.id_responsavel === idIgnorado) {
         return false;
       }
 
-      const telefoneExistente = String(responsavel.telefone ?? "").replace(/\D/g, "");
       const emailExistente = String(responsavel.email ?? "").trim().toLowerCase();
+      const telefonesExistentes = [
+        String(responsavel.telefone ?? "").replace(/\D/g, ""),
+        String(responsavel.telefone_emergencia ?? "").replace(/\D/g, ""),
+      ].filter(Boolean);
 
       return (
-        telefoneExistente === telefone ||
+        telefonesInformados.some((numero) =>
+          telefonesExistentes.includes(numero)
+        ) ||
         (email !== null && emailExistente === email)
       );
     });
 
-    const telefoneDuplicado = outrosResponsaveis.some(
-      (responsavel) =>
-        String(responsavel.telefone ?? "").replace(/\D/g, "") === telefone
-    );
+    const telefoneDuplicado = outrosResponsaveis.some((responsavel) => {
+      const telefonesExistentes = [
+        String(responsavel.telefone ?? "").replace(/\D/g, ""),
+        String(responsavel.telefone_emergencia ?? "").replace(/\D/g, ""),
+      ];
+      return telefonesInformados.some((numero) =>
+        telefonesExistentes.includes(numero)
+      );
+    });
     const emailDuplicado = outrosResponsaveis.some(
       (responsavel) =>
         email !== null &&
@@ -94,7 +131,9 @@ export class ServiceResponsavel {
     );
 
     if (telefoneDuplicado) {
-      throw new Error("Já existe um responsável cadastrado com este telefone.");
+      throw new Error(
+        "Este telefone já está cadastrado como contato de outro responsável."
+      );
     }
 
     if (emailDuplicado) {
@@ -214,11 +253,28 @@ export class ServiceResponsavel {
             throw new Error("Já existe um responsável cadastrado com este telefone.");
           }
 
+          if (driverError.sqlMessage?.includes("uk_responsavel_telefone_emergencia")) {
+            throw new Error(
+              "Este telefone de emergência já está cadastrado para outro responsável."
+            );
+          }
+
           if (driverError.sqlMessage?.includes("uk_responsavel_email")) {
             throw new Error("Já existe um responsável cadastrado com este e-mail.");
           }
 
           throw new Error("Já existe um responsável cadastrado com este telefone ou e-mail.");
+        }
+
+        if (
+          driverError.code === "ER_SIGNAL_EXCEPTION" ||
+          driverError.sqlMessage?.includes(
+            "Telefone já cadastrado para outro responsável"
+          )
+        ) {
+          throw new Error(
+            "Este telefone já está cadastrado como contato de outro responsável."
+          );
         }
       }
 
@@ -251,17 +307,25 @@ export class ServiceResponsavel {
   async criar(dados: Partial<Responsavel>) {
     const nome = this.normalizarNome(dados.nome);
     const telefone = this.normalizarTelefone(dados.telefone);
+    const telefoneEmergencia = this.normalizarTelefoneEmergencia(
+      dados.telefone_emergencia
+    );
     const email = this.normalizarEmail(dados.email);
     const endereco = this.normalizarEndereco(dados.endereco);
     const quantidadeAlunos = this.normalizarQuantidadeAlunos(
       dados.quantidade_alunos
     );
 
-    await this.validarContatosUnicos(telefone, email);
+    await this.validarContatosUnicos(
+      telefone,
+      telefoneEmergencia,
+      email
+    );
 
     const responsavel = this.responsavelRepository.create({
       nome,
       telefone,
+      telefone_emergencia: telefoneEmergencia,
       email,
       endereco,
       quantidade_alunos: quantidadeAlunos,
@@ -289,6 +353,11 @@ export class ServiceResponsavel {
       ? this.normalizarTelefone(dados.telefone)
       : responsavel.telefone;
 
+    const telefoneEmergenciaAtualizado =
+      dados.telefone_emergencia !== undefined
+        ? this.normalizarTelefoneEmergencia(dados.telefone_emergencia)
+        : responsavel.telefone_emergencia;
+
     let emailAtualizado = responsavel.email;
 
     if (dados.email !== undefined) {
@@ -309,6 +378,7 @@ export class ServiceResponsavel {
 
     await this.validarContatosUnicos(
       telefoneAtualizado,
+      telefoneEmergenciaAtualizado,
       emailAtualizado,
       responsavel.id_responsavel
     );
@@ -316,6 +386,7 @@ export class ServiceResponsavel {
     this.responsavelRepository.merge(responsavel, {
       nome: nomeAtualizado,
       telefone: telefoneAtualizado,
+      telefone_emergencia: telefoneEmergenciaAtualizado,
       email: emailAtualizado,
       endereco: enderecoAtualizado,
       quantidade_alunos: quantidadeAtualizada,

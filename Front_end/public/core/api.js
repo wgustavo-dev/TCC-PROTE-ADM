@@ -44,7 +44,7 @@
     const isJson = (response.headers.get("content-type") || "").includes("application/json");
     const payload = isJson ? await response.json() : null;
 
-    if ((response.status === 401 || response.status === 403) && !path.startsWith("/auth/")) {
+    if (response.status === 401 && !path.startsWith("/auth/")) {
       window.localStorage.removeItem("prote_token");
       window.localStorage.removeItem("prote_user");
       if (isProtectedPage) {

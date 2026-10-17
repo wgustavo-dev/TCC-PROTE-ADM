@@ -200,6 +200,9 @@ function mapearAlunoApi(item) {
     nome: item.nome || "",
     responsavel1: item.responsavel?.nome || "",
     telefone1: aplicarMascaraTelefone(item.responsavel?.telefone || ""),
+    telefoneEmergenciaResponsavel: aplicarMascaraTelefone(
+      item.responsavel?.telefone_emergencia || ""
+    ),
     embarque: item.endereco_embarque || "",
     desembarque: item.endereco_desembarque || "",
     foto: toUrlFoto(item.foto),
@@ -741,7 +744,7 @@ function renderizarTabela(lista) {
           <div class="accordion-detalhes-cabecalho"><strong>Detalhes do aluno</strong><span>${String(aluno.nome || "Aluno").toLocaleUpperCase("pt-BR")}</span><button type="button" class="accordion-detalhes-fechar" data-fechar-detalhes aria-label="Fechar detalhes do aluno">Fechar</button></div>
           <div class="aluno-detalhes-grid">
             <div><strong>Tipo de trajeto</strong><span>${obterDescricaoTrajeto(aluno.tipoTrajeto)}</span></div>
-            <div><strong>Telefone do responsável</strong><span>${aluno.telefone1 || "-"}</span></div>
+            <div><strong>Telefones do responsável</strong><span>${aluno.telefone1 || "-"}</span><span>${aluno.telefoneEmergenciaResponsavel || "-"}</span></div>
             <div><strong>Endereço de embarque</strong><span>${aluno.embarque || "-"}</span></div>
             <div><strong>Endereço de desembarque</strong><span>${aluno.desembarque || "-"}</span></div>
           </div>
@@ -781,7 +784,7 @@ function renderizarCardsMobile(lista) {
         <div class="aluno-card-mobile-detalhes" hidden>
           <div class="accordion-detalhes-cabecalho"><strong>Detalhes do aluno</strong><span>${String(aluno.nome || "Aluno").toLocaleUpperCase("pt-BR")}</span><button type="button" class="accordion-detalhes-fechar" data-fechar-detalhes aria-label="Fechar detalhes do aluno">Fechar</button></div>
           <p><b>Trajeto:</b> ${obterDescricaoTrajeto(aluno.tipoTrajeto)}</p>
-          <p><b>Telefone:</b> ${aluno.telefone1 || "-"}</p>
+          <p><b>Telefones:</b><br>${aluno.telefone1 || "-"}<br>${aluno.telefoneEmergenciaResponsavel || "-"}</p>
           <p><b>Embarque:</b> ${aluno.embarque || "-"}</p>
           <p><b>Desembarque:</b> ${aluno.desembarque || "-"}</p>
         </div>

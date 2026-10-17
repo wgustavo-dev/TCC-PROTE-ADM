@@ -178,36 +178,68 @@ function aplicarMascaraNomeMensalidade(valor) {
 }
 
 function aplicarMascaraValorMensalidade(valor) {
-  const texto = String(valor || "").replace(/[R$\s]/g, "").trim();
-  const numeros = texto.replace(/[^\d,]/g, "");
+  const numero = normalizarValorMensalidade(valor);
+  if (numero === null) return "";
 
-  if (!numeros) return "";
+  return numero.toFixed(2).replace(".", ",");
+}
 
-  const semSeparador = numeros.replace(/\./g, "").replace(",", ".");
-  const numero = Number(semSeparador);
+function sanitizarEntradaValorMensalidade(valor) {
+  let texto = String(valor ?? "").replace(/\s/g, "");
+  const temPonto = texto.includes(".");
+  const temVirgula = texto.includes(",");
 
-  if (!Number.isFinite(numero)) return "";
+  if (temPonto && temVirgula) {
+    texto = texto.replace(/\./g, "");
+  } else if (/^\d{1,3}(?:\.\d{3})+$/.test(texto)) {
+    texto = texto.replace(/\./g, "");
+  } else {
+    texto = texto.replace(".", ",");
+  }
 
-  const parteInteira = Math.trunc(numero);
-  const parteDecimal = Math.round((numero - parteInteira) * 100);
-  const valorFormatado = (parteInteira + (parteDecimal / 100)).toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const primeiroSeparador = texto.search(/[,.]/);
+  let resultado = "";
+  let casasDecimais = 0;
 
-  return valorFormatado;
+  for (let indice = 0; indice < texto.length; indice += 1) {
+    const caractere = texto[indice];
+
+    if (/\d/.test(caractere)) {
+      if (primeiroSeparador >= 0 && indice > primeiroSeparador) {
+        if (casasDecimais >= 2) continue;
+        casasDecimais += 1;
+      }
+      resultado += caractere;
+    } else if (caractere === "," || caractere === ".") {
+      if (!resultado) {
+        resultado = "0,";
+      } else if (!resultado.includes(",")) {
+        resultado += ",";
+      }
+    }
+  }
+
+  return resultado;
 }
 
 function normalizarValorMensalidade(valor) {
-  const texto = String(valor || "").trim();
+  const texto = String(valor ?? "").trim().replace(/[R$\s]/g, "");
   if (!texto) return null;
 
-  const numero = Number(
-    texto
-      .replace(/[R$\s]/g, "")
-      .replace(".", "")
-      .replace(",", ".")
-  );
+  const temVirgula = texto.includes(",");
+  const separadorMilhar = /^\d{1,3}(?:\.\d{3})+$/;
+  let normalizado = texto;
+
+  if (temVirgula) {
+    if (!/^(?:\d+|\d{1,3}(?:\.\d{3})+),\d+$/.test(texto)) return null;
+    normalizado = texto.replace(/\./g, "").replace(",", ".");
+  } else if (separadorMilhar.test(texto)) {
+    normalizado = texto.replace(/\./g, "");
+  }
+
+  if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(normalizado)) return null;
+
+  const numero = Number(normalizado);
 
   if (!Number.isFinite(numero) || numero <= 0) return null;
   return Number(numero.toFixed(2));
@@ -877,9 +909,22 @@ function configurarBotoes() {
 
   if (campoValor) {
     campoValor.addEventListener("input", (event) => {
-      const valorMascara = aplicarMascaraValorMensalidade(event.target.value);
-      if (valorMascara !== event.target.value) {
-        event.target.value = valorMascara;
+      const campo = event.target;
+      const posicaoCursor = campo.selectionStart ?? campo.value.length;
+      const valorAntesCursor = campo.value.slice(0, posicaoCursor);
+      const valorSanitizado = sanitizarEntradaValorMensalidade(campo.value);
+      const cursorSanitizado = sanitizarEntradaValorMensalidade(valorAntesCursor).length;
+
+      if (valorSanitizado !== campo.value) {
+        campo.value = valorSanitizado;
+        campo.setSelectionRange(cursorSanitizado, cursorSanitizado);
+      }
+    });
+
+    campoValor.addEventListener("blur", (event) => {
+      const valorFormatado = aplicarMascaraValorMensalidade(event.target.value);
+      if (valorFormatado) {
+        event.target.value = valorFormatado;
       }
     });
   }
