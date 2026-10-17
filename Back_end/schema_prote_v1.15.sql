@@ -44,13 +44,13 @@
 -- Seed incluída:
 -- - 1 condutor
 -- - 2 monitores
--- - 3 escolas
--- - 6 responsáveis
--- - 13 alunos
+-- - 2 escolas
+-- - 10 responsáveis
+-- - 20 alunos (10 por escola)
 -- - itinerários de MANHA e TARDE
 -- - presenças de MANHA e TARDE
 -- - teste do mesmo aluno em dois turnos no mesmo dia
--- - mensalidades
+-- - mensalidades para todos os alunos
 -- - orçamentos
 -- - documentos
 -- - despesas
@@ -508,7 +508,7 @@ INSERT INTO condutor (
     foto,
     ativo
 ) VALUES (
-    'Carlos Eduardo Lima',
+    'WAGNER RIBEIRO DE BRITO',
     'liametechnologies@gmail.com',
     '$2a$10$S4T6MlgCnSowCx9Vz4X4xeAsO4.G8U5RjnxczS70C/qbni4Q1uDzi',
     '(11) 98888-1234',
@@ -533,7 +533,7 @@ INSERT INTO monitor (
     ativo
 ) VALUES
 (
-    'Fernanda Oliveira Souza',
+    'EDILEIDE BATISTA',
     'monitor@gmail.com',
     '$2a$10$S4T6MlgCnSowCx9Vz4X4xeAsO4.G8U5RjnxczS70C/qbni4Q1uDzi',
     '(11) 97777-5678',
@@ -561,16 +561,12 @@ INSERT INTO escola (
     endereco
 ) VALUES
 (
-    'Colégio Estrela do Saber',
-    'Rua das Acácias, 450 - Centro'
+    'Creche CEI Vila Basileia',
+    'Rua Dr. Soares Brandão Filho, 40 - Vila Basileia'
 ),
 (
-    'Escola Nova Geração',
-    'Av. Brasil, 1200 - Jardim das Flores'
-),
-(
-    'Colégio Caminhos do Futuro',
-    'Rua das Palmeiras, 800 - Vila Nova'
+    'EMEF Comandante Gastão Moutinho',
+    'Rua Coronel João da Silva Feijó, 40 - Parque Mandaqui'
 );
 
 
@@ -587,19 +583,19 @@ INSERT INTO responsavel (
     quantidade_alunos
 ) VALUES
 (
-    'Ana Beatriz Souza',
+    'Ana Paula Ferreira',
     '11911110001',
     '11988880001',
-    'ana.souza@gmail.com',
-    'Rua das Palmeiras, 120 - Centro',
-    3
+    'ana.ferreira@gmail.com',
+    'Rua Dr. Soares Brandão Filho, 120 - Vila Basileia',
+    2
 ),
 (
     'Roberto Carlos Mendes',
     '11911110002',
     '11988880002',
     'roberto.mendes@gmail.com',
-    'Av. das Laranjeiras, 88 - Jardim Europa',
+    'Rua Coronel João da Silva Feijó, 88 - Parque Mandaqui',
     2
 ),
 (
@@ -607,23 +603,23 @@ INSERT INTO responsavel (
     '11911110003',
     '11988880003',
     'juliana.lima@gmail.com',
-    'Rua Sete de Setembro, 340 - Centro',
-    3
+    'Rua Sete de Setembro, 340 - Vila Basileia',
+    2
 ),
 (
     'Marcos Paulo Rocha',
     '11911110004',
     '11988880004',
     'marcos.rocha@gmail.com',
-    'Rua dos Ipês, 55 - Vila Nova',
-    1
+    'Rua dos Ipês, 55 - Parque Mandaqui',
+    2
 ),
 (
     'Patricia Gomes Alves',
     '11911110005',
     '11988880005',
     'patricia.alves@gmail.com',
-    'Av. Central, 900 - Jardim das Flores',
+    'Av. Central, 900 - Vila Basileia',
     2
 ),
 (
@@ -631,13 +627,60 @@ INSERT INTO responsavel (
     '11911110006',
     '11988880006',
     'ricardo.oliveira@gmail.com',
-    'Rua Bela Vista, 210 - Centro',
+    'Rua Bela Vista, 210 - Parque Mandaqui',
+    2
+),
+(
+    'Fernanda Souza Costa',
+    '11911110007',
+    '11988880007',
+    'fernanda.costa@gmail.com',
+    'Rua das Palmeiras, 45 - Vila Basileia',
+    2
+),
+(
+    'Gustavo Henrique Silva',
+    '11911110008',
+    '11988880008',
+    'gustavo.silva@gmail.com',
+    'Rua das Acácias, 300 - Parque Mandaqui',
+    2
+),
+(
+    'Larissa Martins Cardoso',
+    '11911110009',
+    '11988880009',
+    'larissa.cardoso@gmail.com',
+    'Rua Aurora, 77 - Vila Basileia',
+    2
+),
+(
+    'Thiago Barbosa Santos',
+    '11911110010',
+    '11988880010',
+    'thiago.santos@gmail.com',
+    'Rua dos Pinheiros, 150 - Parque Mandaqui',
     2
 );
 
 
 -- =====================================================
 -- ALUNOS
+-- =====================================================
+-- 10 alunos na Creche CEI Vila Basileia (id_escola = 1)
+-- 10 alunos na EMEF Comandante Gastão Moutinho (id_escola = 2)
+--
+-- Responsáveis:
+-- id 1 -> alunos 1, 2 (Vila Basileia)
+-- id 2 -> alunos 3, 4 (Gastão Moutinho)
+-- id 3 -> alunos 5, 6 (Vila Basileia)
+-- id 4 -> alunos 7, 8 (Gastão Moutinho)
+-- id 5 -> alunos 9, 10 (Vila Basileia)
+-- id 6 -> alunos 11, 12 (Gastão Moutinho)
+-- id 7 -> alunos 13, 14 (Vila Basileia)
+-- id 8 -> alunos 15, 16 (Gastão Moutinho)
+-- id 9 -> alunos 17, 18 (Vila Basileia)
+-- id 10 -> alunos 19, 20 (Gastão Moutinho)
 -- =====================================================
 
 INSERT INTO aluno (
@@ -654,15 +697,15 @@ INSERT INTO aluno (
     id_condutor
 ) VALUES
 
--- MANHÃ
+-- ========== CRECHE CEI VILA BASILEIA (id_escola = 1) ==========
 
 (
-    'Sofia Souza',
-    'Centro',
+    'Sofia Ferreira',
+    'Vila Basileia',
     1,
     'MANHA',
-    'Rua das Palmeiras, 120 - Centro',
-    'Colégio Estrela do Saber, Rua das Acácias, 450',
+    'Rua Dr. Soares Brandão Filho, 120 - Vila Basileia',
+    'Creche CEI Vila Basileia, Rua Dr. Soares Brandão Filho, 40',
     'AMBOS',
     NULL,
     5,
@@ -670,11 +713,11 @@ INSERT INTO aluno (
     1
 ),
 (
-    'Davi Souza',
-    'Centro',
+    'Davi Ferreira',
+    'Vila Basileia',
     1,
     'MANHA',
-    'Rua das Palmeiras, 120 - Centro',
+    'Rua Dr. Soares Brandão Filho, 120 - Vila Basileia',
     NULL,
     'IDA',
     NULL,
@@ -684,11 +727,11 @@ INSERT INTO aluno (
 ),
 (
     'Miguel Lima',
-    'Centro',
+    'Vila Basileia',
     1,
     'MANHA',
     NULL,
-    'Rua Sete de Setembro, 340 - Centro',
+    'Rua Sete de Setembro, 340 - Vila Basileia',
     'VOLTA',
     NULL,
     20,
@@ -697,11 +740,11 @@ INSERT INTO aluno (
 ),
 (
     'Isabela Lima',
-    'Centro',
+    'Vila Basileia',
     1,
     'MANHA',
-    'Rua Sete de Setembro, 340 - Centro',
-    'Colégio Estrela do Saber, Rua das Acácias, 450',
+    'Rua Sete de Setembro, 340 - Vila Basileia',
+    'Creche CEI Vila Basileia, Rua Dr. Soares Brandão Filho, 40',
     'AMBOS',
     NULL,
     25,
@@ -709,25 +752,12 @@ INSERT INTO aluno (
     1
 ),
 (
-    'Gabriel Rocha',
-    'Vila Nova',
-    2,
-    'MANHA',
-    'Rua dos Ipês, 55 - Vila Nova',
-    NULL,
-    'IDA',
-    NULL,
-    12,
-    4,
-    1
-),
-(
     'Theo Alves',
-    'Jardim das Flores',
+    'Vila Basileia',
     1,
     'MANHA',
-    'Av. Central, 900 - Jardim das Flores',
-    'Colégio Estrela do Saber, Rua das Acácias, 450',
+    'Av. Central, 900 - Vila Basileia',
+    'Creche CEI Vila Basileia, Rua Dr. Soares Brandão Filho, 40',
     'AMBOS',
     NULL,
     18,
@@ -735,40 +765,79 @@ INSERT INTO aluno (
     1
 ),
 (
-    'Lucas Oliveira',
-    'Centro',
-    3,
-    'MANHA',
-    'Rua Bela Vista, 210 - Centro',
-    NULL,
-    'IDA',
-    NULL,
-    8,
-    6,
-    1
-),
-
--- TARDE
-
-(
-    'Helena Souza',
-    'Centro',
+    'Helena Alves',
+    'Vila Basileia',
     1,
     'TARDE',
     NULL,
-    'Rua das Palmeiras, 120 - Centro',
+    'Av. Central, 900 - Vila Basileia',
     'VOLTA',
     NULL,
     10,
-    1,
+    5,
     1
 ),
 (
-    'Pedro Mendes',
-    'Jardim Europa',
-    2,
+    'Gabriel Costa',
+    'Vila Basileia',
+    1,
     'TARDE',
-    'Av. das Laranjeiras, 88 - Jardim Europa',
+    'Rua das Palmeiras, 45 - Vila Basileia',
+    NULL,
+    'IDA',
+    NULL,
+    12,
+    7,
+    1
+),
+(
+    'Laura Costa',
+    'Vila Basileia',
+    1,
+    'TARDE',
+    'Rua das Palmeiras, 45 - Vila Basileia',
+    'Creche CEI Vila Basileia, Rua Dr. Soares Brandão Filho, 40',
+    'AMBOS',
+    NULL,
+    16,
+    7,
+    1
+),
+(
+    'Enzo Cardoso',
+    'Vila Basileia',
+    1,
+    'TARDE',
+    'Rua Aurora, 77 - Vila Basileia',
+    NULL,
+    'IDA',
+    NULL,
+    5,
+    9,
+    1
+),
+(
+    'Yasmin Cardoso',
+    'Vila Basileia',
+    1,
+    'TARDE',
+    NULL,
+    'Rua Aurora, 77 - Vila Basileia',
+    'VOLTA',
+    NULL,
+    28,
+    9,
+    1
+),
+
+-- ========== EMEF COMANDANTE GASTÃO MOUTINHO (id_escola = 2) ==========
+
+(
+    'Pedro Mendes',
+    'Parque Mandaqui',
+    2,
+    'MANHA',
+    'Rua Coronel João da Silva Feijó, 88 - Parque Mandaqui',
     NULL,
     'IDA',
     NULL,
@@ -778,11 +847,11 @@ INSERT INTO aluno (
 ),
 (
     'Laura Mendes',
-    'Jardim Europa',
+    'Parque Mandaqui',
     2,
-    'TARDE',
-    'Av. das Laranjeiras, 88 - Jardim Europa',
-    'Escola Nova Geração, Av. Brasil, 1200',
+    'MANHA',
+    'Rua Coronel João da Silva Feijó, 88 - Parque Mandaqui',
+    'EMEF Comandante Gastão Moutinho, Rua Coronel João da Silva Feijó, 40',
     'AMBOS',
     NULL,
     16,
@@ -790,42 +859,107 @@ INSERT INTO aluno (
     1
 ),
 (
-    'Enzo Lima',
-    'Centro',
+    'Arthur Rocha',
+    'Parque Mandaqui',
     2,
-    'TARDE',
-    'Rua Sete de Setembro, 340 - Centro',
+    'MANHA',
+    'Rua dos Ipês, 55 - Parque Mandaqui',
     NULL,
     'IDA',
     NULL,
-    5,
-    3,
+    8,
+    4,
     1
 ),
 (
-    'Yasmin Alves',
-    'Jardim das Flores',
-    1,
-    'TARDE',
+    'Alice Rocha',
+    'Parque Mandaqui',
+    2,
+    'MANHA',
     NULL,
-    'Av. Central, 900 - Jardim das Flores',
+    'Rua dos Ipês, 55 - Parque Mandaqui',
     'VOLTA',
     NULL,
-    28,
-    5,
+    20,
+    4,
     1
 ),
 (
-    'Arthur Oliveira',
-    'Centro',
-    3,
-    'TARDE',
-    'Rua Bela Vista, 210 - Centro',
-    'Colégio Caminhos do Futuro, Rua das Palmeiras, 800',
+    'Lucas Oliveira',
+    'Parque Mandaqui',
+    2,
+    'MANHA',
+    'Rua Bela Vista, 210 - Parque Mandaqui',
+    'EMEF Comandante Gastão Moutinho, Rua Coronel João da Silva Feijó, 40',
     'AMBOS',
     NULL,
     8,
     6,
+    1
+),
+(
+    'Manuela Oliveira',
+    'Parque Mandaqui',
+    2,
+    'TARDE',
+    'Rua Bela Vista, 210 - Parque Mandaqui',
+    NULL,
+    'IDA',
+    NULL,
+    8,
+    6,
+    1
+),
+(
+    'Bernardo Silva',
+    'Parque Mandaqui',
+    2,
+    'TARDE',
+    'Rua das Acácias, 300 - Parque Mandaqui',
+    NULL,
+    'IDA',
+    NULL,
+    10,
+    8,
+    1
+),
+(
+    'Valentina Silva',
+    'Parque Mandaqui',
+    2,
+    'TARDE',
+    NULL,
+    'Rua das Acácias, 300 - Parque Mandaqui',
+    'VOLTA',
+    NULL,
+    22,
+    8,
+    1
+),
+(
+    'Heitor Santos',
+    'Parque Mandaqui',
+    2,
+    'TARDE',
+    'Rua dos Pinheiros, 150 - Parque Mandaqui',
+    'EMEF Comandante Gastão Moutinho, Rua Coronel João da Silva Feijó, 40',
+    'AMBOS',
+    NULL,
+    5,
+    10,
+    1
+),
+(
+    'Cecília Santos',
+    'Parque Mandaqui',
+    2,
+    'TARDE',
+    NULL,
+    'Rua dos Pinheiros, 150 - Parque Mandaqui',
+    'VOLTA',
+    NULL,
+    28,
+    10,
     1
 );
 
@@ -834,6 +968,7 @@ INSERT INTO aluno (
 -- ITINERÁRIOS
 -- =====================================================
 
+-- MANHÃ - IDA
 INSERT INTO itinerario_aluno (
     id_aluno,
     id_condutor,
@@ -843,10 +978,13 @@ INSERT INTO itinerario_aluno (
 ) VALUES
 (4, 1, 'MANHA', 'IDA', 1),
 (1, 1, 'MANHA', 'IDA', 2),
-(7, 1, 'MANHA', 'IDA', 3),
-(6, 1, 'MANHA', 'IDA', 4),
-(2, 1, 'MANHA', 'IDA', 5),
-(5, 1, 'MANHA', 'IDA', 6);
+(5, 1, 'MANHA', 'IDA', 3),
+(2, 1, 'MANHA', 'IDA', 4),
+(3, 1, 'MANHA', 'IDA', 5),
+(11, 1, 'MANHA', 'IDA', 6),
+(12, 1, 'MANHA', 'IDA', 7),
+(13, 1, 'MANHA', 'IDA', 8),
+(15, 1, 'MANHA', 'IDA', 9);
 
 
 -- MANHÃ - VOLTA
@@ -861,7 +999,10 @@ INSERT INTO itinerario_aluno (
 (4, 1, 'MANHA', 'VOLTA', 1),
 (1, 1, 'MANHA', 'VOLTA', 2),
 (3, 1, 'MANHA', 'VOLTA', 3),
-(6, 1, 'MANHA', 'VOLTA', 4);
+(5, 1, 'MANHA', 'VOLTA', 4),
+(12, 1, 'MANHA', 'VOLTA', 5),
+(14, 1, 'MANHA', 'VOLTA', 6),
+(15, 1, 'MANHA', 'VOLTA', 7);
 
 
 -- TARDE - IDA
@@ -873,10 +1014,12 @@ INSERT INTO itinerario_aluno (
     tipo,
     ordem
 ) VALUES
-(10, 1, 'TARDE', 'IDA', 1),
-(13, 1, 'TARDE', 'IDA', 2),
-(9, 1, 'TARDE', 'IDA', 3),
-(11, 1, 'TARDE', 'IDA', 4);
+(7, 1, 'TARDE', 'IDA', 1),
+(9, 1, 'TARDE', 'IDA', 2),
+(8, 1, 'TARDE', 'IDA', 3),
+(16, 1, 'TARDE', 'IDA', 4),
+(17, 1, 'TARDE', 'IDA', 5),
+(19, 1, 'TARDE', 'IDA', 6);
 
 
 -- TARDE - VOLTA
@@ -888,15 +1031,18 @@ INSERT INTO itinerario_aluno (
     tipo,
     ordem
 ) VALUES
-(10, 1, 'TARDE', 'VOLTA', 1),
-(12, 1, 'TARDE', 'VOLTA', 2),
-(13, 1, 'TARDE', 'VOLTA', 3),
-(8, 1, 'TARDE', 'VOLTA', 4);
+(6, 1, 'TARDE', 'VOLTA', 1),
+(10, 1, 'TARDE', 'VOLTA', 2),
+(8, 1, 'TARDE', 'VOLTA', 3),
+(18, 1, 'TARDE', 'VOLTA', 4),
+(20, 1, 'TARDE', 'VOLTA', 5);
 
 
 -- =====================================================
 -- PRESENÇA
 -- =====================================================
+
+-- MANHÃ - IDA (2026-09-12)
 
 INSERT INTO presenca (
     id_aluno,
@@ -907,13 +1053,16 @@ INSERT INTO presenca (
 ) VALUES
 (4, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
 (1, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
-(7, '2026-09-12', 'MANHA', 'IDA', 'AUSENTE'),
-(6, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
+(5, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
 (2, '2026-09-12', 'MANHA', 'IDA', 'AUSENTE'),
-(5, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE');
+(3, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
+(11, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
+(12, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
+(13, '2026-09-12', 'MANHA', 'IDA', 'AUSENTE'),
+(15, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE');
 
 
--- TARDE
+-- TARDE - IDA (2026-09-12)
 
 INSERT INTO presenca (
     id_aluno,
@@ -922,12 +1071,28 @@ INSERT INTO presenca (
     tipo,
     status
 ) VALUES
-(10, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
-(13, '2026-09-12', 'TARDE', 'IDA', 'AUSENTE'),
-(9, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
-(11, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
-(12, '2026-09-12', 'TARDE', 'VOLTA', 'AUSENTE'),
-(8, '2026-09-12', 'TARDE', 'VOLTA', 'PRESENTE');
+(7, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
+(9, '2026-09-12', 'TARDE', 'IDA', 'AUSENTE'),
+(8, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
+(16, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
+(17, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
+(19, '2026-09-12', 'TARDE', 'IDA', 'AUSENTE');
+
+
+-- TARDE - VOLTA (2026-09-12)
+
+INSERT INTO presenca (
+    id_aluno,
+    data,
+    turno,
+    tipo,
+    status
+) VALUES
+(6, '2026-09-12', 'TARDE', 'VOLTA', 'PRESENTE'),
+(10, '2026-09-12', 'TARDE', 'VOLTA', 'AUSENTE'),
+(8, '2026-09-12', 'TARDE', 'VOLTA', 'PRESENTE'),
+(18, '2026-09-12', 'TARDE', 'VOLTA', 'PRESENTE'),
+(20, '2026-09-12', 'TARDE', 'VOLTA', 'PRESENTE');
 
 
 -- TESTE CRÍTICO:
@@ -943,7 +1108,7 @@ INSERT INTO presenca (
 (1, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE');
 
 
--- OUTRA DATA
+-- OUTRA DATA (2026-09-10)
 
 INSERT INTO presenca (
     id_aluno,
@@ -954,13 +1119,16 @@ INSERT INTO presenca (
 ) VALUES
 (4, '2026-09-10', 'MANHA', 'IDA', 'PRESENTE'),
 (1, '2026-09-10', 'MANHA', 'IDA', 'AUSENTE'),
-(7, '2026-09-10', 'MANHA', 'IDA', 'PRESENTE'),
-(10, '2026-09-10', 'TARDE', 'IDA', 'PRESENTE'),
-(9, '2026-09-10', 'TARDE', 'IDA', 'AUSENTE');
+(5, '2026-09-10', 'MANHA', 'IDA', 'PRESENTE'),
+(11, '2026-09-10', 'MANHA', 'IDA', 'PRESENTE'),
+(7, '2026-09-10', 'TARDE', 'IDA', 'PRESENTE'),
+(9, '2026-09-10', 'TARDE', 'IDA', 'AUSENTE'),
+(16, '2026-09-10', 'TARDE', 'IDA', 'PRESENTE');
 
 
 -- =====================================================
 -- MENSALIDADES
+-- (1 mensalidade por aluno - referência 2026-09)
 -- =====================================================
 
 INSERT INTO mensalidade (
@@ -972,19 +1140,26 @@ INSERT INTO mensalidade (
     id_condutor,
     mes_referencia
 ) VALUES
-(1, 480.00, '2026-09-05', NULL,         'ATRASADO', 1, '2026-09'),
-(2, 460.00, '2026-09-10', '2026-09-08', 'PAGO',     1, '2026-09'),
-(3, 450.00, '2026-09-10', NULL,         'ATRASADO', 1, '2026-09'),
-(4, 520.00, '2026-09-12', '2026-09-11', 'PAGO',     1, '2026-09'),
-(5, 500.00, '2026-09-12', NULL,         'ATRASADO', 1, '2026-09'),
-(6, 470.00, '2026-09-14', NULL,         'PENDENTE', 1, '2026-09'),
-(7, 550.00, '2026-09-13', '2026-09-13', 'PAGO',     1, '2026-09'),
-(8, 450.00, '2026-09-10', NULL,         'ATRASADO', 1, '2026-09'),
-(9, 500.00, '2026-09-12', '2026-09-11', 'PAGO',     1, '2026-09'),
+(1,  480.00, '2026-09-05', NULL,         'ATRASADO', 1, '2026-09'),
+(2,  460.00, '2026-09-10', '2026-09-08', 'PAGO',     1, '2026-09'),
+(3,  450.00, '2026-09-10', NULL,         'ATRASADO', 1, '2026-09'),
+(4,  520.00, '2026-09-12', '2026-09-11', 'PAGO',     1, '2026-09'),
+(5,  500.00, '2026-09-12', NULL,         'ATRASADO', 1, '2026-09'),
+(6,  470.00, '2026-09-14', NULL,         'PENDENTE', 1, '2026-09'),
+(7,  550.00, '2026-09-13', '2026-09-13', 'PAGO',     1, '2026-09'),
+(8,  450.00, '2026-09-10', NULL,         'ATRASADO', 1, '2026-09'),
+(9,  500.00, '2026-09-12', '2026-09-11', 'PAGO',     1, '2026-09'),
 (10, 600.00, '2026-09-14', NULL,         'PENDENTE', 1, '2026-09'),
 (11, 470.00, '2026-09-15', NULL,         'PENDENTE', 1, '2026-09'),
 (12, 430.00, '2026-09-20', NULL,         'PENDENTE', 1, '2026-09'),
-(13, 620.00, '2026-09-25', NULL,         'PENDENTE', 1, '2026-09');
+(13, 620.00, '2026-09-25', NULL,         'PENDENTE', 1, '2026-09'),
+(14, 480.00, '2026-09-05', '2026-09-04', 'PAGO',     1, '2026-09'),
+(15, 490.00, '2026-09-08', NULL,         'ATRASADO', 1, '2026-09'),
+(16, 510.00, '2026-09-10', '2026-09-09', 'PAGO',     1, '2026-09'),
+(17, 460.00, '2026-09-12', NULL,         'PENDENTE', 1, '2026-09'),
+(18, 530.00, '2026-09-15', NULL,         'PENDENTE', 1, '2026-09'),
+(19, 480.00, '2026-09-18', NULL,         'PENDENTE', 1, '2026-09'),
+(20, 540.00, '2026-09-20', NULL,         'PENDENTE', 1, '2026-09');
 
 
 -- =====================================================
@@ -1010,13 +1185,13 @@ INSERT INTO orcamento (
 (
     'Camila Rodrigues Teixeira',
     '(11) 92222-1001',
-    'Centro',
-    'Colégio Estrela do Saber',
+    'Vila Basileia',
+    'Creche CEI Vila Basileia',
     'MANHA',
     1,
     'AMBOS',
-    'Rua Barão do Rio Branco, 210 - Centro',
-    'Colégio Estrela do Saber, Rua das Acácias, 450',
+    'Rua Barão do Rio Branco, 210 - Vila Basileia',
+    'Creche CEI Vila Basileia, Rua Dr. Soares Brandão Filho, 40',
     520.00,
     'PENDENTE',
     FALSE,
@@ -1026,12 +1201,12 @@ INSERT INTO orcamento (
 (
     'Fabio Henrique Nogueira',
     '(11) 92222-1002',
-    'Jardim das Flores',
-    'Escola Nova Geração',
+    'Parque Mandaqui',
+    'EMEF Comandante Gastão Moutinho',
     'TARDE',
     2,
     'IDA',
-    'Rua Aurora, 77 - Jardim das Flores',
+    'Rua Aurora, 77 - Parque Mandaqui',
     NULL,
     850.00,
     'PENDENTE',
@@ -1042,13 +1217,13 @@ INSERT INTO orcamento (
 (
     'Larissa Martins Cardoso',
     '(11) 92222-1003',
-    'Vila Nova',
-    'Escola Nova Geração',
+    'Vila Basileia',
+    'Creche CEI Vila Basileia',
     'TARDE',
     1,
     'VOLTA',
     NULL,
-    'Rua Vila Nova, 300 - Vila Nova',
+    'Rua Vila Nova, 300 - Vila Basileia',
     480.00,
     'EM_CADASTRO',
     FALSE,
@@ -1132,7 +1307,7 @@ INSERT INTO despesa (
 ),
 (
     'Salário do monitor',
-    'Pagamento mensal da monitora Fernanda Oliveira Souza',
+    'Pagamento mensal da monitora EDILEIDE BATISTA',
     1500.00,
     '2026-09-05',
     1
