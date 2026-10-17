@@ -119,6 +119,9 @@ CREATE TABLE responsavel (
     endereco VARCHAR(255) NOT NULL,
     quantidade_alunos INT NOT NULL DEFAULT 1,
 
+    UNIQUE KEY uk_responsavel_telefone (telefone),
+    UNIQUE KEY uk_responsavel_email (email),
+
     CONSTRAINT chk_responsavel_quantidade_alunos
         CHECK (quantidade_alunos >= 1)
 );

@@ -1,8 +1,10 @@
 // Back_end/src/models/model_responsavel.ts
 
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, Index } from "typeorm";
 
 @Entity("responsavel")
+@Index("uk_responsavel_telefone", ["telefone"], { unique: true })
+@Index("uk_responsavel_email", ["email"], { unique: true })
 export class Responsavel {
   @PrimaryGeneratedColumn({ name: "id_responsavel" })
   id_responsavel!: number;

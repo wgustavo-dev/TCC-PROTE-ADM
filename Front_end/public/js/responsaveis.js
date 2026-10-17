@@ -185,6 +185,50 @@ function encontrarResponsavelDuplicado(dados) {
   }) || null;
 }
 
+function encontrarConflitoContato(dados, idIgnorado = null) {
+  const telefone = limparMascaraTelefone(dados.telefone);
+  const email = normalizarEmail(dados.email);
+
+  const conflitos = responsaveis.filter((item) => {
+    if (idIgnorado !== null && Number(item.id) === Number(idIgnorado)) {
+      return false;
+    }
+
+    return (
+      (telefone && limparMascaraTelefone(item.telefone) === telefone) ||
+      (email && normalizarEmail(item.email) === email)
+    );
+  });
+
+  return {
+    telefone: Boolean(
+      telefone &&
+      conflitos.some((item) => limparMascaraTelefone(item.telefone) === telefone)
+    ),
+    email: Boolean(
+      email &&
+      conflitos.some((item) => normalizarEmail(item.email) === email)
+    )
+  };
+}
+
+function validarContatosUnicos(dados, idIgnorado = null) {
+  const conflitos = encontrarConflitoContato(dados, idIgnorado);
+  const camposDuplicados = [];
+
+  if (conflitos.telefone) camposDuplicados.push('telefone');
+  if (conflitos.email) camposDuplicados.push('e-mail');
+
+  if (camposDuplicados.length) {
+    showError(
+      `Já existe outro responsável cadastrado com este ${camposDuplicados.join(' e ')}.`
+    );
+    return false;
+  }
+
+  return true;
+}
+
 function normalizarResponsavel(item) {
   return {
     id: item.id_responsavel,
@@ -866,6 +910,10 @@ async function salvarFormulario(e) {
 
     if (idEmEdicao) {
 
+      if (!validarContatosUnicos(payload, idEmEdicao)) {
+        return;
+      }
+
       await window.API.put(
         `/responsaveis/${idEmEdicao}`,
         payload
@@ -885,9 +933,7 @@ async function salvarFormulario(e) {
     }
 
     const responsavelExistente =
-      encontrarResponsavelDuplicado(
-        payload
-      );
+      encontrarResponsavelDuplicado(payload);
 
     if (responsavelExistente) {
       modalOverlay.classList.add(
@@ -896,12 +942,14 @@ async function salvarFormulario(e) {
 
       redirecionarParaAluno(
         {
-          id_responsavel:
-            responsavelExistente.id
+          id_responsavel: responsavelExistente.id
         },
         payload.quantidade_alunos
       );
+      return;
+    }
 
+    if (!validarContatosUnicos(payload)) {
       return;
     }
 

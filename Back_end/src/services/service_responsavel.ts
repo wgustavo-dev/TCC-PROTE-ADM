@@ -1,6 +1,7 @@
 // Back_end/src/services/service_responsavel.ts
 
 import { AppDataSource } from "../config/database";
+import { QueryFailedError } from "typeorm";
 import { Aluno } from "../models/model_aluno";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Presenca } from "../models/model_presenca";
@@ -53,6 +54,52 @@ export class ServiceResponsavel {
     }
 
     return valor;
+  }
+
+  private async validarContatosUnicos(
+    telefone: string,
+    email: string | null,
+    idIgnorado?: number
+  ): Promise<void> {
+    const responsaveis = await this.responsavelRepository.find({
+      select: {
+        id_responsavel: true,
+        telefone: true,
+        email: true,
+      },
+    });
+
+    const outrosResponsaveis = responsaveis.filter((responsavel) => {
+      if (responsavel.id_responsavel === idIgnorado) {
+        return false;
+      }
+
+      const telefoneExistente = String(responsavel.telefone ?? "").replace(/\D/g, "");
+      const emailExistente = String(responsavel.email ?? "").trim().toLowerCase();
+
+      return (
+        telefoneExistente === telefone ||
+        (email !== null && emailExistente === email)
+      );
+    });
+
+    const telefoneDuplicado = outrosResponsaveis.some(
+      (responsavel) =>
+        String(responsavel.telefone ?? "").replace(/\D/g, "") === telefone
+    );
+    const emailDuplicado = outrosResponsaveis.some(
+      (responsavel) =>
+        email !== null &&
+        String(responsavel.email ?? "").trim().toLowerCase() === email
+    );
+
+    if (telefoneDuplicado) {
+      throw new Error("Já existe um responsável cadastrado com este telefone.");
+    }
+
+    if (emailDuplicado) {
+      throw new Error("Já existe um responsável cadastrado com este e-mail.");
+    }
   }
 
   private normalizarEmail(email: any): string | null {
@@ -152,6 +199,33 @@ export class ServiceResponsavel {
     };
   }
 
+  private async salvarResponsavel(responsavel: Responsavel): Promise<Responsavel> {
+    try {
+      return await this.responsavelRepository.save(responsavel);
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        const driverError = error.driverError as {
+          code?: string;
+          sqlMessage?: string;
+        };
+
+        if (driverError.code === "ER_DUP_ENTRY") {
+          if (driverError.sqlMessage?.includes("uk_responsavel_telefone")) {
+            throw new Error("Já existe um responsável cadastrado com este telefone.");
+          }
+
+          if (driverError.sqlMessage?.includes("uk_responsavel_email")) {
+            throw new Error("Já existe um responsável cadastrado com este e-mail.");
+          }
+
+          throw new Error("Já existe um responsável cadastrado com este telefone ou e-mail.");
+        }
+      }
+
+      throw error;
+    }
+  }
+
   async listar() {
     const responsaveis = await this.responsavelRepository.find({
       order: { nome: "ASC" },
@@ -183,6 +257,8 @@ export class ServiceResponsavel {
       dados.quantidade_alunos
     );
 
+    await this.validarContatosUnicos(telefone, email);
+
     const responsavel = this.responsavelRepository.create({
       nome,
       telefone,
@@ -191,7 +267,7 @@ export class ServiceResponsavel {
       quantidade_alunos: quantidadeAlunos,
     });
 
-    await this.responsavelRepository.save(responsavel);
+    await this.salvarResponsavel(responsavel);
 
     return this.montarResumo(responsavel);
   }
@@ -231,6 +307,12 @@ export class ServiceResponsavel {
       );
     }
 
+    await this.validarContatosUnicos(
+      telefoneAtualizado,
+      emailAtualizado,
+      responsavel.id_responsavel
+    );
+
     this.responsavelRepository.merge(responsavel, {
       nome: nomeAtualizado,
       telefone: telefoneAtualizado,
@@ -239,7 +321,7 @@ export class ServiceResponsavel {
       quantidade_alunos: quantidadeAtualizada,
     });
 
-    await this.responsavelRepository.save(responsavel);
+    await this.salvarResponsavel(responsavel);
 
     return this.montarResumo(responsavel);
   }
