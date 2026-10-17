@@ -34,6 +34,13 @@
     z-index: 2000;
 }
 
+.notificacoes-container.aberto {
+    position: fixed;
+    top: var(--notificacoes-top, 20px);
+    right: var(--notificacoes-right, 32px);
+    z-index: 4000;
+}
+
 
 /* =========================================================
    BOTÃO DO SINO
@@ -130,13 +137,13 @@
    ========================================================= */
 
 .painel-notificacoes {
-    position: fixed;
-
-    top: 120px;
-    right: 32px;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
 
     width: 390px;
     max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 90px);
 
     box-sizing: border-box;
 
@@ -319,7 +326,7 @@
    ========================================================= */
 
 .lista-notificacoes {
-    max-height: 430px;
+    max-height: min(430px, calc(100vh - 240px));
 
     overflow-y: auto;
     overflow-x: hidden;
@@ -443,6 +450,33 @@
 .notificacao-indicador.critica {
     background: #fee2e2;
     color: #dc2626;
+}
+
+.item-notificacao.destaque-verde {
+    border-left: 0;
+}
+
+.item-notificacao.destaque-verde .notificacao-indicador {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.item-notificacao.destaque-amarelo {
+    border-left: 0;
+}
+
+.item-notificacao.destaque-amarelo .notificacao-indicador {
+    background: #fef08a;
+    color: #a16207;
+}
+
+.item-notificacao.destaque-vermelho {
+    border-left: 0;
+}
+
+.item-notificacao.destaque-vermelho .notificacao-indicador {
+    background: #fee2e2;
+    color: #b91c1c;
 }
 
 
@@ -677,13 +711,17 @@
 
 @media (max-width: 700px) {
 
+    .notificacoes-container.aberto {
+        top: var(--notificacoes-top, 12px);
+        right: var(--notificacoes-right, 16px);
+    }
+
     .painel-notificacoes {
-        top: 72px;
-        right: 16px;
-        left: 16px;
+        right: 0;
 
         width: auto;
         max-width: none;
+        min-width: min(390px, calc(100vw - 32px));
     }
 
     .filtros-notificacoes {
@@ -704,9 +742,7 @@
     }
 
     .painel-notificacoes {
-        top: 68px;
-        right: 10px;
-        left: 10px;
+        min-width: min(390px, calc(100vw - 20px));
 
         border-radius: 14px;
     }

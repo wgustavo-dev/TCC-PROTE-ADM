@@ -254,6 +254,7 @@ export class ServiceNotificacaoAutomatica {
                 m.valor,
                 m.data_vencimento,
                 m.status,
+                DATEDIFF(CURDATE(), DATE(m.data_vencimento)) AS dias_atraso,
                 a.nome AS nome_aluno
             FROM mensalidade m
 
@@ -277,7 +278,10 @@ export class ServiceNotificacaoAutomatica {
             // ATRASADA
             // =================================================
 
-            if (status === "ATRASADO") {
+            if (
+                status === "ATRASADO" ||
+                Number(mensalidade.dias_atraso) > 0
+            ) {
 
                 await this.serviceNotificacao.criar({
 
@@ -290,7 +294,7 @@ export class ServiceNotificacaoAutomatica {
                     mensagem:
                         `A mensalidade do aluno ` +
                         `${mensalidade.nome_aluno} ` +
-                        `está atrasada.`,
+                        `está atrasada há ${Number(mensalidade.dias_atraso) || 0} dias.`,
 
                     prioridade: "ALTA",
 
@@ -555,377 +559,60 @@ export class ServiceNotificacaoAutomatica {
             }
 
 
-            // =================================================
-            // ITINERÁRIO
-            // =================================================
-
-            await this.verificarItinerarioAluno(
-                id_condutor,
-                aluno
-            );
         }
     }
-
-
-    // =========================================================
-    // ITINERÁRIO DO ALUNO
-    // =========================================================
-    //
-    // O aluno pode precisar de:
-    //
-    // IDA       -> itinerário de IDA
-    // VOLTA     -> itinerário de VOLTA
-    // AMBOS     -> itinerário de IDA + VOLTA
-    //
-    // O turno do itinerário deve corresponder ao turno
-    // cadastrado no aluno.
-    //
-    // =========================================================
-
-    private async verificarItinerarioAluno(
-        id_condutor: number,
-        aluno: any
-    ) {
-
-        const turno =
-            String(aluno.turno ?? "")
-                .trim()
-                .toUpperCase();
-
-
-        const tipoTrajeto =
-            String(aluno.tipo_trajeto ?? "")
-                .trim()
-                .toUpperCase();
-
-
-        // Sem essas informações não temos como determinar
-        // corretamente qual itinerário deveria existir.
-        if (!turno || !tipoTrajeto) {
-
-            return;
-        }
-
-
-        const itinerarios =
-            await AppDataSource.query(
-                `
-                SELECT
-                    id_itinerario,
-                    turno,
-                    tipo,
-                    ordem
-                FROM itinerario_aluno
-                WHERE id_aluno = ?
-                  AND id_condutor = ?
-                `,
-                [
-                    aluno.id_aluno,
-                    id_condutor
-                ]
-            );
-
-
-        const tiposCadastrados =
-            itinerarios.map(
-                (item: any) =>
-                    String(item.tipo ?? "")
-                        .trim()
-                        .toUpperCase()
-            );
-
-
-        let tiposEsperados: string[] = [];
-
-
-        // =================================================
-        // IDA
-        // =================================================
-
-        if (tipoTrajeto === "IDA") {
-
-            tiposEsperados = ["IDA"];
-        }
-
-
-        // =================================================
-        // VOLTA
-        // =================================================
-
-        else if (tipoTrajeto === "VOLTA") {
-
-            tiposEsperados = ["VOLTA"];
-        }
-
-
-        // =================================================
-        // IDA + VOLTA
-        // =================================================
-
-        else if (tipoTrajeto === "AMBOS") {
-
-            tiposEsperados = [
-                "IDA",
-                "VOLTA"
-            ];
-        }
-
-
-        // =================================================
-        // VERIFICAR ITINERÁRIOS AUSENTES
-        // =================================================
-
-        const itinerariosAusentes =
-            tiposEsperados.filter(
-                tipo =>
-                    !tiposCadastrados.includes(tipo)
-            );
-
-
-        if (itinerariosAusentes.length === 0) {
-
-            return;
-        }
-
-
-        const descricaoTipos =
-            itinerariosAusentes
-                .map(
-                    tipo =>
-                        tipo === "IDA"
-                            ? "ida"
-                            : "volta"
-                )
-                .join(" e ");
-
-
-        console.log(
-            `[notificacao] Aluno ${aluno.id_aluno} ` +
-            `está sem itinerário de ${descricaoTipos}.`
-        );
-
-
-        await this.serviceNotificacao.criar({
-
-            id_condutor,
-
-            tipo: "ALUNO_SEM_ITINERARIO",
-
-            titulo: "Aluno sem itinerário",
-
-            mensagem:
-                `O aluno ${aluno.nome} ` +
-                `não possui itinerário de ${descricaoTipos} ` +
-                `cadastrado para o turno ${turno}.`,
-
-            prioridade: "MEDIA",
-
-            entidade_tipo: "ALUNO",
-
-            entidade_id:
-                aluno.id_aluno
-        });
-    }
-
 
     // =========================================================
     // PRESENÇAS
     // =========================================================
     //
-    // Regra:
-    //
-    // Se o aluno possuir 3 registros consecutivos de AUSENTE,
-    // será criada uma notificação de prioridade ALTA.
-    //
-    // A ocorrência é vinculada ao último registro de presença
-    // que completou a sequência.
+    // Alunos com mais de três dias de falta na semana atual geram
+    // um aviso agregado que expira no fim da semana.
     //
     // =========================================================
 
     private async verificarPresencas(id_condutor: number) {
+        const alunosComFaltas = await AppDataSource.query(
+            `
+            SELECT
+                a.id_aluno,
+                a.nome,
+                COUNT(DISTINCT DATE(p.data)) AS faltas_semana,
+                MAX(p.id_presenca) AS ultima_presenca_id
+            FROM aluno a
+            INNER JOIN presenca p
+                ON p.id_aluno = a.id_aluno
+            WHERE a.id_condutor = ?
+              AND UPPER(p.status) = 'AUSENTE'
+              AND DATE(p.data) >= DATE_SUB(
+                    CURDATE(),
+                    INTERVAL WEEKDAY(CURDATE()) DAY
+              )
+              AND DATE(p.data) <= CURDATE()
+            GROUP BY a.id_aluno, a.nome
+            HAVING COUNT(DISTINCT DATE(p.data)) > 3
+            `,
+            [id_condutor]
+        );
 
-        const alunos =
-            await AppDataSource.query(
-                `
-                SELECT
-                    id_aluno,
-                    nome
-                FROM aluno
-                WHERE id_condutor = ?
-                `,
-                [id_condutor]
-            );
+        const agora = new Date();
+        const diasAteDomingo = (7 - agora.getDay()) % 7;
+        const expiracaoSemana = new Date(agora);
+        expiracaoSemana.setDate(expiracaoSemana.getDate() + diasAteDomingo);
+        expiracaoSemana.setHours(23, 59, 59, 999);
 
-
-        for (const aluno of alunos) {
-
-            const presencas =
-                await AppDataSource.query(
-                    `
-                    SELECT
-                        p.id_presenca,
-                        p.id_aluno,
-                        p.data,
-                        p.turno,
-                        p.tipo,
-                        p.status
-                    FROM presenca p
-
-                    INNER JOIN aluno a
-                        ON a.id_aluno = p.id_aluno
-
-                    WHERE p.id_aluno = ?
-                      AND a.id_condutor = ?
-
-                    ORDER BY
-                        p.data DESC,
-                        p.id_presenca DESC
-
-                    LIMIT 20
-                    `,
-                    [
-                        aluno.id_aluno,
-                        id_condutor
-                    ]
-                );
-
-
-            if (
-                !Array.isArray(presencas) ||
-                presencas.length < 3
-            ) {
-
-                continue;
-            }
-
-
-            /*
-             * A consulta vem em ordem DESC.
-             *
-             * Percorremos os registros mais recentes
-             * procurando uma sequência de 3 AUSENTE.
-             */
-
-            let quantidadeAusenciasConsecutivas = 0;
-
-            let ultimaPresencaAusente: any = null;
-
-
-            for (const presenca of presencas) {
-
-                const status =
-                    String(presenca.status ?? "")
-                        .trim()
-                        .toUpperCase();
-
-
-                if (status === "AUSENTE") {
-
-                    quantidadeAusenciasConsecutivas++;
-
-                    if (!ultimaPresencaAusente) {
-
-                        ultimaPresencaAusente =
-                            presenca;
-                    }
-
-
-                    if (
-                        quantidadeAusenciasConsecutivas >= 3
-                    ) {
-
-                        break;
-                    }
-
-                } else {
-
-                    /*
-                     * Uma presença interrompe a sequência.
-                     */
-
-                    quantidadeAusenciasConsecutivas = 0;
-
-                    ultimaPresencaAusente = null;
-                }
-            }
-
-
-            // =================================================
-            // NÃO POSSUI 3 FALTAS
-            // =================================================
-
-            if (
-                quantidadeAusenciasConsecutivas < 3 ||
-                !ultimaPresencaAusente
-            ) {
-
-                continue;
-            }
-
-
-            // =================================================
-            // EVITAR DUPLICAÇÃO DA MESMA OCORRÊNCIA
-            // =================================================
-
-            const notificacaoExistente =
-                await AppDataSource.query(
-                    `
-                    SELECT
-                        id_notificacao
-                    FROM notificacao
-                    WHERE id_condutor = ?
-                      AND tipo = 'ALUNO_TRES_FALTAS_CONSECUTIVAS'
-                      AND entidade_tipo = 'PRESENCA'
-                      AND entidade_id = ?
-                    LIMIT 1
-                    `,
-                    [
-                        id_condutor,
-                        ultimaPresencaAusente.id_presenca
-                    ]
-                );
-
-
-            if (
-                Array.isArray(notificacaoExistente) &&
-                notificacaoExistente.length > 0
-            ) {
-
-                continue;
-            }
-
-
-            // =================================================
-            // CRIAR NOTIFICAÇÃO
-            // =================================================
-
-            console.log(
-                `[notificacao] Aluno ${aluno.id_aluno} ` +
-                `possui 3 faltas consecutivas.`
-            );
-
+        for (const aluno of alunosComFaltas) {
+            const quantidadeFaltas = Number(aluno.faltas_semana);
 
             await this.serviceNotificacao.criar({
-
                 id_condutor,
-
-                tipo:
-                    "ALUNO_TRES_FALTAS_CONSECUTIVAS",
-
-                titulo:
-                    "Aluno com 3 faltas consecutivas",
-
-                mensagem:
-                    `O aluno ${aluno.nome} ` +
-                    `possui 3 faltas consecutivas ` +
-                    `e deve ser verificado.`,
-
+                tipo: "ALUNO_FALTAS_SEMANA",
+                titulo: `Faltas recorrentes: ${aluno.nome}`,
+                mensagem: `Aluno ${aluno.nome} faltou ${quantidadeFaltas} vezes essa semana.`,
                 prioridade: "ALTA",
-
                 entidade_tipo: "PRESENCA",
-
-                entidade_id:
-                    ultimaPresencaAusente.id_presenca
+                entidade_id: Number(aluno.ultima_presenca_id),
+                data_expiracao: expiracaoSemana,
             });
         }
     }

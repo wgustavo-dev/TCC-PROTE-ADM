@@ -30,7 +30,15 @@ export class ServiceNotificacao {
         // NOTIFICAÇÃO VINCULADA A UMA ENTIDADE
         // =====================================================
 
-        if (
+        if (dados.tipo === "ALUNO_FALTAS_SEMANA") {
+            existente = await this.repository.findOne({
+                where: {
+                    id_condutor: dados.id_condutor,
+                    tipo: dados.tipo,
+                    titulo: dados.titulo
+                }
+            });
+        } else if (
             dados.entidade_tipo !== undefined &&
             dados.entidade_tipo !== null &&
             dados.entidade_id !== undefined &&
@@ -87,6 +95,19 @@ export class ServiceNotificacao {
         if (existente) {
 
             let houveAlteracao = false;
+            const expiracaoAnterior = existente.data_expiracao?.getTime() ?? null;
+            const expiracaoAtual = dados.data_expiracao?.getTime() ?? null;
+
+            if (
+                existente.data_expiracao &&
+                existente.data_expiracao.getTime() <= Date.now()
+            ) {
+                existente.lida = false;
+                existente.data_leitura = null;
+                existente.resolvida = false;
+                existente.data_resolucao = null;
+                houveAlteracao = true;
+            }
 
 
             // =================================================
@@ -168,6 +189,15 @@ export class ServiceNotificacao {
 
             if (houveAlteracao) {
 
+                if (dados.tipo === "ALUNO_FALTAS_SEMANA") {
+                    existente.entidade_tipo = dados.entidade_tipo ?? null;
+                    existente.entidade_id = dados.entidade_id ?? null;
+                }
+
+                if (expiracaoAnterior !== expiracaoAtual) {
+                    existente.data_expiracao = dados.data_expiracao ?? null;
+                }
+
                 return await this.repository.save(
                     existente
                 );
@@ -232,34 +262,23 @@ export class ServiceNotificacao {
         id_condutor: number,
         apenasNaoLidas: boolean = false
     ) {
-
-        const where: any = {
-            id_condutor
-        };
-
+        const query = this.repository
+            .createQueryBuilder("notificacao")
+            .where("notificacao.id_condutor = :id_condutor", { id_condutor })
+            .andWhere(
+                "(notificacao.data_expiracao IS NULL OR notificacao.data_expiracao > :agora)",
+                { agora: new Date() }
+            );
 
         if (apenasNaoLidas) {
-
-            where.lida = false;
-
+            query.andWhere("notificacao.lida = :lida", { lida: false });
         }
 
-
-        return await this.repository.find({
-
-            where,
-
-            order: {
-
-                lida: "ASC",
-
-                prioridade: "DESC",
-
-                data_criacao: "DESC"
-
-            }
-
-        });
+        return query
+            .orderBy("notificacao.lida", "ASC")
+            .addOrderBy("notificacao.prioridade", "DESC")
+            .addOrderBy("notificacao.data_criacao", "DESC")
+            .getMany();
 
     }
 
@@ -272,17 +291,16 @@ export class ServiceNotificacao {
         id_condutor: number
     ) {
 
-        return await this.repository.count({
-
-            where: {
-
-                id_condutor,
-
-                lida: false
-
-            }
-
-        });
+        return this.repository
+            .createQueryBuilder("notificacao")
+            .where("notificacao.id_condutor = :id_condutor", { id_condutor })
+            .andWhere("notificacao.lida = :lida", { lida: false })
+            .andWhere("notificacao.resolvida = :resolvida", { resolvida: false })
+            .andWhere(
+                "(notificacao.data_expiracao IS NULL OR notificacao.data_expiracao > :agora)",
+                { agora: new Date() }
+            )
+            .getCount();
 
     }
 
@@ -415,18 +433,8 @@ export class ServiceNotificacao {
         id_condutor: number
     ) {
 
-        const notificacoes =
-            await this.repository.find({
-
-                where: {
-
-                    id_condutor,
-
-                    lida: false
-
-                }
-
-            });
+        const notificacoes = (await this.buscar(id_condutor, true))
+            .filter((notificacao) => !notificacao.resolvida);
 
 
         if (notificacoes.length === 0) {

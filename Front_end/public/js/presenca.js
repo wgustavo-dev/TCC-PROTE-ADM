@@ -603,11 +603,9 @@
     const itensVolta = itensChamada.filter((item) => item.tipo === "volta");
     const itensIda = itensChamada.filter((item) => item.tipo === "ida");
 
-    // Só existem DUAS chamadas independentes (VOLTA e IDA) quando o
-    // turno realmente mistura os dois tipos (caso típico da TARDE). Se
-    // o turno tiver só um tipo (ex.: MANHÃ = só IDA), mostramos uma
-    // única lista, sem cabeçalhos.
-    if (itensVolta.length && itensIda.length) {
+    // A tarde mantém as chamadas separadas de ida e volta. Os demais
+    // turnos sempre usam uma única chamada, mesmo se tiverem ambos os tipos.
+    if (turnoAtivo === "TARDE" && itensVolta.length && itensIda.length) {
       listaAlunos.innerHTML =
         blocoChamadaHTML(
           turnoAtivo === "TARDE" ? "Turma da Tarde - Alunos que voltam para casa." : "Chamada — Volta",
@@ -748,7 +746,7 @@
     progressoLinha++;
 
     salvarProgressoLocalStorage();
-    renderizarLinhaTrajeto();
+    renderizarLinhaTrajeto(true);
 
     if (progressoLinha === alunos.length && typeof showSuccess === "function") {
       showSuccess(`Fim da linha: o turno da ${rotuloTurno(turnoAtivo).toLowerCase()} acabou.`);
@@ -767,7 +765,7 @@
     progressoLinha--;
 
     salvarProgressoLocalStorage();
-    renderizarLinhaTrajeto();
+    renderizarLinhaTrajeto(true);
   }
 
   function animarChegadaProximoAluno() {
@@ -790,7 +788,7 @@
   // RENDERIZAR LINHA DE TRAJETO
   // ============================================================
 
-  function renderizarLinhaTrajeto() {
+  function renderizarLinhaTrajeto(acompanharProximoPonto = false) {
     if (!trajetoBadge || !trajetoLinha) {
       return;
     }
@@ -845,6 +843,27 @@
     partes.push(paradaCasaHTML(`Fim de rota (${rotuloTurno(turnoAtivo)})`, casaFimClasse));
 
     trajetoLinha.innerHTML = partes.join("");
+
+    if (acompanharProximoPonto) {
+      const areaRolagem = trajetoLinha.closest(".trajeto-linha-scroll");
+      const proximaParada =
+        trajetoLinha.querySelector(".trajeto-parada--aluno.atual") ||
+        trajetoLinha.querySelector(".trajeto-parada--casa:last-child");
+
+      if (areaRolagem && proximaParada) {
+        const area = areaRolagem.getBoundingClientRect();
+        const parada = proximaParada.getBoundingClientRect();
+        const deslocamento =
+          parada.left - area.left - (areaRolagem.clientWidth - parada.width) / 2;
+
+        areaRolagem.scrollTo({
+          left: Math.max(0, areaRolagem.scrollLeft + deslocamento),
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "auto"
+            : "smooth",
+        });
+      }
+    }
   }
 
   // ============================================================

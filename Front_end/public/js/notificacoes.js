@@ -14,6 +14,9 @@
     const botao =
         document.getElementById("botaoNotificacoes");
 
+    const containerNotificacoes =
+        botao?.closest(".notificacoes-container");
+
     const painel =
         document.getElementById("painelNotificacoes");
 
@@ -36,6 +39,7 @@
 
     if (
         !botao ||
+        !containerNotificacoes ||
         !painel ||
         !contador ||
         !lista
@@ -128,13 +132,14 @@
         // -----------------------------------------------------
         // DASHBOARD
         // -----------------------------------------------------
-        // O Dashboard recebe TODAS as notificações.
 
         if (
             moduloAtual === "TODOS"
         ) {
 
-            return listaNotificacoes;
+            return listaNotificacoes.filter(
+                notificacao => ehDestaqueDashboard(notificacao)
+            );
 
         }
 
@@ -149,21 +154,12 @@
 
         }
 
-
         // -----------------------------------------------------
         // MÓDULO ESPECÍFICO
         // -----------------------------------------------------
 
         return listaNotificacoes.filter(
             notificacao => {
-
-                const entidadeTipo =
-                    String(
-                        notificacao?.entidade_tipo || ""
-                    )
-                    .trim()
-                    .toUpperCase();
-
 
                 const tipo =
                     String(
@@ -172,6 +168,18 @@
                     .trim()
                     .toUpperCase();
 
+                if (
+                    tipo === "ALUNO_SEM_ITINERARIO"
+                ) {
+                    return false;
+                }
+
+                const entidadeTipo =
+                    String(
+                        notificacao?.entidade_tipo || ""
+                    )
+                    .trim()
+                    .toUpperCase();
 
                 // -------------------------------------------------
                 // PRIORIDADE:
@@ -199,6 +207,59 @@
             }
         );
 
+    }
+
+    function ehDestaqueDashboard(notificacao) {
+        const tipo = String(notificacao?.tipo || "")
+            .trim()
+            .toUpperCase();
+
+        if (
+            tipo === "NOVO_ORCAMENTO" ||
+            tipo === "DOCUMENTO_PROXIMO_VENCIMENTO" ||
+            tipo === "DOCUMENTO_VENCIDO" ||
+            tipo === "ALUNO_FALTAS_SEMANA"
+        ) {
+            return true;
+        }
+
+        if (tipo === "MENSALIDADE_ATRASADA") {
+            const diasAtraso = Number(
+                String(notificacao?.mensagem || "")
+                    .match(/atrasada há (\d+) dias?/i)?.[1] || 0
+            );
+            return diasAtraso > 7;
+        }
+
+        return false;
+    }
+
+    function classeDestaqueDashboard(notificacao) {
+        if (moduloAtual !== "TODOS") {
+            return "";
+        }
+
+        const tipo = String(notificacao?.tipo || "")
+            .trim()
+            .toUpperCase();
+
+        if (tipo === "NOVO_ORCAMENTO") {
+            return "destaque-verde";
+        }
+
+        if (tipo === "DOCUMENTO_PROXIMO_VENCIMENTO") {
+            return "destaque-amarelo";
+        }
+
+        if (
+            tipo === "DOCUMENTO_VENCIDO" ||
+            tipo === "ALUNO_FALTAS_SEMANA" ||
+            tipo === "MENSALIDADE_ATRASADA"
+        ) {
+            return "destaque-vermelho";
+        }
+
+        return "";
     }
 
 
@@ -362,8 +423,7 @@
 
         if (
             entidadeTipo === "ALUNO" ||
-            tipo === "ALUNO_CADASTRO_INCOMPLETO" ||
-            tipo === "ALUNO_SEM_ITINERARIO"
+            tipo === "ALUNO_CADASTRO_INCOMPLETO"
         ) {
 
             window.location.href =
@@ -477,9 +537,28 @@
     // =========================================================
 
     function abrirPainel() {
+        const posicaoBotao = botao.getBoundingClientRect();
+        containerNotificacoes.style.setProperty(
+            "--notificacoes-right",
+            `${Math.max(8, window.innerWidth - posicaoBotao.right)}px`
+        );
+        containerNotificacoes.classList.add("aberto");
 
         painel.removeAttribute(
             "hidden"
+        );
+
+        const alturaPainel = painel.getBoundingClientRect().height;
+        const topoPainel = Math.max(
+            8,
+            Math.min(
+                posicaoBotao.top,
+                window.innerHeight - alturaPainel - posicaoBotao.height - 10
+            )
+        );
+        containerNotificacoes.style.setProperty(
+            "--notificacoes-top",
+            `${topoPainel}px`
         );
 
 
@@ -505,6 +584,9 @@
             ""
         );
 
+        containerNotificacoes.classList.remove("aberto");
+        containerNotificacoes.style.removeProperty("--notificacoes-top");
+        containerNotificacoes.style.removeProperty("--notificacoes-right");
 
         botao.setAttribute(
             "aria-expanded",
@@ -1228,6 +1310,9 @@
                 ? "resolvida"
                 : "";
 
+        const classeDestaque =
+            classeDestaqueDashboard(notificacao);
+
 
         const id =
             Number(
@@ -1238,7 +1323,7 @@
         return `
 
             <div
-                class="item-notificacao ${classeLida} ${classeResolvida}"
+                class="item-notificacao ${classeLida} ${classeResolvida} ${classeDestaque}"
                 data-id="${id}"
             >
 
@@ -1366,12 +1451,6 @@
             case "ALUNO_CADASTRO_INCOMPLETO":
 
                 return "👤";
-
-
-            case "ALUNO_SEM_ITINERARIO":
-
-                return "🚐";
-
 
             // =================================================
             // PRESENÇA
@@ -1656,113 +1735,41 @@
                     }
 
 
-                    // =================================================
-                    // DASHBOARD
-                    // =================================================
+                    await Promise.all(
 
-                    if (
-                        moduloAtual === "TODOS"
-                    ) {
+                        naoLidas.map(
+                            async notificacao => {
 
-                        const resposta =
-                            await fetch(
-                                "/api/notificacoes/marcar-todas-lidas",
-                                {
-                                    method: "PATCH",
-                                    headers: obterHeaders(),
-                                    credentials: "include"
-                                }
-                            );
-
-
-                        const dados =
-                            await resposta
-                                .json()
-                                .catch(
-                                    () => null
-                                );
-
-
-                        if (
-                            !resposta.ok
-                        ) {
-
-                            throw new Error(
-                                dados?.mensagem ||
-                                `Erro HTTP ${resposta.status}`
-                            );
-
-                        }
-
-
-                        notificacoes.forEach(
-                            notificacao => {
-
-                                if (
-                                    !Boolean(
-                                        notificacao.resolvida
-                                    )
-                                ) {
-
-                                    notificacao.lida =
-                                        true;
-
-
-                                    notificacao.data_leitura =
-                                        new Date()
-                                            .toISOString();
-
-                                }
-
-                            }
-                        );
-
-                    }
-
-
-                    // =================================================
-                    // MÓDULO ESPECÍFICO
-                    // =================================================
-
-                    else {
-
-                        await Promise.all(
-
-                            naoLidas.map(
-                                async notificacao => {
-
-                                    const id =
-                                        Number(
-                                            notificacao.id_notificacao
-                                        );
-
-
-                                    if (!id) {
-
-                                        return;
-
-                                    }
-
-
-                                    await marcarComoLida(
-                                        id
+                                const id =
+                                    Number(
+                                        notificacao.id_notificacao
                                     );
 
 
-                                    notificacao.lida =
-                                        true;
+                                if (!id) {
 
-
-                                    notificacao.data_leitura =
-                                        new Date()
-                                            .toISOString();
+                                    return;
 
                                 }
-                            )
 
-                        );
 
-                    }
+                                await marcarComoLida(
+                                    id
+                                );
+
+
+                                notificacao.lida =
+                                    true;
+
+
+                                notificacao.data_leitura =
+                                    new Date()
+                                        .toISOString();
+
+                            }
+                        )
+
+                    );
 
 
                     // =================================================

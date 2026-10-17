@@ -459,6 +459,7 @@ function configurarFiltros() {
     filtroVencimento.addEventListener("change", () => {
       atualizarLabelMes();
       renderizarTabela();
+      atualizarResumo();
     });
   }
   if (filtroOrdem) filtroOrdem.addEventListener("change", renderizarTabela);
@@ -472,6 +473,7 @@ function configurarFiltros() {
       if (filtroOrdem) filtroOrdem.value = "alfabetica";
       if (filtroEscola) filtroEscola.value = "";
       renderizarTabela();
+      atualizarResumo();
     });
   }
 }
@@ -633,10 +635,15 @@ function renderizarTabela() {
 function atualizarResumo() {
   const mensalidadesDoMes = obterMensalidadesDoMesSelecionado();
   const total = mensalidadesDoMes.reduce((acc, x) => acc + x.valor, 0);
+  const alunosPagantes = new Set(
+    mensalidadesDoMes
+      .filter((item) => item.status === "pago")
+      .map((item) => Number(item.idAluno))
+      .filter((idAluno) => Number.isInteger(idAluno) && idAluno > 0)
+  );
 
   // Os cards de status refletem o universo completo de mensalidades,
   // independentemente do filtro de mês escolhido no painel.
-  const pago = mensalidades.filter((x) => x.status === "pago").length;
   const atrasadas = mensalidades.filter((x) => x.status === "atrasado").length;
   const pendentes = mensalidades.filter((x) => x.status === "pendente").length;
 
@@ -646,7 +653,7 @@ function atualizarResumo() {
   };
 
   setText("resumoTotal", formatarBRL(total));
-  setText("resumoPago", pago);
+  setText("resumoPago", alunosPagantes.size);
   setText("resumoAtrasadas", atrasadas);
   setText("resumoPendentes", pendentes);
 }

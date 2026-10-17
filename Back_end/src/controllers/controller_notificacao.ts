@@ -1,4 +1,6 @@
 import { Response } from "express";
+import { AppDataSource } from "../config/database";
+import { Monitor } from "../models/model_monitor";
 import { ServiceNotificacao } from "../services/service_notificacao";
 import { AuthRequest } from "../middleware/authMiddleware";
 
@@ -6,6 +8,31 @@ export class ControllerNotificacao {
 
     private service =
         new ServiceNotificacao();
+
+    private async obterIdCondutor(req: AuthRequest): Promise<number | null> {
+        const usuario = req.user;
+        if (!usuario?.id) {
+            return null;
+        }
+
+        if (usuario.role === "CONDUTOR") {
+            return Number(usuario.id);
+        }
+
+        if (usuario.role === "MONITOR") {
+            const monitor = await AppDataSource.getRepository(Monitor).findOne({
+                where: { id_monitor: Number(usuario.id), ativo: true },
+                select: {
+                    id_monitor: true,
+                    id_condutor: true,
+                },
+            });
+
+            return monitor?.id_condutor ? Number(monitor.id_condutor) : null;
+        }
+
+        return null;
+    }
 
 
     // =========================================================
@@ -20,8 +47,7 @@ export class ControllerNotificacao {
 
         try {
 
-            const id_condutor =
-                Number(req.user?.id);
+            const id_condutor = await this.obterIdCondutor(req);
 
 
             if (!id_condutor) {
@@ -81,8 +107,7 @@ export class ControllerNotificacao {
 
         try {
 
-            const id_condutor =
-                Number(req.user?.id);
+            const id_condutor = await this.obterIdCondutor(req);
 
 
             if (!id_condutor) {
@@ -137,8 +162,7 @@ export class ControllerNotificacao {
 
         try {
 
-            const id_condutor =
-                Number(req.user?.id);
+            const id_condutor = await this.obterIdCondutor(req);
 
             const id_notificacao =
                 Number(req.params.id);
@@ -217,8 +241,7 @@ export class ControllerNotificacao {
 
         try {
 
-            const id_condutor =
-                Number(req.user?.id);
+            const id_condutor = await this.obterIdCondutor(req);
 
             const id_notificacao =
                 Number(req.params.id);
@@ -294,8 +317,7 @@ export class ControllerNotificacao {
 
         try {
 
-            const id_condutor =
-                Number(req.user?.id);
+            const id_condutor = await this.obterIdCondutor(req);
 
             const id_notificacao =
                 Number(req.params.id);
@@ -371,8 +393,7 @@ export class ControllerNotificacao {
 
         try {
 
-            const id_condutor =
-                Number(req.user?.id);
+            const id_condutor = await this.obterIdCondutor(req);
 
 
             if (!id_condutor) {
@@ -430,8 +451,7 @@ export class ControllerNotificacao {
 
         try {
 
-            const id_condutor =
-                Number(req.user?.id);
+            const id_condutor = await this.obterIdCondutor(req);
 
             const id_notificacao =
                 Number(req.params.id);
