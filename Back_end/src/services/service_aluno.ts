@@ -261,7 +261,7 @@ export class ServiceAluno {
     );
 
     if (temporaria && permanente) {
-      throw new Error("Não é possível marcar necessidade temporária e permanente ao mesmo tempo.");
+      throw new Error('Não é possível marcar "Requer cuidados temporarios" e "Requer cuidados especiais" ao mesmo tempo.');
     }
   }
 

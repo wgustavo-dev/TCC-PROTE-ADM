@@ -382,7 +382,7 @@ function validarSelecaoAcessibilidade() {
     if (el.necessidadeAcessibilidadePermanente) {
       el.necessidadeAcessibilidadePermanente.checked = false;
     }
-    showWarning("Não é possível marcar necessidade temporária e permanente ao mesmo tempo.");
+    showWarning('Não é possível marcar "Requer cuidados temporarios" e "Requer cuidados especiais" ao mesmo tempo.');
   }
 }
 
@@ -401,7 +401,7 @@ function montarPayloadAluno() {
   const permanente = !!(el.necessidadeAcessibilidadePermanente && el.necessidadeAcessibilidadePermanente.checked);
 
   if (temporaria && permanente) {
-    showWarning("Não é possível marcar necessidade temporária e permanente ao mesmo tempo.");
+    showWarning('Não é possível marcar "Requer cuidados temporarios" e "Requer cuidados especiais" ao mesmo tempo.');
   }
 
   return {
@@ -683,11 +683,11 @@ function renderizarTabela(lista) {
       const badgesAcessibilidade = [];
 
       if (valorBooleano(aluno.necessidade_acessibilidade_temporaria || aluno.necessidadeAcessibilidadeTemporaria)) {
-        badgesAcessibilidade.push('<span class="badge-acessibilidade temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">✚ Temporária</span>');
+        badgesAcessibilidade.push('<span class="badge-acessibilidade temporaria" title="Requer cuidados temporarios" aria-label="Requer cuidados temporarios">✚ Requer cuidados temporarios</span>');
       }
 
       if (valorBooleano(aluno.necessidade_acessibilidade_permanente || aluno.necessidadeAcessibilidadePermanente)) {
-        badgesAcessibilidade.push('<span class="badge-acessibilidade permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Contínua</span>');
+        badgesAcessibilidade.push('<span class="badge-acessibilidade permanente" title="Requer cuidados especiais" aria-label="Requer cuidados especiais">♿ Requer cuidados especiais</span>');
       }
 
 

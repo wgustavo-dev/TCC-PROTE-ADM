@@ -67,8 +67,8 @@
     const temCuidadoEspecial = temTemporaria || temPermanente || Boolean(observacao);
 
     const badges = [];
-    if (temTemporaria) badges.push('<span class="acessibilidade-badge acessibilidade-badge--temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">✚ Temporária</span>');
-    if (temPermanente) badges.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Contínua</span>');
+    if (temTemporaria) badges.push('<span class="acessibilidade-badge acessibilidade-badge--temporaria" title="Requer cuidados temporarios" aria-label="Requer cuidados temporarios">✚ Requer cuidados temporarios</span>');
+    if (temPermanente) badges.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Requer cuidados especiais" aria-label="Requer cuidados especiais">♿ Requer cuidados especiais</span>');
   
     li.innerHTML =
       '<div class="aluno-item-linha">' +

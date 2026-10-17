@@ -429,11 +429,11 @@
     const badgesAcessibilidade = [];
 
     if (valorBooleano(item.necessidade_acessibilidade_temporaria ?? item.necessidadeAcessibilidadeTemporaria)) {
-      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--temporaria" title="Necessidade temporária de acessibilidade" aria-label="Necessidade temporária de acessibilidade">✚ Temporária</span>');
+      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--temporaria" title="Requer cuidados temporarios" aria-label="Requer cuidados temporarios">✚ Requer cuidados temporarios</span>');
     }
 
     if (valorBooleano(item.necessidade_acessibilidade_permanente ?? item.necessidadeAcessibilidadePermanente)) {
-      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Necessidade permanente de acessibilidade" aria-label="Necessidade permanente de acessibilidade">♿ Contínua</span>');
+      badgesAcessibilidade.push('<span class="acessibilidade-badge acessibilidade-badge--permanente" title="Requer cuidados especiais" aria-label="Requer cuidados especiais">♿ Requer cuidados especiais</span>');
     }
 
     const observacaoAcessibilidade = String(item.observacao_acessibilidade ?? item.observacaoAcessibilidade ?? "").trim();
@@ -443,9 +443,9 @@
 
 
     let textoNecessidade = "Nenhuma necessidade registrada.";
-    if (temTemporaria && temPermanente) textoNecessidade = "Temporária e permanente";
-    else if (temTemporaria) textoNecessidade = "Temporária";
-    else if (temPermanente) textoNecessidade = "Contínua";
+    if (temTemporaria && temPermanente) textoNecessidade = "Requer cuidados temporarios e requer cuidados especiais";
+    else if (temTemporaria) textoNecessidade = "Requer cuidados temporarios";
+    else if (temPermanente) textoNecessidade = "Requer cuidados especiais";
 
     const observacaoHTML =
       item.status === "AUSENTE"
