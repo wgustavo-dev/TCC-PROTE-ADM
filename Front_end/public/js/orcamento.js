@@ -1093,6 +1093,20 @@ async function handleTabelaClick(
       "continuar-cadastro"
     )
   ) {
+    const orcamentoSelecionado =
+      orcamentos.find(
+        (item) =>
+          String(item.id) ===
+          String(id)
+      );
+
+    if (!orcamentoSelecionado) {
+      showError(
+        "Não foi possível localizar o orçamento selecionado."
+      );
+      return;
+    }
+
     const confirmado =
       await showConfirm(
         "Continuar o cadastro deste orçamento?"
@@ -1111,7 +1125,7 @@ async function handleTabelaClick(
 
       params.set(
         "id_orcamento",
-        String(id)
+        String(orcamentoSelecionado.id)
       );
 
       window.location.href =

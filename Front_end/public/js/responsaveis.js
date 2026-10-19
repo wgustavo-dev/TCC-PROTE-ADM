@@ -158,34 +158,6 @@ function obterParametrosFluxo() {
    NORMALIZAÇÃO
 ========================================================= */
 
-function normalizarTextoParaComparacao(valor = '') {
-  return String(valor || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .toUpperCase();
-}
-
-function encontrarResponsavelDuplicado(dados) {
-  if (!dados || !dados.nome || !dados.telefone) return null;
-
-  const nomeNormalizado = normalizarTextoParaComparacao(dados.nome);
-  const telefoneNormalizado = normalizarTextoParaComparacao(dados.telefone);
-  const enderecoNormalizado = normalizarTextoParaComparacao(dados.endereco || '');
-
-  return responsaveis.find((item) => {
-    const nomeItem = normalizarTextoParaComparacao(item.nome || '');
-    const telefoneItem = normalizarTextoParaComparacao(item.telefone || '');
-    const enderecoItem = normalizarTextoParaComparacao(item.endereco || '');
-
-    const mesmoNome = nomeItem === nomeNormalizado;
-    const mesmoTelefone = telefoneItem === telefoneNormalizado;
-    const mesmoEndereco = !enderecoNormalizado || enderecoItem === enderecoNormalizado || !enderecoItem;
-
-    return (mesmoNome && mesmoTelefone) || (mesmoTelefone && mesmoEndereco);
-  }) || null;
-}
-
 function encontrarConflitoContato(dados, idIgnorado = null) {
   const telefone = limparMascaraTelefone(dados.telefone);
   const telefoneEmergencia = limparMascaraTelefone(dados.telefone_emergencia);
@@ -232,15 +204,9 @@ function validarContatosUnicos(dados, idIgnorado = null) {
   }
 
   const conflitos = encontrarConflitoContato(dados, idIgnorado);
-  const camposDuplicados = [];
 
-  if (conflitos.telefone) camposDuplicados.push('telefone');
-  if (conflitos.email) camposDuplicados.push('e-mail');
-
-  if (camposDuplicados.length) {
-    showError(
-      `Já existe outro responsável cadastrado com este ${camposDuplicados.join(' e ')}.`
-    );
+  if (conflitos.telefone || conflitos.email) {
+    showError('O e-mail ou um dos telefones já está cadastrado em outro responsável.');
     return false;
   }
 
@@ -310,23 +276,6 @@ async function carregarOrcamentoDoFluxo() {
     );
 
     orcamentoFluxo = orcamento;
-
-    const responsavelExistente = encontrarResponsavelDuplicado({
-      nome: orcamento.nome_responsavel || '',
-      telefone: orcamento.telefone || '',
-      endereco: orcamento.endereco_embarque || ''
-    });
-
-    if (responsavelExistente) {
-      const params = new URLSearchParams();
-      params.set('fluxo', 'orcamento');
-      params.set('id_orcamento', String(idOrcamentoFluxo));
-      params.set('id_responsavel', String(responsavelExistente.id));
-      params.set('alunoAtual', '1');
-      params.set('totalAlunos', String(Number(orcamento.quantidade_alunos || responsavelExistente.quantidade || 1)));
-      window.location.href = `alunos.html?${params.toString()}`;
-      return;
-    }
 
     abrirModal(false, null, true);
 
@@ -980,23 +929,6 @@ async function salvarFormulario(e) {
       payload.telefone_emergencia === payload.telefone
     ) {
       showError('O telefone principal e o telefone de emergência devem ser diferentes.');
-      return;
-    }
-
-    const responsavelExistente =
-      encontrarResponsavelDuplicado(payload);
-
-    if (responsavelExistente) {
-      modalOverlay.classList.add(
-        'hidden'
-      );
-
-      redirecionarParaAluno(
-        {
-          id_responsavel: responsavelExistente.id
-        },
-        payload.quantidade_alunos
-      );
       return;
     }
 
