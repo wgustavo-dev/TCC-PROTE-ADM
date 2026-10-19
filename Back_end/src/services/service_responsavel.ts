@@ -78,6 +78,7 @@ export class ServiceResponsavel {
     email: string | null,
     idIgnorado?: number
   ): Promise<void> {
+    // Telefones principal e de emergência devem ser únicos entre responsáveis, em qualquer campo.
     if (telefoneEmergencia && telefone === telefoneEmergencia) {
       throw new Error(
         "O telefone principal e o telefone de emergência devem ser diferentes."
