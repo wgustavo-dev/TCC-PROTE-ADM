@@ -31,7 +31,6 @@ Back_end/uploads/
 Front_end/uploads/
 *.jpg
 *.jpeg
-*.png
 *.gif
 *.webp
 *.svg
