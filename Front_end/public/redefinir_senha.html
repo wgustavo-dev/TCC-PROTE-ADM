@@ -10,48 +10,64 @@
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="core/alerts.css">
     <link rel="stylesheet" href="css/notificacoes.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+
+    <!-- iOS (Safari / adicionar à tela inicial) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="PROTE">
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0f172a">
 </head>
 
 <body>
 
-<!-- NOTIFICAÇÕES -->
-<div class="notificacoes-container">
-  <button type="button" class="botao-notificacoes" id="botaoNotificacoes"
-    aria-label="Abrir notificações" aria-expanded="false">
-    <svg class="icone-sino" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
-      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-    </svg>
-    <span class="contador-notificacoes" id="contadorNotificacoes" hidden>0</span>
-  </button>
+    <!-- NOTIFICAÇÕES -->
+    <div class="notificacoes-container">
+        <button type="button" class="botao-notificacoes" id="botaoNotificacoes" aria-label="Abrir notificações"
+            aria-expanded="false">
+            <svg class="icone-sino" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="contador-notificacoes" id="contadorNotificacoes" hidden>0</span>
+        </button>
 
-  <div class="painel-notificacoes" id="painelNotificacoes" hidden>
-    <div class="notificacoes-cabecalho">
-      <div>
-        <h3>Notificações</h3>
-        <span id="textoNotificacoes">Nenhuma nova notificação</span>
-      </div>
-      <button type="button" class="botao-marcar-todas" id="marcarTodasLidas">Ler todas</button>
-    </div>
+        <div class="painel-notificacoes" id="painelNotificacoes" hidden>
+            <div class="notificacoes-cabecalho">
+                <div>
+                    <h3>Notificações</h3>
+                    <span id="textoNotificacoes">Nenhuma nova notificação</span>
+                </div>
+                <button type="button" class="botao-marcar-todas" id="marcarTodasLidas">Ler todas</button>
+            </div>
 
-    <div class="filtros-notificacoes" role="tablist" aria-label="Filtros de notificações">
-      <button type="button" class="filtro-notificacao ativo" data-filtro="todas" aria-selected="true">Todas</button>
-      <button type="button" class="filtro-notificacao" data-filtro="nao-lidas" aria-selected="false">Não lidas</button>
-      <button type="button" class="filtro-notificacao" data-filtro="lidas" aria-selected="false">Lidas</button>
-      <button type="button" class="filtro-notificacao" data-filtro="criticas" aria-selected="false">Críticas</button>
-      <button type="button" class="filtro-notificacao" data-filtro="resolvidas" aria-selected="false">Resolvidas</button>
-    </div>
+            <div class="filtros-notificacoes" role="tablist" aria-label="Filtros de notificações">
+                <button type="button" class="filtro-notificacao ativo" data-filtro="todas"
+                    aria-selected="true">Todas</button>
+                <button type="button" class="filtro-notificacao" data-filtro="nao-lidas" aria-selected="false">Não
+                    lidas</button>
+                <button type="button" class="filtro-notificacao" data-filtro="lidas"
+                    aria-selected="false">Lidas</button>
+                <button type="button" class="filtro-notificacao" data-filtro="criticas"
+                    aria-selected="false">Críticas</button>
+                <button type="button" class="filtro-notificacao" data-filtro="resolvidas"
+                    aria-selected="false">Resolvidas</button>
+            </div>
 
-    <div class="lista-notificacoes" id="listaNotificacoes">
-      <div class="notificacoes-vazio">
-        <div class="notificacao-vazio-icone">✓</div>
-        <strong>Tudo em dia</strong>
-        <span>Você não possui novas notificações.</span>
-      </div>
+            <div class="lista-notificacoes" id="listaNotificacoes">
+                <div class="notificacoes-vazio">
+                    <div class="notificacao-vazio-icone">✓</div>
+                    <strong>Tudo em dia</strong>
+                    <span>Você não possui novas notificações.</span>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
 
 
@@ -64,9 +80,7 @@
             <!-- PAINEL ESQUERDO -->
             <div class="painel-formulario">
 
-                <a href="esqueceu_senha.html"
-                    class="botao-voltar"
-                    aria-label="Voltar">
+                <a href="esqueceu_senha.html" class="botao-voltar" aria-label="Voltar">
                     ←
                 </a>
 
@@ -85,35 +99,19 @@
 
                     <div class="input-com-icone">
 
-                        <svg class="icone-input"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2">
+                        <svg class="icone-input" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 
                             <rect x="3" y="11" width="18" height="11" rx="2"></rect>
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
 
                         </svg>
 
-                        <input
-                            type="password"
-                            class="input-login"
-                            id="campNovaSenha"
-                            placeholder="Nova senha"
+                        <input type="password" class="input-login" id="campNovaSenha" placeholder="Nova senha"
                             autocomplete="new-password">
 
-                        <button
-                            type="button"
-                            class="botao-ver-senha"
-                            id="botaoVerNovaSenha"
-                            aria-label="Mostrar senha">
+                        <button type="button" class="botao-ver-senha" id="botaoVerNovaSenha" aria-label="Mostrar senha">
 
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -136,35 +134,20 @@
 
                     <div class="input-com-icone">
 
-                        <svg class="icone-input"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2">
+                        <svg class="icone-input" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 
                             <rect x="3" y="11" width="18" height="11" rx="2"></rect>
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
 
                         </svg>
 
-                        <input
-                            type="password"
-                            class="input-login"
-                            id="campConfirmarSenha"
-                            placeholder="Confirmar nova senha"
-                            autocomplete="new-password">
+                        <input type="password" class="input-login" id="campConfirmarSenha"
+                            placeholder="Confirmar nova senha" autocomplete="new-password">
 
-                        <button
-                            type="button"
-                            class="botao-ver-senha"
-                            id="botaoVerConfirmarSenha"
+                        <button type="button" class="botao-ver-senha" id="botaoVerConfirmarSenha"
                             aria-label="Mostrar senha">
 
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -183,11 +166,7 @@
 
                     <li id="reqMinimo">
 
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
 
                             <circle cx="12" cy="12" r="10"></circle>
 
@@ -200,11 +179,7 @@
 
                     <li id="reqLetra">
 
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
 
                             <circle cx="12" cy="12" r="10"></circle>
 
@@ -217,11 +192,7 @@
 
                     <li id="reqNumero">
 
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
 
                             <circle cx="12" cy="12" r="10"></circle>
 
@@ -234,11 +205,7 @@
 
                     <li id="reqIguais">
 
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
 
                             <circle cx="12" cy="12" r="10"></circle>
 
@@ -252,23 +219,14 @@
 
 
                 <!-- MENSAGEM DE ERRO -->
-                <span
-                    class="mensagem-erro"
-                    id="erroRedefinir">
+                <span class="mensagem-erro" id="erroRedefinir">
                 </span>
 
 
                 <!-- SALVAR SENHA -->
-                <button
-                    type="button"
-                    class="botao-primario"
-                    id="botaoSalvarSenha">
+                <button type="button" class="botao-primario" id="botaoSalvarSenha">
 
-                    <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         style="width:16px;height:16px;margin-right:8px">
 
                         <rect x="3" y="11" width="18" height="11" rx="2"></rect>
@@ -288,9 +246,7 @@
                 </div>
 
 
-                <a
-                    href="login.html"
-                    class="botao-contorno-escuro">
+                <a href="login.html" class="botao-contorno-escuro">
 
                     ← Voltar para o Login
 

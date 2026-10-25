@@ -1,4 +1,4 @@
-const CACHE_NAME = "prote-admin-shell-v1";
+const CACHE_NAME = "prote-admin-shell-v2";
 const APP_SHELL = [
   "/",
   "/login.html",
