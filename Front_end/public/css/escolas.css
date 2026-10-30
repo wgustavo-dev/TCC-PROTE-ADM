@@ -1116,3 +1116,11 @@
 .swal2-backdrop-show {
   z-index: 999998 !important;
 }
+
+@media (max-width: 700px) {
+  .pagina-escolas .table-card .table-wrapper {
+    display: block !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
