@@ -1,7 +1,7 @@
 -- =====================================================
 -- SCHEMA PROTE ADM - v1.15
 -- =====================================================
--- Estrutura completa + seed de testes
+-- Estrutura completa + seed atualizado de outubro/2026
 --
 -- Alterações da v1.15:
 -- 1) Adicionado telefone_emergencia opcional para responsáveis.
@@ -45,12 +45,10 @@
 -- - 1 condutor
 -- - 2 monitores
 -- - 2 escolas
--- - 10 responsáveis
--- - 20 alunos (10 por escola)
--- - itinerários de MANHA e TARDE
--- - presenças de MANHA e TARDE
--- - teste do mesmo aluno em dois turnos no mesmo dia
--- - mensalidades para todos os alunos
+-- - responsáveis e alunos conforme DOCX de outubro/2026
+-- - tabela itinerario_aluno removida
+-- - presenca mantida vazia, sem registros antigos
+-- - mensalidades somente de outubro/2026, conciliadas com as fotos
 -- - orçamentos
 -- - documentos
 -- - despesas
@@ -260,36 +258,7 @@ CREATE TABLE aluno (
 );
 
 
--- =====================================================
--- TABELA: ITINERARIO_ALUNO
--- =====================================================
-
-CREATE TABLE itinerario_aluno (
-    id_itinerario INT AUTO_INCREMENT PRIMARY KEY,
-    id_aluno INT NOT NULL,
-    id_condutor INT NOT NULL,
-    turno ENUM('MANHA','TARDE','NOITE') NOT NULL,
-    tipo ENUM('IDA','VOLTA') NOT NULL,
-    ordem INT NOT NULL,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (id_aluno)
-        REFERENCES aluno(id_aluno)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-
-    FOREIGN KEY (id_condutor)
-        REFERENCES condutor(id_condutor)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-
-    UNIQUE KEY uk_aluno_turno_tipo (
-        id_aluno,
-        turno,
-        tipo
-    )
-);
-
+-- TABELA itinerario_aluno removida conforme solicitado. O schema não possuía tabela separada chamada rota.
 
 -- =====================================================
 -- TABELA: ORCAMENTO
@@ -552,615 +521,260 @@ INSERT INTO monitor (
 );
 
 
--- =====================================================
 -- ESCOLAS
--- =====================================================
+INSERT INTO escola (nome, endereco) VALUES
+('Creche Basileia', 'Rua Dr. Soares Brandão Filho, 40 - Vila Basileia'),
+('Escola Gastão Montinho', 'Rua Coronel João da Silva Feijó, 40 - Parque Mandaqui');
 
-INSERT INTO escola (
-    nome,
-    endereco
-) VALUES
-(
-    'Creche CEI Vila Basileia',
-    'Rua Dr. Soares Brandão Filho, 40 - Vila Basileia'
-),
-(
-    'EMEF Comandante Gastão Moutinho',
-    'Rua Coronel João da Silva Feijó, 40 - Parque Mandaqui'
-);
+-- RESPONSÁVEIS. Telefones e endereços fictícios para campos obrigatórios ausentes nas fontes.
+INSERT INTO responsavel (nome, telefone, telefone_emergencia, email, endereco, quantidade_alunos) VALUES
+('Thayanara Silva', '11956883159', '11983377828', NULL, 'Rua Francisco Arcuri, 444 - Pedra Branca', 1),
+('Camilla Rodrigues', '11906204001', '11901435385', NULL, 'Rua Irmão João Creff, 311 - Vila Aurora', 1),
+('Marco Aurélio', '11943859527', '11978000487', NULL, 'Rua João de Laet, 114 - Vila Aurora', 1),
+('Larissa M', '11941293894', '11918464731', NULL, 'Rua Apetumbi, 301 - Horto Florestal', 1),
+('Lilian Almeida', '11994936219', '11957841465', NULL, 'Rua Wanda Martin, 306 - Vila Amélia', 1),
+('Mãe de Bryant e Maytê', '11956003813', '11953149505', NULL, 'Rua Wanda Martin, 130 - Vila Amélia', 2),
+('Mãe do Mateo', '11959341220', '11983390680', NULL, 'Rua Lacerda Marques, 477 - Lauzane Paulista', 1),
+('Pamela Lima M', '11938338945', '11947683474', NULL, 'Rua Antônio Gomes da Silva, 159 - Horto Florestal', 2),
+('Ana Carolina', '11968482479', '11933547417', NULL, 'Rua José Ferreira de Castro, 210 - Vila Amélia', 1),
+('Natalia C', '11936002925', '11938027645', NULL, 'Rua Laudelino Bicudo, 161 - Lauzane Paulista', 1),
+('Cristiane C S', '11955951526', '11909470080', NULL, 'Rua Itapora de Goiás, 192 - Jardim Santa Inês', 1),
+('Mãe do Breno', '11990326909', '11984934950', NULL, 'Rua Dário Vilares Barbosa, 410 - Peri Alto', 1),
+('Fernanda V S', '11920758325', '11989812419', NULL, 'Avenida Professor Oscar Augusto Guelli, 163 - Vila Amélia', 2),
+('Bruna Benedito B', '11919479717', '11990943963', NULL, 'Rua Jani Penoy Arcuri, 151 - Pedra Branca', 2),
+('Carlos Henrique C (?)', '11965299532', '11910548084', NULL, 'Rua Antônio Gomes da Silva, 360 - Horto Florestal', 1),
+('Pai do Miguel', '11991664262', '11916600741', NULL, 'Rua Sousa Lopes, 395 - Lauzane Paulista', 1),
+('Wesley Lucas', '11992226127', '11979401990', NULL, 'Rua Itapora de Goiás, 353 - Jardim Santa Inês', 1),
+('Pai do kevin', '11908904695', '11947609132', NULL, 'Rua Apetumbi, 101 - Horto Florestal', 1),
+('Mãe da yasmin', '11972870805', '11930744123', NULL, 'Rua Conselheiro Moreira de Barros, 180 - Lauzane Paulista', 1),
+('Pai da antonella', '11923908708', '11973252200', NULL, 'Avenida Santa Inês, 157 - Jardim Santa Inês', 1),
+('Mãe do samuel', '11937176656', '11946198089', NULL, 'Rua Albertina Vieira da Silva Gordo, 186 - Vila Aurora', 1),
+('Pai do lian', '11944697742', '11936734196', NULL, 'Rua do Horto, 243 - Horto Florestal', 1),
+('Pai da manu', '11983499351', '11911880411', NULL, 'Rua José Maria Peixoto, 304 - Peri Alto', 1),
+('Izaelma dos S', '11967764988', '11941898070', NULL, 'Rua Ângelo Capricho, 341 - Horto Florestal', 1),
+('Laine Oliveira', '11974451744', '11973538324', NULL, 'Avenida Santa Inês, 365 - Jardim Santa Inês', 1),
+('Vivian', '11997850250', '11988366814', NULL, 'Avenida Professor Oscar Augusto Guelli, 340 - Vila Amélia', 1),
+('Fernando', '11919570495', '11974753819', NULL, 'Rua Jani Penoy Arcuri, 459 - Pedra Branca', 1),
+('Ana Luiza', '11965935364', '11997993592', NULL, 'Rua Parateí, 350 - Lauzane Paulista', 1),
+('Janaína Brito', '11931728503', '11988729833', NULL, 'Rua Itapora de Goiás, 153 - Jardim Santa Inês', 1),
+('Dandara', '11917334744', '11991155725', NULL, 'Rua Parateí, 463 - Lauzane Paulista', 1),
+('Mãe da Any Vitória', '11926866175', '11987573018', NULL, 'Rua Itapora de Goiás, 187 - Jardim Santa Inês', 1),
+('Thainara B L', '11912631659', '11969414659', NULL, 'Avenida Professor Oscar Augusto Guelli, 282 - Vila Amélia', 1),
+('Marina de Avellar', '11976774801', '11933525837', NULL, 'Rua Várzea Grande, 392 - Peri Alto', 1),
+('Sérgio', '11998387633', '11935860453', NULL, 'Rua Eugênio da Silva, 257 - Horto Florestal', 1),
+('Mãe do Pyetro', '11959399782', '11960998012', NULL, 'Rua Parateí, 475 - Lauzane Paulista', 1),
+('Maria Eduarda', '11922677963', '11947809585', NULL, 'Rua José Maria Ferreira de Araújo, 293 - Vila Aurora', 1),
+('Ana Maria MBC', '11939476257', '11975182837', NULL, 'Rua Jani Penoy Arcuri, 22 - Pedra Branca', 1),
+('Kalorine C H', '11996787199', '11993097474', NULL, 'Rua Vinte de Julho, 92 - Vila Amélia', 2),
+('Mãe do Diego', '11952703804', '11989842651', NULL, 'Rua Índio Peri, 450 - Pedra Branca', 1),
+('J William MS', '11967749485', '11994371797', NULL, 'Rua João de Laet, 78 - Vila Aurora', 1),
+('Luciana F', '11920842535', '11906383345', NULL, 'Rua Almirante Paraguaçu de Sá, 333 - Jardim Santa Inês', 1),
+('Mãe do Bryant', '11931144370', '11934204790', NULL, 'Rua José Maria Ferreira de Araújo, 61 - Vila Aurora', 1),
+('Mãe do Jhon Ravel', '11940561082', '11969481918', NULL, 'Rua Ângelo Capricho, 310 - Horto Florestal', 1),
+('André Rodrigues', '11959928754', '11962254740', NULL, 'Rua Jani Penoy Arcuri, 302 - Pedra Branca', 1),
+('Marisa FSV', '11911265827', '11936578137', NULL, 'Rua Alfarrobeiras, 418 - Peri Alto', 1),
+('Josilane RS', '11921802876', '11965011989', NULL, 'Rua Antônio Novaes, 213 - Lauzane Paulista', 1),
+('Mãe do Arthur e Paulo', '11947307026', '11933188175', NULL, 'Rua Índio Peri, 192 - Pedra Branca', 2),
+('Adriana', '11944551240', '11963374670', NULL, 'Avenida Professor Oscar Augusto Guelli, 266 - Vila Amélia', 1),
+('Nayane Vasconcelos', '11978294058', '11914628264', NULL, 'Rua Alfarrobeiras, 329 - Peri Alto', 1),
+('Mãe da Agata', '11991525863', '11932949024', NULL, 'Avenida Peri Ronchetti, 262 - Pedra Branca', 1),
+('Mãe da Kamilly', '11973308845', '11974967118', NULL, 'Avenida Peri Ronchetti, 339 - Pedra Branca', 1),
+('Gabriela', '11948637840', '11931424107', NULL, 'Rua Doutor Aureliano Duarte, 457 - Jardim Santa Inês', 2),
+('Graciane Rosa P', '11963474237', '11996744763', NULL, 'Rua Evian, 199 - Lauzane Paulista', 1),
+('Pai do Yago', '11983954178', '11953729003', NULL, 'Rua Índio Peri, 480 - Pedra Branca', 1),
+('Jaqueline', '11965667057', '11910961192', NULL, 'Rua Alfarrobeiras, 456 - Peri Alto', 1),
+('Amanda', '11973367249', '11939462412', NULL, 'Rua José Maria Peixoto, 161 - Peri Alto', 1),
+('Aline', '11950955014', '11915259566', NULL, 'Rua Inácio Rego, 477 - Horto Florestal', 1),
+('Pai do Renato e Serena', '11911009798', '11966580920', NULL, 'Rua Antônio Gomes da Silva, 98 - Horto Florestal', 2),
+('Eva de Oliveira', '11937717038', '11933215337', NULL, 'Rua Irmão João Creff, 476 - Vila Aurora', 1),
+('Pai do Miguel', '11967757729', '11999561098', NULL, 'Rua Luiz Alves de Araújo, 163 - Horto Florestal', 1),
+('Pai do Paulinho', '11912085783', '11983076732', NULL, 'Rua Conselheiro Moreira de Barros, 229 - Lauzane Paulista', 1),
+('Pai da Yasmin', '11912447236', '11987043767', NULL, 'Rua Santana dos Montes, 380 - Peri Alto', 1),
+('Edilson', '11930852809', '11914279196', NULL, 'Rua Irmão João Creff, 302 - Vila Aurora', 1),
+('Mãe da Manuela', '11956998529', '11919818099', NULL, 'Rua Irmão João Creff, 466 - Vila Aurora', 1),
+('Adriana Jesus C', '11923042383', '11903265959', NULL, 'Rua Laudelino Bicudo, 156 - Lauzane Paulista', 1),
+('Daniel Almeida', '11912439170', '11984443242', NULL, 'Rua Vinte de Julho, 258 - Vila Amélia', 1),
+('Pai do Arthur', '11913745065', '11925930321', NULL, 'Rua Francisco Arcuri, 410 - Pedra Branca', 1),
+('Pai da Nathaly', '11938379241', '11926264025', NULL, 'Rua Almirante Paraguaçu de Sá, 329 - Jardim Santa Inês', 1),
+('Pai da Ana Laura', '11918407904', '11974837369', NULL, 'Rua Almirante Paraguaçu de Sá, 435 - Jardim Santa Inês', 1),
+('Ana Paula', '11985370807', '11919753209', NULL, 'Rua Alfarrobeiras, 47 - Peri Alto', 1),
+('Jhon Kevin C', '11971448326', '11998148334', NULL, 'Rua José Maria Peixoto, 332 - Peri Alto', 1),
+('Ronaldo SP', '11937964884', '11974726962', NULL, 'Rua Francisco Goya, 77 - Vila Aurora', 1),
+('Heraldo SP', '11906206021', '11978245069', NULL, 'Rua Dário Vilares Barbosa, 81 - Peri Alto', 1),
+('Jefferson Silva', '11965992527', '11912395034', NULL, 'Rua José Ferreira de Castro, 205 - Vila Amélia', 1);
 
+-- ALUNOS NOVOS DO DOCUMENTO. Dados de turno/endereço não fornecidos foram deixados NULL.
+INSERT INTO aluno (nome, bairro, id_escola, turno, endereco_embarque, endereco_desembarque, tipo_trajeto, foto, dia_vencimento, necessidade_acessibilidade_temporaria, necessidade_acessibilidade_permanente, observacao_acessibilidade, id_responsavel, id_condutor) VALUES
+('Emanuele', 'Pedra Branca', 1, NULL, 'Rua Francisco Arcuri, 444 - Pedra Branca', 'Rua Francisco Arcuri, 444 - Pedra Branca', NULL, NULL, 2, FALSE, FALSE, NULL, 1, 1),
+('Leo Rodrigues Novais', 'Vila Aurora', 1, NULL, 'Rua Irmão João Creff, 311 - Vila Aurora', 'Rua Irmão João Creff, 311 - Vila Aurora', NULL, NULL, 4, FALSE, FALSE, NULL, 2, 1),
+('Caio', 'Vila Aurora', 1, NULL, 'Rua João de Laet, 114 - Vila Aurora', 'Rua João de Laet, 114 - Vila Aurora', NULL, NULL, 4, FALSE, FALSE, NULL, 3, 1),
+('José Davi', 'Horto Florestal', 1, NULL, 'Rua Apetumbi, 301 - Horto Florestal', 'Rua Apetumbi, 301 - Horto Florestal', NULL, NULL, 5, FALSE, FALSE, NULL, 4, 1),
+('Manu Lacerda', 'Vila Amélia', 1, NULL, 'Rua Wanda Martin, 306 - Vila Amélia', 'Rua Wanda Martin, 306 - Vila Amélia', NULL, NULL, 6, FALSE, FALSE, NULL, 5, 1),
+('Mayte', 'Vila Amélia', 1, NULL, 'Rua Wanda Martin, 130 - Vila Amélia', 'Rua Wanda Martin, 130 - Vila Amélia', NULL, NULL, 6, FALSE, FALSE, NULL, 6, 1),
+('Bryant', 'Vila Amélia', 1, NULL, 'Rua Wanda Martin, 130 - Vila Amélia', 'Rua Wanda Martin, 130 - Vila Amélia', NULL, NULL, 6, FALSE, FALSE, NULL, 6, 1),
+('Mateo', 'Lauzane Paulista', 1, NULL, 'Rua Lacerda Marques, 477 - Lauzane Paulista', 'Rua Lacerda Marques, 477 - Lauzane Paulista', NULL, NULL, 6, FALSE, FALSE, NULL, 7, 1),
+('Marina', 'Horto Florestal', 1, NULL, 'Rua Antônio Gomes da Silva, 159 - Horto Florestal', 'Rua Antônio Gomes da Silva, 159 - Horto Florestal', NULL, NULL, 6, FALSE, FALSE, NULL, 8, 1),
+('Leo', 'Horto Florestal', 1, NULL, 'Rua Antônio Gomes da Silva, 159 - Horto Florestal', 'Rua Antônio Gomes da Silva, 159 - Horto Florestal', NULL, NULL, 6, FALSE, FALSE, NULL, 8, 1),
+('Lavinia', 'Vila Amélia', 1, NULL, 'Rua José Ferreira de Castro, 210 - Vila Amélia', 'Rua José Ferreira de Castro, 210 - Vila Amélia', NULL, NULL, 7, FALSE, FALSE, NULL, 9, 1),
+('Levi', 'Lauzane Paulista', 1, NULL, 'Rua Laudelino Bicudo, 161 - Lauzane Paulista', 'Rua Laudelino Bicudo, 161 - Lauzane Paulista', NULL, NULL, 9, FALSE, FALSE, NULL, 10, 1),
+('Maria Ster', 'Jardim Santa Inês', 1, NULL, 'Rua Itapora de Goiás, 192 - Jardim Santa Inês', 'Rua Itapora de Goiás, 192 - Jardim Santa Inês', NULL, NULL, 9, FALSE, FALSE, NULL, 11, 1),
+('Breno', 'Peri Alto', 1, NULL, 'Rua Dário Vilares Barbosa, 410 - Peri Alto', 'Rua Dário Vilares Barbosa, 410 - Peri Alto', NULL, NULL, 9, FALSE, FALSE, NULL, 12, 1),
+('Gabriel', 'Vila Amélia', 1, NULL, 'Avenida Professor Oscar Augusto Guelli, 163 - Vila Amélia', 'Avenida Professor Oscar Augusto Guelli, 163 - Vila Amélia', NULL, NULL, 9, FALSE, FALSE, NULL, 13, 1),
+('Arthur', 'Vila Amélia', 1, NULL, 'Avenida Professor Oscar Augusto Guelli, 163 - Vila Amélia', 'Avenida Professor Oscar Augusto Guelli, 163 - Vila Amélia', NULL, NULL, 9, FALSE, FALSE, NULL, 13, 1),
+('Cecilia', 'Pedra Branca', 1, NULL, 'Rua Jani Penoy Arcuri, 151 - Pedra Branca', 'Rua Jani Penoy Arcuri, 151 - Pedra Branca', NULL, NULL, 10, FALSE, FALSE, NULL, 14, 1),
+('Isabele', 'Pedra Branca', 1, NULL, 'Rua Jani Penoy Arcuri, 151 - Pedra Branca', 'Rua Jani Penoy Arcuri, 151 - Pedra Branca', NULL, NULL, 10, FALSE, FALSE, NULL, 14, 1),
+('Isabelle', 'Horto Florestal', 1, NULL, 'Rua Antônio Gomes da Silva, 360 - Horto Florestal', 'Rua Antônio Gomes da Silva, 360 - Horto Florestal', NULL, NULL, 10, FALSE, FALSE, NULL, 15, 1),
+('Miguel', 'Lauzane Paulista', 1, NULL, 'Rua Sousa Lopes, 395 - Lauzane Paulista', 'Rua Sousa Lopes, 395 - Lauzane Paulista', NULL, NULL, 12, FALSE, FALSE, NULL, 16, 1),
+('Henry', 'Jardim Santa Inês', 1, NULL, 'Rua Itapora de Goiás, 353 - Jardim Santa Inês', 'Rua Itapora de Goiás, 353 - Jardim Santa Inês', NULL, NULL, 19, FALSE, FALSE, NULL, 17, 1),
+('Kevin', 'Horto Florestal', 1, NULL, 'Rua Apetumbi, 101 - Horto Florestal', 'Rua Apetumbi, 101 - Horto Florestal', NULL, NULL, 24, FALSE, FALSE, NULL, 18, 1),
+('Yasmin', 'Lauzane Paulista', 1, NULL, 'Rua Conselheiro Moreira de Barros, 180 - Lauzane Paulista', 'Rua Conselheiro Moreira de Barros, 180 - Lauzane Paulista', NULL, NULL, 25, FALSE, FALSE, NULL, 19, 1),
+('Antonella', 'Jardim Santa Inês', 1, NULL, 'Avenida Santa Inês, 157 - Jardim Santa Inês', 'Avenida Santa Inês, 157 - Jardim Santa Inês', NULL, NULL, 25, FALSE, FALSE, NULL, 20, 1),
+('Samuel', 'Vila Aurora', 1, NULL, 'Rua Albertina Vieira da Silva Gordo, 186 - Vila Aurora', 'Rua Albertina Vieira da Silva Gordo, 186 - Vila Aurora', NULL, NULL, 25, FALSE, FALSE, NULL, 21, 1),
+('Lian', 'Horto Florestal', 1, NULL, 'Rua do Horto, 243 - Horto Florestal', 'Rua do Horto, 243 - Horto Florestal', NULL, NULL, 27, FALSE, FALSE, NULL, 22, 1),
+('Manu Zurik', 'Peri Alto', 1, NULL, 'Rua José Maria Peixoto, 304 - Peri Alto', 'Rua José Maria Peixoto, 304 - Peri Alto', NULL, NULL, 20, FALSE, FALSE, NULL, 23, 1),
+('Mirela', 'Horto Florestal', 1, NULL, 'Rua Ângelo Capricho, 341 - Horto Florestal', 'Rua Ângelo Capricho, 341 - Horto Florestal', NULL, NULL, 27, FALSE, FALSE, NULL, 24, 1),
+('Henry Faria', 'Jardim Santa Inês', 1, NULL, 'Avenida Santa Inês, 365 - Jardim Santa Inês', 'Avenida Santa Inês, 365 - Jardim Santa Inês', NULL, NULL, 1, FALSE, FALSE, NULL, 25, 1),
+('Catarina', 'Vila Amélia', 1, NULL, 'Avenida Professor Oscar Augusto Guelli, 340 - Vila Amélia', 'Avenida Professor Oscar Augusto Guelli, 340 - Vila Amélia', NULL, NULL, 20, FALSE, FALSE, NULL, 26, 1),
+('João Friburgo', 'Pedra Branca', 1, NULL, 'Rua Jani Penoy Arcuri, 459 - Pedra Branca', 'Rua Jani Penoy Arcuri, 459 - Pedra Branca', NULL, NULL, 19, FALSE, FALSE, NULL, 27, 1),
+('Benjamin', 'Lauzane Paulista', 1, NULL, 'Rua Parateí, 350 - Lauzane Paulista', 'Rua Parateí, 350 - Lauzane Paulista', NULL, NULL, 5, FALSE, FALSE, NULL, 28, 1),
+('Eloa', 'Jardim Santa Inês', 1, NULL, 'Rua Itapora de Goiás, 153 - Jardim Santa Inês', 'Rua Itapora de Goiás, 153 - Jardim Santa Inês', NULL, NULL, 10, FALSE, FALSE, NULL, 29, 1),
+('Luiz', 'Lauzane Paulista', 1, NULL, 'Rua Parateí, 463 - Lauzane Paulista', 'Rua Parateí, 463 - Lauzane Paulista', NULL, NULL, 15, FALSE, FALSE, NULL, 30, 1),
+('Any Victoria', 'Jardim Santa Inês', 1, NULL, 'Rua Itapora de Goiás, 187 - Jardim Santa Inês', 'Rua Itapora de Goiás, 187 - Jardim Santa Inês', NULL, NULL, 18, FALSE, FALSE, NULL, 31, 1),
+('Theo', 'Vila Amélia', 1, NULL, 'Avenida Professor Oscar Augusto Guelli, 282 - Vila Amélia', 'Avenida Professor Oscar Augusto Guelli, 282 - Vila Amélia', NULL, NULL, 21, FALSE, FALSE, NULL, 32, 1),
+('Mateo', 'Peri Alto', 1, NULL, 'Rua Várzea Grande, 392 - Peri Alto', 'Rua Várzea Grande, 392 - Peri Alto', NULL, NULL, 6, FALSE, FALSE, NULL, 33, 1),
+('Caio', 'Horto Florestal', 1, NULL, 'Rua Eugênio da Silva, 257 - Horto Florestal', 'Rua Eugênio da Silva, 257 - Horto Florestal', NULL, NULL, 21, FALSE, FALSE, NULL, 34, 1),
+('Pyetro', 'Lauzane Paulista', 1, NULL, 'Rua Parateí, 475 - Lauzane Paulista', 'Rua Parateí, 475 - Lauzane Paulista', NULL, NULL, 24, FALSE, FALSE, NULL, 35, 1),
+('Davi Henrique', 'Vila Aurora', 1, NULL, 'Rua José Maria Ferreira de Araújo, 293 - Vila Aurora', 'Rua José Maria Ferreira de Araújo, 293 - Vila Aurora', NULL, NULL, 6, FALSE, FALSE, NULL, 36, 1),
+('José Mario', 'Pedra Branca', 2, NULL, 'Rua Jani Penoy Arcuri, 22 - Pedra Branca', 'Rua Jani Penoy Arcuri, 22 - Pedra Branca', NULL, NULL, 22, FALSE, FALSE, NULL, 37, 1),
+('Lucas', 'Vila Amélia', 2, NULL, 'Rua Vinte de Julho, 92 - Vila Amélia', 'Rua Vinte de Julho, 92 - Vila Amélia', NULL, NULL, 3, FALSE, FALSE, NULL, 38, 1),
+('Victor', 'Vila Amélia', 2, NULL, 'Rua Vinte de Julho, 92 - Vila Amélia', 'Rua Vinte de Julho, 92 - Vila Amélia', NULL, NULL, 3, FALSE, FALSE, NULL, 38, 1),
+('Diego', 'Pedra Branca', 2, NULL, 'Rua Índio Peri, 450 - Pedra Branca', 'Rua Índio Peri, 450 - Pedra Branca', NULL, NULL, 4, FALSE, FALSE, NULL, 39, 1),
+('Artur-Horto', 'Vila Aurora', 2, NULL, 'Rua João de Laet, 78 - Vila Aurora', 'Rua João de Laet, 78 - Vila Aurora', NULL, NULL, 5, FALSE, FALSE, NULL, 40, 1),
+('Luan', 'Jardim Santa Inês', 2, NULL, 'Rua Almirante Paraguaçu de Sá, 333 - Jardim Santa Inês', 'Rua Almirante Paraguaçu de Sá, 333 - Jardim Santa Inês', NULL, NULL, 5, FALSE, FALSE, NULL, 41, 1),
+('Bryant', 'Vila Aurora', 2, NULL, 'Rua José Maria Ferreira de Araújo, 61 - Vila Aurora', 'Rua José Maria Ferreira de Araújo, 61 - Vila Aurora', NULL, NULL, 5, FALSE, FALSE, NULL, 42, 1),
+('Jhon Ravel', 'Horto Florestal', 2, NULL, 'Rua Ângelo Capricho, 310 - Horto Florestal', 'Rua Ângelo Capricho, 310 - Horto Florestal', NULL, NULL, 20, FALSE, FALSE, NULL, 43, 1),
+('Helena', 'Pedra Branca', 2, NULL, 'Rua Jani Penoy Arcuri, 302 - Pedra Branca', 'Rua Jani Penoy Arcuri, 302 - Pedra Branca', NULL, NULL, 8, FALSE, FALSE, NULL, 44, 1),
+('Thayna', 'Peri Alto', 2, NULL, 'Rua Alfarrobeiras, 418 - Peri Alto', 'Rua Alfarrobeiras, 418 - Peri Alto', NULL, NULL, 9, FALSE, FALSE, NULL, 45, 1),
+('Alana', 'Lauzane Paulista', 2, NULL, 'Rua Antônio Novaes, 213 - Lauzane Paulista', 'Rua Antônio Novaes, 213 - Lauzane Paulista', NULL, NULL, 9, FALSE, FALSE, NULL, 46, 1),
+('Paulo', 'Pedra Branca', 2, NULL, 'Rua Índio Peri, 192 - Pedra Branca', 'Rua Índio Peri, 192 - Pedra Branca', NULL, NULL, 16, FALSE, FALSE, NULL, 47, 1),
+('Arthur', 'Pedra Branca', 2, NULL, 'Rua Índio Peri, 192 - Pedra Branca', 'Rua Índio Peri, 192 - Pedra Branca', NULL, NULL, 16, FALSE, FALSE, NULL, 47, 1),
+('Isabele', 'Vila Amélia', 2, NULL, 'Avenida Professor Oscar Augusto Guelli, 266 - Vila Amélia', 'Avenida Professor Oscar Augusto Guelli, 266 - Vila Amélia', NULL, NULL, 10, FALSE, FALSE, NULL, 48, 1),
+('Victoria Peri', 'Peri Alto', 2, NULL, 'Rua Alfarrobeiras, 329 - Peri Alto', 'Rua Alfarrobeiras, 329 - Peri Alto', NULL, NULL, 10, FALSE, FALSE, NULL, 49, 1),
+('Agata', 'Pedra Branca', 2, NULL, 'Avenida Peri Ronchetti, 262 - Pedra Branca', 'Avenida Peri Ronchetti, 262 - Pedra Branca', NULL, NULL, 15, FALSE, FALSE, NULL, 50, 1),
+('Kamilly', 'Pedra Branca', 2, NULL, 'Avenida Peri Ronchetti, 339 - Pedra Branca', 'Avenida Peri Ronchetti, 339 - Pedra Branca', NULL, NULL, 10, FALSE, FALSE, NULL, 51, 1),
+('Elisa', 'Jardim Santa Inês', 2, NULL, 'Rua Doutor Aureliano Duarte, 457 - Jardim Santa Inês', 'Rua Doutor Aureliano Duarte, 457 - Jardim Santa Inês', NULL, NULL, 10, FALSE, FALSE, NULL, 52, 1),
+('Maria Eduarda', 'Jardim Santa Inês', 2, NULL, 'Rua Doutor Aureliano Duarte, 457 - Jardim Santa Inês', 'Rua Doutor Aureliano Duarte, 457 - Jardim Santa Inês', NULL, NULL, 10, FALSE, FALSE, NULL, 52, 1),
+('Livia', 'Lauzane Paulista', 2, NULL, 'Rua Evian, 199 - Lauzane Paulista', 'Rua Evian, 199 - Lauzane Paulista', NULL, NULL, 10, FALSE, FALSE, NULL, 53, 1),
+('Yago', 'Pedra Branca', 2, NULL, 'Rua Índio Peri, 480 - Pedra Branca', 'Rua Índio Peri, 480 - Pedra Branca', NULL, NULL, 20, FALSE, FALSE, NULL, 54, 1),
+('Esdras', 'Peri Alto', 2, NULL, 'Rua Alfarrobeiras, 456 - Peri Alto', 'Rua Alfarrobeiras, 456 - Peri Alto', NULL, NULL, 10, FALSE, FALSE, NULL, 55, 1),
+('Beatriz', 'Peri Alto', 2, NULL, 'Rua José Maria Peixoto, 161 - Peri Alto', 'Rua José Maria Peixoto, 161 - Peri Alto', NULL, NULL, 11, FALSE, FALSE, NULL, 56, 1),
+('Amanda', 'Horto Florestal', 2, NULL, 'Rua Inácio Rego, 477 - Horto Florestal', 'Rua Inácio Rego, 477 - Horto Florestal', NULL, NULL, 12, FALSE, FALSE, NULL, 57, 1),
+('Renato', 'Horto Florestal', 2, NULL, 'Rua Antônio Gomes da Silva, 98 - Horto Florestal', 'Rua Antônio Gomes da Silva, 98 - Horto Florestal', NULL, NULL, 15, FALSE, FALSE, NULL, 58, 1),
+('Serena', 'Horto Florestal', 2, NULL, 'Rua Antônio Gomes da Silva, 98 - Horto Florestal', 'Rua Antônio Gomes da Silva, 98 - Horto Florestal', NULL, NULL, 15, FALSE, FALSE, NULL, 58, 1),
+('Lara', 'Vila Aurora', 2, NULL, 'Rua Irmão João Creff, 476 - Vila Aurora', 'Rua Irmão João Creff, 476 - Vila Aurora', NULL, NULL, 15, FALSE, FALSE, NULL, 59, 1),
+('Miguel', 'Horto Florestal', 2, NULL, 'Rua Luiz Alves de Araújo, 163 - Horto Florestal', 'Rua Luiz Alves de Araújo, 163 - Horto Florestal', NULL, NULL, 17, FALSE, FALSE, NULL, 60, 1),
+('Paulinho', 'Lauzane Paulista', 2, NULL, 'Rua Conselheiro Moreira de Barros, 229 - Lauzane Paulista', 'Rua Conselheiro Moreira de Barros, 229 - Lauzane Paulista', NULL, NULL, 20, FALSE, FALSE, NULL, 61, 1),
+('Yasmin', 'Peri Alto', 2, NULL, 'Rua Santana dos Montes, 380 - Peri Alto', 'Rua Santana dos Montes, 380 - Peri Alto', NULL, NULL, 20, FALSE, FALSE, NULL, 62, 1),
+('Geovana', 'Vila Aurora', 2, NULL, 'Rua Irmão João Creff, 302 - Vila Aurora', 'Rua Irmão João Creff, 302 - Vila Aurora', NULL, NULL, 21, FALSE, FALSE, NULL, 63, 1),
+('Manuela', 'Vila Aurora', 2, NULL, 'Rua Irmão João Creff, 466 - Vila Aurora', 'Rua Irmão João Creff, 466 - Vila Aurora', NULL, NULL, 21, FALSE, FALSE, NULL, 64, 1),
+('João Lucas', 'Lauzane Paulista', 2, NULL, 'Rua Laudelino Bicudo, 156 - Lauzane Paulista', 'Rua Laudelino Bicudo, 156 - Lauzane Paulista', NULL, NULL, 22, FALSE, FALSE, NULL, 65, 1),
+('Alice (Osório)', 'Vila Amélia', 2, NULL, 'Rua Vinte de Julho, 258 - Vila Amélia', 'Rua Vinte de Julho, 258 - Vila Amélia', NULL, NULL, 22, FALSE, FALSE, NULL, 66, 1),
+('Arthur (Cida)', 'Pedra Branca', 2, NULL, 'Rua Francisco Arcuri, 410 - Pedra Branca', 'Rua Francisco Arcuri, 410 - Pedra Branca', NULL, NULL, 1, FALSE, FALSE, NULL, 67, 1),
+('Nathaly', 'Jardim Santa Inês', 2, NULL, 'Rua Almirante Paraguaçu de Sá, 329 - Jardim Santa Inês', 'Rua Almirante Paraguaçu de Sá, 329 - Jardim Santa Inês', NULL, NULL, 23, FALSE, FALSE, NULL, 68, 1),
+('Ana Laura', 'Jardim Santa Inês', 2, NULL, 'Rua Almirante Paraguaçu de Sá, 435 - Jardim Santa Inês', 'Rua Almirante Paraguaçu de Sá, 435 - Jardim Santa Inês', NULL, NULL, 24, FALSE, FALSE, NULL, 69, 1),
+('Kauã', 'Peri Alto', 2, NULL, 'Rua Alfarrobeiras, 47 - Peri Alto', 'Rua Alfarrobeiras, 47 - Peri Alto', NULL, NULL, 30, FALSE, FALSE, NULL, 70, 1),
+('Ary Thiago', 'Peri Alto', 2, NULL, 'Rua José Maria Peixoto, 332 - Peri Alto', 'Rua José Maria Peixoto, 332 - Peri Alto', NULL, NULL, 23, FALSE, FALSE, NULL, 71, 1),
+('Heloiza', 'Vila Aurora', 2, NULL, 'Rua Francisco Goya, 77 - Vila Aurora', 'Rua Francisco Goya, 77 - Vila Aurora', NULL, NULL, 11, FALSE, FALSE, NULL, 72, 1),
+('Fanny Santos', 'Peri Alto', 2, NULL, 'Rua Dário Vilares Barbosa, 81 - Peri Alto', 'Rua Dário Vilares Barbosa, 81 - Peri Alto', NULL, NULL, 14, FALSE, FALSE, NULL, 73, 1),
+('Ana Flavia', 'Vila Amélia', 2, NULL, 'Rua José Ferreira de Castro, 205 - Vila Amélia', 'Rua José Ferreira de Castro, 205 - Vila Amélia', NULL, NULL, 15, FALSE, FALSE, NULL, 74, 1);
 
--- =====================================================
--- RESPONSÁVEIS
--- =====================================================
+-- PRESENÇA: tabela mantida vazia; todos os registros antigos foram descartados.
 
-INSERT INTO responsavel (
-    nome,
-    telefone,
-    telefone_emergencia,
-    email,
-    endereco,
-    quantidade_alunos
-) VALUES
-(
-    'Ana Paula Ferreira',
-    '11911110001',
-    '11988880001',
-    'ana.ferreira@gmail.com',
-    'Rua Dr. Soares Brandão Filho, 120 - Vila Basileia',
-    2
-),
-(
-    'Roberto Carlos Mendes',
-    '11911110002',
-    '11988880002',
-    'roberto.mendes@gmail.com',
-    'Rua Coronel João da Silva Feijó, 88 - Parque Mandaqui',
-    2
-),
-(
-    'Juliana Ferreira Lima',
-    '11911110003',
-    '11988880003',
-    'juliana.lima@gmail.com',
-    'Rua Sete de Setembro, 340 - Vila Basileia',
-    2
-),
-(
-    'Marcos Paulo Rocha',
-    '11911110004',
-    '11988880004',
-    'marcos.rocha@gmail.com',
-    'Rua dos Ipês, 55 - Parque Mandaqui',
-    2
-),
-(
-    'Patricia Gomes Alves',
-    '11911110005',
-    '11988880005',
-    'patricia.alves@gmail.com',
-    'Av. Central, 900 - Vila Basileia',
-    2
-),
-(
-    'Ricardo Martins Oliveira',
-    '11911110006',
-    '11988880006',
-    'ricardo.oliveira@gmail.com',
-    'Rua Bela Vista, 210 - Parque Mandaqui',
-    2
-),
-(
-    'Fernanda Souza Costa',
-    '11911110007',
-    '11988880007',
-    'fernanda.costa@gmail.com',
-    'Rua das Palmeiras, 45 - Vila Basileia',
-    2
-),
-(
-    'Gustavo Henrique Silva',
-    '11911110008',
-    '11988880008',
-    'gustavo.silva@gmail.com',
-    'Rua das Acácias, 300 - Parque Mandaqui',
-    2
-),
-(
-    'Larissa Martins Cardoso',
-    '11911110009',
-    '11988880009',
-    'larissa.cardoso@gmail.com',
-    'Rua Aurora, 77 - Vila Basileia',
-    2
-),
-(
-    'Thiago Barbosa Santos',
-    '11911110010',
-    '11988880010',
-    'thiago.santos@gmail.com',
-    'Rua dos Pinheiros, 150 - Parque Mandaqui',
-    2
-);
-
-
--- =====================================================
--- ALUNOS
--- =====================================================
--- 10 alunos na Creche CEI Vila Basileia (id_escola = 1)
--- 10 alunos na EMEF Comandante Gastão Moutinho (id_escola = 2)
---
--- Responsáveis:
--- id 1 -> alunos 1, 2 (Vila Basileia)
--- id 2 -> alunos 3, 4 (Gastão Moutinho)
--- id 3 -> alunos 5, 6 (Vila Basileia)
--- id 4 -> alunos 7, 8 (Gastão Moutinho)
--- id 5 -> alunos 9, 10 (Vila Basileia)
--- id 6 -> alunos 11, 12 (Gastão Moutinho)
--- id 7 -> alunos 13, 14 (Vila Basileia)
--- id 8 -> alunos 15, 16 (Gastão Moutinho)
--- id 9 -> alunos 17, 18 (Vila Basileia)
--- id 10 -> alunos 19, 20 (Gastão Moutinho)
--- =====================================================
-
-INSERT INTO aluno (
-    nome,
-    bairro,
-    id_escola,
-    turno,
-    endereco_embarque,
-    endereco_desembarque,
-    tipo_trajeto,
-    foto,
-    dia_vencimento,
-    id_responsavel,
-    id_condutor
-) VALUES
-
--- ========== CRECHE CEI VILA BASILEIA (id_escola = 1) ==========
-
-(
-    'Sofia Ferreira',
-    'Vila Basileia',
-    1,
-    'MANHA',
-    'Rua Dr. Soares Brandão Filho, 120 - Vila Basileia',
-    'Creche CEI Vila Basileia, Rua Dr. Soares Brandão Filho, 40',
-    'AMBOS',
-    NULL,
-    5,
-    1,
-    1
-),
-(
-    'Davi Ferreira',
-    'Vila Basileia',
-    1,
-    'MANHA',
-    'Rua Dr. Soares Brandão Filho, 120 - Vila Basileia',
-    NULL,
-    'IDA',
-    NULL,
-    10,
-    1,
-    1
-),
-(
-    'Miguel Lima',
-    'Vila Basileia',
-    1,
-    'MANHA',
-    NULL,
-    'Rua Sete de Setembro, 340 - Vila Basileia',
-    'VOLTA',
-    NULL,
-    20,
-    3,
-    1
-),
-(
-    'Isabela Lima',
-    'Vila Basileia',
-    1,
-    'MANHA',
-    'Rua Sete de Setembro, 340 - Vila Basileia',
-    'Creche CEI Vila Basileia, Rua Dr. Soares Brandão Filho, 40',
-    'AMBOS',
-    NULL,
-    25,
-    3,
-    1
-),
-(
-    'Theo Alves',
-    'Vila Basileia',
-    1,
-    'MANHA',
-    'Av. Central, 900 - Vila Basileia',
-    'Creche CEI Vila Basileia, Rua Dr. Soares Brandão Filho, 40',
-    'AMBOS',
-    NULL,
-    18,
-    5,
-    1
-),
-(
-    'Helena Alves',
-    'Vila Basileia',
-    1,
-    'TARDE',
-    NULL,
-    'Av. Central, 900 - Vila Basileia',
-    'VOLTA',
-    NULL,
-    10,
-    5,
-    1
-),
-(
-    'Gabriel Costa',
-    'Vila Basileia',
-    1,
-    'TARDE',
-    'Rua das Palmeiras, 45 - Vila Basileia',
-    NULL,
-    'IDA',
-    NULL,
-    12,
-    7,
-    1
-),
-(
-    'Laura Costa',
-    'Vila Basileia',
-    1,
-    'TARDE',
-    'Rua das Palmeiras, 45 - Vila Basileia',
-    'Creche CEI Vila Basileia, Rua Dr. Soares Brandão Filho, 40',
-    'AMBOS',
-    NULL,
-    16,
-    7,
-    1
-),
-(
-    'Enzo Cardoso',
-    'Vila Basileia',
-    1,
-    'TARDE',
-    'Rua Aurora, 77 - Vila Basileia',
-    NULL,
-    'IDA',
-    NULL,
-    5,
-    9,
-    1
-),
-(
-    'Yasmin Cardoso',
-    'Vila Basileia',
-    1,
-    'TARDE',
-    NULL,
-    'Rua Aurora, 77 - Vila Basileia',
-    'VOLTA',
-    NULL,
-    28,
-    9,
-    1
-),
-
--- ========== EMEF COMANDANTE GASTÃO MOUTINHO (id_escola = 2) ==========
-
-(
-    'Pedro Mendes',
-    'Parque Mandaqui',
-    2,
-    'MANHA',
-    'Rua Coronel João da Silva Feijó, 88 - Parque Mandaqui',
-    NULL,
-    'IDA',
-    NULL,
-    15,
-    2,
-    1
-),
-(
-    'Laura Mendes',
-    'Parque Mandaqui',
-    2,
-    'MANHA',
-    'Rua Coronel João da Silva Feijó, 88 - Parque Mandaqui',
-    'EMEF Comandante Gastão Moutinho, Rua Coronel João da Silva Feijó, 40',
-    'AMBOS',
-    NULL,
-    16,
-    2,
-    1
-),
-(
-    'Arthur Rocha',
-    'Parque Mandaqui',
-    2,
-    'MANHA',
-    'Rua dos Ipês, 55 - Parque Mandaqui',
-    NULL,
-    'IDA',
-    NULL,
-    8,
-    4,
-    1
-),
-(
-    'Alice Rocha',
-    'Parque Mandaqui',
-    2,
-    'MANHA',
-    NULL,
-    'Rua dos Ipês, 55 - Parque Mandaqui',
-    'VOLTA',
-    NULL,
-    20,
-    4,
-    1
-),
-(
-    'Lucas Oliveira',
-    'Parque Mandaqui',
-    2,
-    'MANHA',
-    'Rua Bela Vista, 210 - Parque Mandaqui',
-    'EMEF Comandante Gastão Moutinho, Rua Coronel João da Silva Feijó, 40',
-    'AMBOS',
-    NULL,
-    8,
-    6,
-    1
-),
-(
-    'Manuela Oliveira',
-    'Parque Mandaqui',
-    2,
-    'TARDE',
-    'Rua Bela Vista, 210 - Parque Mandaqui',
-    NULL,
-    'IDA',
-    NULL,
-    8,
-    6,
-    1
-),
-(
-    'Bernardo Silva',
-    'Parque Mandaqui',
-    2,
-    'TARDE',
-    'Rua das Acácias, 300 - Parque Mandaqui',
-    NULL,
-    'IDA',
-    NULL,
-    10,
-    8,
-    1
-),
-(
-    'Valentina Silva',
-    'Parque Mandaqui',
-    2,
-    'TARDE',
-    NULL,
-    'Rua das Acácias, 300 - Parque Mandaqui',
-    'VOLTA',
-    NULL,
-    22,
-    8,
-    1
-),
-(
-    'Heitor Santos',
-    'Parque Mandaqui',
-    2,
-    'TARDE',
-    'Rua dos Pinheiros, 150 - Parque Mandaqui',
-    'EMEF Comandante Gastão Moutinho, Rua Coronel João da Silva Feijó, 40',
-    'AMBOS',
-    NULL,
-    5,
-    10,
-    1
-),
-(
-    'Cecília Santos',
-    'Parque Mandaqui',
-    2,
-    'TARDE',
-    NULL,
-    'Rua dos Pinheiros, 150 - Parque Mandaqui',
-    'VOLTA',
-    NULL,
-    28,
-    10,
-    1
-);
-
-
--- =====================================================
--- ITINERÁRIOS
--- =====================================================
-
--- MANHÃ - IDA
-INSERT INTO itinerario_aluno (
-    id_aluno,
-    id_condutor,
-    turno,
-    tipo,
-    ordem
-) VALUES
-(4, 1, 'MANHA', 'IDA', 1),
-(1, 1, 'MANHA', 'IDA', 2),
-(5, 1, 'MANHA', 'IDA', 3),
-(2, 1, 'MANHA', 'IDA', 4),
-(3, 1, 'MANHA', 'IDA', 5),
-(11, 1, 'MANHA', 'IDA', 6),
-(12, 1, 'MANHA', 'IDA', 7),
-(13, 1, 'MANHA', 'IDA', 8),
-(15, 1, 'MANHA', 'IDA', 9);
-
-
--- MANHÃ - VOLTA
-
-INSERT INTO itinerario_aluno (
-    id_aluno,
-    id_condutor,
-    turno,
-    tipo,
-    ordem
-) VALUES
-(4, 1, 'MANHA', 'VOLTA', 1),
-(1, 1, 'MANHA', 'VOLTA', 2),
-(3, 1, 'MANHA', 'VOLTA', 3),
-(5, 1, 'MANHA', 'VOLTA', 4),
-(12, 1, 'MANHA', 'VOLTA', 5),
-(14, 1, 'MANHA', 'VOLTA', 6),
-(15, 1, 'MANHA', 'VOLTA', 7);
-
-
--- TARDE - IDA
-
-INSERT INTO itinerario_aluno (
-    id_aluno,
-    id_condutor,
-    turno,
-    tipo,
-    ordem
-) VALUES
-(7, 1, 'TARDE', 'IDA', 1),
-(9, 1, 'TARDE', 'IDA', 2),
-(8, 1, 'TARDE', 'IDA', 3),
-(16, 1, 'TARDE', 'IDA', 4),
-(17, 1, 'TARDE', 'IDA', 5),
-(19, 1, 'TARDE', 'IDA', 6);
-
-
--- TARDE - VOLTA
-
-INSERT INTO itinerario_aluno (
-    id_aluno,
-    id_condutor,
-    turno,
-    tipo,
-    ordem
-) VALUES
-(6, 1, 'TARDE', 'VOLTA', 1),
-(10, 1, 'TARDE', 'VOLTA', 2),
-(8, 1, 'TARDE', 'VOLTA', 3),
-(18, 1, 'TARDE', 'VOLTA', 4),
-(20, 1, 'TARDE', 'VOLTA', 5);
-
-
--- =====================================================
--- PRESENÇA
--- =====================================================
-
--- MANHÃ - IDA (2026-09-12)
-
-INSERT INTO presenca (
-    id_aluno,
-    data,
-    turno,
-    tipo,
-    status
-) VALUES
-(4, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
-(1, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
-(5, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
-(2, '2026-09-12', 'MANHA', 'IDA', 'AUSENTE'),
-(3, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
-(11, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
-(12, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE'),
-(13, '2026-09-12', 'MANHA', 'IDA', 'AUSENTE'),
-(15, '2026-09-12', 'MANHA', 'IDA', 'PRESENTE');
-
-
--- TARDE - IDA (2026-09-12)
-
-INSERT INTO presenca (
-    id_aluno,
-    data,
-    turno,
-    tipo,
-    status
-) VALUES
-(7, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
-(9, '2026-09-12', 'TARDE', 'IDA', 'AUSENTE'),
-(8, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
-(16, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
-(17, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE'),
-(19, '2026-09-12', 'TARDE', 'IDA', 'AUSENTE');
-
-
--- TARDE - VOLTA (2026-09-12)
-
-INSERT INTO presenca (
-    id_aluno,
-    data,
-    turno,
-    tipo,
-    status
-) VALUES
-(6, '2026-09-12', 'TARDE', 'VOLTA', 'PRESENTE'),
-(10, '2026-09-12', 'TARDE', 'VOLTA', 'AUSENTE'),
-(8, '2026-09-12', 'TARDE', 'VOLTA', 'PRESENTE'),
-(18, '2026-09-12', 'TARDE', 'VOLTA', 'PRESENTE'),
-(20, '2026-09-12', 'TARDE', 'VOLTA', 'PRESENTE');
-
-
--- TESTE CRÍTICO:
--- MESMO ALUNO + MESMA DATA + TURNOS DIFERENTES
-
-INSERT INTO presenca (
-    id_aluno,
-    data,
-    turno,
-    tipo,
-    status
-) VALUES
-(1, '2026-09-12', 'TARDE', 'IDA', 'PRESENTE');
-
-
--- OUTRA DATA (2026-09-10)
-
-INSERT INTO presenca (
-    id_aluno,
-    data,
-    turno,
-    tipo,
-    status
-) VALUES
-(4, '2026-09-10', 'MANHA', 'IDA', 'PRESENTE'),
-(1, '2026-09-10', 'MANHA', 'IDA', 'AUSENTE'),
-(5, '2026-09-10', 'MANHA', 'IDA', 'PRESENTE'),
-(11, '2026-09-10', 'MANHA', 'IDA', 'PRESENTE'),
-(7, '2026-09-10', 'TARDE', 'IDA', 'PRESENTE'),
-(9, '2026-09-10', 'TARDE', 'IDA', 'AUSENTE'),
-(16, '2026-09-10', 'TARDE', 'IDA', 'PRESENTE');
-
-
--- =====================================================
--- MENSALIDADES
--- (1 mensalidade por aluno - referência 2026-09)
--- =====================================================
-
-INSERT INTO mensalidade (
-    id_aluno,
-    valor,
-    data_vencimento,
-    data_pagamento,
-    status,
-    id_condutor,
-    mes_referencia
-) VALUES
-(1,  480.00, '2026-09-05', NULL,         'ATRASADO', 1, '2026-09'),
-(2,  460.00, '2026-09-10', '2026-09-08', 'PAGO',     1, '2026-09'),
-(3,  450.00, '2026-09-10', NULL,         'ATRASADO', 1, '2026-09'),
-(4,  520.00, '2026-09-12', '2026-09-11', 'PAGO',     1, '2026-09'),
-(5,  500.00, '2026-09-12', NULL,         'ATRASADO', 1, '2026-09'),
-(6,  470.00, '2026-09-14', NULL,         'PENDENTE', 1, '2026-09'),
-(7,  550.00, '2026-09-13', '2026-09-13', 'PAGO',     1, '2026-09'),
-(8,  450.00, '2026-09-10', NULL,         'ATRASADO', 1, '2026-09'),
-(9,  500.00, '2026-09-12', '2026-09-11', 'PAGO',     1, '2026-09'),
-(10, 600.00, '2026-09-14', NULL,         'PENDENTE', 1, '2026-09'),
-(11, 470.00, '2026-09-15', NULL,         'PENDENTE', 1, '2026-09'),
-(12, 430.00, '2026-09-20', NULL,         'PENDENTE', 1, '2026-09'),
-(13, 620.00, '2026-09-25', NULL,         'PENDENTE', 1, '2026-09'),
-(14, 480.00, '2026-09-05', '2026-09-04', 'PAGO',     1, '2026-09'),
-(15, 490.00, '2026-09-08', NULL,         'ATRASADO', 1, '2026-09'),
-(16, 510.00, '2026-09-10', '2026-09-09', 'PAGO',     1, '2026-09'),
-(17, 460.00, '2026-09-12', NULL,         'PENDENTE', 1, '2026-09'),
-(18, 530.00, '2026-09-15', NULL,         'PENDENTE', 1, '2026-09'),
-(19, 480.00, '2026-09-18', NULL,         'PENDENTE', 1, '2026-09'),
-(20, 540.00, '2026-09-20', NULL,         'PENDENTE', 1, '2026-09');
-
+-- SOMENTE MENSALIDADES DE OUTUBRO/2026. Não há mensalidades de setembro.
+-- Data de pagamento não consta no caderno; permanece NULL mesmo nas pagas para não inventar data.
+INSERT INTO mensalidade (id_aluno, valor, data_vencimento, data_pagamento, status, id_condutor, mes_referencia) VALUES
+(1, 230.00, '2026-10-02', NULL, 'PAGO', 1, '2026-10'),
+(2, 235.00, '2026-10-04', NULL, 'PAGO', 1, '2026-10'),
+(3, 225.00, '2026-10-04', NULL, 'PAGO', 1, '2026-10'),
+(4, 200.00, '2026-10-05', NULL, 'PAGO', 1, '2026-10'),
+(5, 230.00, '2026-10-06', NULL, 'PAGO', 1, '2026-10'),
+(6, 180.00, '2026-10-06', NULL, 'PAGO', 1, '2026-10'),
+(7, 180.00, '2026-10-06', NULL, 'PAGO', 1, '2026-10'),
+(8, 170.00, '2026-10-06', NULL, 'PAGO', 1, '2026-10'),
+(9, 135.00, '2026-10-06', NULL, 'PAGO', 1, '2026-10'),
+(10, 135.00, '2026-10-06', NULL, 'PAGO', 1, '2026-10'),
+(11, 220.00, '2026-10-07', NULL, 'PAGO', 1, '2026-10'),
+(12, 210.00, '2026-10-09', NULL, 'PAGO', 1, '2026-10'),
+(13, 240.00, '2026-10-09', NULL, 'PAGO', 1, '2026-10'),
+(14, 200.00, '2026-10-09', NULL, 'PAGO', 1, '2026-10'),
+(15, 130.00, '2026-10-09', NULL, 'PAGO', 1, '2026-10'),
+(16, 130.00, '2026-10-09', NULL, 'PAGO', 1, '2026-10'),
+(17, 150.00, '2026-10-10', NULL, 'PAGO', 1, '2026-10'),
+(18, 150.00, '2026-10-10', NULL, 'PAGO', 1, '2026-10'),
+(19, 215.00, '2026-10-10', NULL, 'PAGO', 1, '2026-10'),
+(20, 180.00, '2026-10-12', NULL, 'PAGO', 1, '2026-10'),
+(21, 250.00, '2026-10-19', NULL, 'PAGO', 1, '2026-10'),
+(22, 200.00, '2026-10-24', NULL, 'PAGO', 1, '2026-10'),
+(23, 190.00, '2026-10-25', NULL, 'PAGO', 1, '2026-10'),
+(24, 215.00, '2026-10-25', NULL, 'PAGO', 1, '2026-10'),
+(25, 220.00, '2026-10-25', NULL, 'PAGO', 1, '2026-10'),
+(26, 210.00, '2026-10-27', NULL, 'PAGO', 1, '2026-10'),
+(27, 210.00, '2026-10-20', NULL, 'ATRASADO', 1, '2026-10'),
+(28, 200.00, '2026-10-27', NULL, 'PAGO', 1, '2026-10'),
+(29, 230.00, '2026-10-01', NULL, 'PAGO', 1, '2026-10'),
+(30, 150.00, '2026-10-20', NULL, 'PAGO', 1, '2026-10'),
+(31, 250.00, '2026-10-19', NULL, 'PAGO', 1, '2026-10'),
+(32, 190.00, '2026-10-05', NULL, 'PAGO', 1, '2026-10'),
+(33, 220.00, '2026-10-10', NULL, 'PAGO', 1, '2026-10'),
+(34, 170.00, '2026-10-15', NULL, 'PAGO', 1, '2026-10'),
+(35, 260.00, '2026-10-18', NULL, 'PAGO', 1, '2026-10'),
+(36, 220.00, '2026-10-21', NULL, 'PAGO', 1, '2026-10'),
+(37, 280.00, '2026-10-06', NULL, 'PAGO', 1, '2026-10'),
+(38, 160.00, '2026-10-21', NULL, 'PAGO', 1, '2026-10'),
+(39, 230.00, '2026-10-24', NULL, 'ATRASADO', 1, '2026-10'),
+(40, 195.00, '2026-10-06', NULL, 'PAGO', 1, '2026-10'),
+(41, 300.00, '2026-10-22', NULL, 'PAGO', 1, '2026-10'),
+(42, 500.00, '2026-10-03', NULL, 'PAGO', 1, '2026-10'),
+(43, 500.00, '2026-10-03', NULL, 'PAGO', 1, '2026-10'),
+(44, 230.00, '2026-10-04', NULL, 'PAGO', 1, '2026-10'),
+(45, 175.00, '2026-10-05', NULL, 'PAGO', 1, '2026-10'),
+(46, 290.00, '2026-10-05', NULL, 'PAGO', 1, '2026-10'),
+(47, 300.00, '2026-10-05', NULL, 'PAGO', 1, '2026-10'),
+(48, 200.00, '2026-10-20', NULL, 'PAGO', 1, '2026-10'),
+(49, 230.00, '2026-10-08', NULL, 'PAGO', 1, '2026-10'),
+(50, 180.00, '2026-10-09', NULL, 'PAGO', 1, '2026-10'),
+(51, 200.00, '2026-10-09', NULL, 'PAGO', 1, '2026-10'),
+(52, 175.00, '2026-10-16', NULL, 'PAGO', 1, '2026-10'),
+(53, 175.00, '2026-10-16', NULL, 'PAGO', 1, '2026-10'),
+(54, 200.00, '2026-10-10', NULL, 'PAGO', 1, '2026-10'),
+(55, 330.00, '2026-10-10', NULL, 'PAGO', 1, '2026-10'),
+(56, 230.00, '2026-10-15', NULL, 'PAGO', 1, '2026-10'),
+(57, 270.00, '2026-10-10', NULL, 'PAGO', 1, '2026-10'),
+(58, 190.00, '2026-10-10', NULL, 'PAGO', 1, '2026-10'),
+(59, 190.00, '2026-10-10', NULL, 'PAGO', 1, '2026-10'),
+(60, 210.00, '2026-10-10', NULL, 'PAGO', 1, '2026-10'),
+(61, 190.00, '2026-10-20', NULL, 'PAGO', 1, '2026-10'),
+(62, 200.00, '2026-10-10', NULL, 'PAGO', 1, '2026-10'),
+(63, 220.00, '2026-10-11', NULL, 'PAGO', 1, '2026-10'),
+(64, 220.00, '2026-10-12', NULL, 'PAGO', 1, '2026-10'),
+(65, 227.00, '2026-10-15', NULL, 'PAGO', 1, '2026-10'),
+(66, 227.00, '2026-10-15', NULL, 'PAGO', 1, '2026-10'),
+(67, 200.00, '2026-10-15', NULL, 'PAGO', 1, '2026-10'),
+(68, 205.00, '2026-10-17', NULL, 'PAGO', 1, '2026-10'),
+(69, 200.00, '2026-10-20', NULL, 'PAGO', 1, '2026-10'),
+(70, 235.00, '2026-10-20', NULL, 'PAGO', 1, '2026-10'),
+(71, 215.00, '2026-10-21', NULL, 'PAGO', 1, '2026-10'),
+(72, 210.00, '2026-10-21', NULL, 'PAGO', 1, '2026-10'),
+(73, 205.00, '2026-10-22', NULL, 'PAGO', 1, '2026-10'),
+(74, 300.00, '2026-10-22', NULL, 'PAGO', 1, '2026-10'),
+(75, 400.00, '2026-10-01', NULL, 'ATRASADO', 1, '2026-10'),
+(76, 215.00, '2026-10-23', NULL, 'PAGO', 1, '2026-10'),
+(77, 220.00, '2026-10-24', NULL, 'ATRASADO', 1, '2026-10'),
+(78, 185.00, '2026-10-30', NULL, 'PAGO', 1, '2026-10'),
+(79, 230.00, '2026-10-23', NULL, 'PAGO', 1, '2026-10'),
+(80, 200.00, '2026-10-11', NULL, 'PAGO', 1, '2026-10'),
+(81, 220.00, '2026-10-14', NULL, 'PAGO', 1, '2026-10'),
+(82, 200.00, '2026-10-15', NULL, 'PAGO', 1, '2026-10');
 
 -- =====================================================
 -- ORÇAMENTOS
@@ -1328,9 +942,6 @@ SELECT * FROM escola;
 
 SELECT * FROM aluno;
 
-SELECT *
-FROM itinerario_aluno
-ORDER BY turno, tipo, ordem;
 
 SELECT *
 FROM presenca
@@ -1348,60 +959,8 @@ SELECT * FROM despesa;
 
 
 -- =====================================================
--- TESTE DA LINHA DE TRAJETO
--- =====================================================
-
-SELECT
-    p.data,
-    p.turno,
-    a.id_aluno,
-    a.nome,
-    a.id_escola,
-    e.nome AS escola,
-    ia.tipo,
-    ia.ordem,
-    p.status
-FROM presenca p
-INNER JOIN aluno a
-    ON a.id_aluno = p.id_aluno
-INNER JOIN escola e
-    ON e.id_escola = a.id_escola
-INNER JOIN itinerario_aluno ia
-    ON ia.id_aluno = p.id_aluno
-    AND ia.turno = p.turno
-INNER JOIN (
-    SELECT
-        id_aluno,
-        turno,
-        MIN(id_itinerario) AS id_itinerario
-    FROM itinerario_aluno
-    GROUP BY id_aluno, turno
-) primeira_rota
-    ON primeira_rota.id_itinerario = ia.id_itinerario
-WHERE
-    p.data = '2026-09-12'
-    AND p.turno = 'MANHA'
-    AND p.status = 'PRESENTE'
-ORDER BY
-    ia.ordem ASC;
-
-
--- =====================================================
--- TESTE DA SEPARAÇÃO DE TURNOS DA PRESENÇA
--- =====================================================
-
-SELECT
-    id_aluno,
-    data,
-    turno,
-    status
-FROM presenca
-WHERE
-    id_aluno = 1
-    AND data = '2026-09-12'
-ORDER BY turno;
-
-
--- =====================================================
 -- FIM DO SCHEMA + SEED
 -- =====================================================
+-- CONFERÊNCIA DO CADASTRO NOVO
+SELECT e.nome, COUNT(a.id_aluno) AS total_alunos FROM escola e LEFT JOIN aluno a ON a.id_escola=e.id_escola GROUP BY e.id_escola,e.nome;
+SELECT status, COUNT(*) AS quantidade FROM mensalidade WHERE mes_referencia='2026-10' GROUP BY status;
