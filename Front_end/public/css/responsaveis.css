@@ -1564,3 +1564,11 @@
 
     margin: 0 0 9px 0;
 }
+
+@media (max-width: 700px) {
+  .pagina-responsaveis .table-card .table-wrapper {
+    display: block !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
