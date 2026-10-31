@@ -13,6 +13,7 @@ import routeEscola from "./route_escola";
 import routeAcessos from "./route_acessos";
 import routeItinerario from "./route_itinerario";
 import routeLinhaTrajeto from "./route_linha_trajeto";
+import routeKeepAlive from "./route_keep_alive";
 
 
 
@@ -20,6 +21,7 @@ import routeLinhaTrajeto from "./route_linha_trajeto";
 const routes = Router();
 
 
+routes.use('/api', routeKeepAlive);
 routes.use('/api/auth', routeAuth);
 routes.use('/api', routeAcessos);
 routes.use('/api', routeResponsavel);
