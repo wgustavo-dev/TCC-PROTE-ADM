@@ -83,9 +83,34 @@ export class ServiceAcessos {
     }
 
     const digitos = valor.slice(0, 9).split("").map(Number);
-    const primeiroDigito = digitos.reduce((total, digito, indice) => total + digito * (9 - indice), 0) % 11;
-    const segundoDigito = digitos.reduce((total, digito, indice) => total + digito * (indice + 1), 0) % 11;
-    const esperado = `${primeiroDigito === 10 ? 0 : primeiroDigito}${segundoDigito === 10 ? 0 : segundoDigito}`;
+
+    const restoPrimeiro = digitos.reduce(
+      (total, digito, indice) => total + digito * (9 - indice),
+      0
+    ) % 11;
+    let primeiroDigito = restoPrimeiro < 2 ? 0 : 11 - restoPrimeiro;
+    let incremento = 0;
+
+    if (primeiroDigito > 9) {
+      primeiroDigito = 0;
+      incremento = 2;
+    }
+
+    const restoSegundo = digitos.reduce(
+      (total, digito, indice) => total + digito * (indice + 1),
+      0
+    ) % 11;
+    let segundoDigito = restoSegundo < 2 ? 0 : 11 - restoSegundo;
+    segundoDigito -= incremento;
+
+    if (segundoDigito < 0) {
+      segundoDigito += 11;
+    }
+    if (segundoDigito > 9) {
+      segundoDigito = 0;
+    }
+
+    const esperado = `${primeiroDigito}${segundoDigito}`;
 
     if (valor.slice(9) !== esperado) {
       throw new Error("Informe uma CNH válida.");

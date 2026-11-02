@@ -66,9 +66,34 @@ function validarCnh(valor) {
   if (cnh.length !== 11 || /^(\d)\1{10}$/.test(cnh)) return false;
 
   const digitos = cnh.slice(0, 9).split('').map(Number);
-  const primeiro = digitos.reduce((total, digito, indice) => total + digito * (9 - indice), 0) % 11;
-  const segundo = digitos.reduce((total, digito, indice) => total + digito * (indice + 1), 0) % 11;
-  const esperado = `${primeiro === 10 ? 0 : primeiro}${segundo === 10 ? 0 : segundo}`;
+
+  const restoPrimeiro = digitos.reduce(
+    (total, digito, indice) => total + digito * (9 - indice),
+    0
+  ) % 11;
+  let primeiro = restoPrimeiro < 2 ? 0 : 11 - restoPrimeiro;
+  let incremento = 0;
+
+  if (primeiro > 9) {
+    primeiro = 0;
+    incremento = 2;
+  }
+
+  const restoSegundo = digitos.reduce(
+    (total, digito, indice) => total + digito * (indice + 1),
+    0
+  ) % 11;
+  let segundo = restoSegundo < 2 ? 0 : 11 - restoSegundo;
+  segundo -= incremento;
+
+  if (segundo < 0) {
+    segundo += 11;
+  }
+  if (segundo > 9) {
+    segundo = 0;
+  }
+
+  const esperado = `${primeiro}${segundo}`;
 
   return cnh.slice(9) === esperado;
 }
