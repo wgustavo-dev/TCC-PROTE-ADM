@@ -211,8 +211,32 @@
       <section class="card barra-data">
         <div class="filtros-presenca">
           <div>
-            <label class="label-data" for="campoData">Data de registro</label>
-            <input type="date" id="campoData" class="input-data" />
+            <label class="label-data" for="botaoCalendarioData">Data de registro</label>
+            <div class="seletor-data-presenca">
+              <input type="hidden" id="campoData" />
+              <button type="button" class="input-data botao-data-presenca" id="botaoCalendarioData"
+                aria-haspopup="dialog" aria-expanded="false">
+                <span id="textoDataSelecionada"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                  <path d="M16 3v4M8 3v4M3 10h18"></path>
+                </svg>
+              </button>
+              <div class="calendario-presenca" id="calendarioPresenca" role="dialog"
+                aria-label="Calendário de presença" hidden>
+                <div class="calendario-presenca-cabecalho">
+                  <strong id="calendarioTituloMes"></strong>
+                  <div class="calendario-presenca-navegacao">
+                    <button type="button" id="calendarioMesAnterior" aria-label="Mês anterior">‹</button>
+                    <button type="button" id="calendarioMesSeguinte" aria-label="Mês seguinte">›</button>
+                  </div>
+                </div>
+                <div class="calendario-presenca-semana" aria-hidden="true">
+                  <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+                </div>
+                <div class="calendario-presenca-dias" id="calendarioDias"></div>
+              </div>
+            </div>
           </div>
 
           <div class="grupo-turno-presenca">
@@ -226,8 +250,8 @@
         </div>
 
         <div class="acoes-topo">
-          <button class="botao-verde" id="botaoMarcarTodos">Marcar todos</button>
-          <button class="botao-vermelho" id="botaoDesmarcarTodos">Desmarcar todos</button>
+          <button class="botao-verde" id="botaoMarcarTodos" hidden>Marcar todos</button>
+          <button class="botao-vermelho" id="botaoDesmarcarTodos">Falta geral</button>
         </div>
       </section>
 

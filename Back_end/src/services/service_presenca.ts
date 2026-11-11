@@ -1,11 +1,28 @@
 import { AppDataSource } from "../config/database";
 import { Presenca } from "../models/model_presenca";
+import Holidays from "date-holidays";
 
 type Turno = "MANHA" | "TARDE" | "NOITE";
 type Tipo = "IDA" | "VOLTA";
 type Status = "PRESENTE" | "AUSENTE";
 
+const calendarioFeriados = new Holidays("BR", "SP", "SP", {
+  languages: ["pt"],
+});
+
 export class ServicePresenca {
+  private normalizarData(data: Partial<Presenca>["data"]): string {
+    if (data instanceof Date && Number.isFinite(data.getTime())) {
+      return [
+        data.getFullYear(),
+        String(data.getMonth() + 1).padStart(2, "0"),
+        String(data.getDate()).padStart(2, "0"),
+      ].join("-");
+    }
+
+    return String(data ?? "");
+  }
+
   private normalizarTurno(turno: any): Turno {
     const valor = String(turno ?? "").trim().toUpperCase();
 
@@ -27,7 +44,7 @@ export class ServicePresenca {
   }
 
   private validarDataNaoFutura(data: Partial<Presenca>["data"]) {
-    const valor = String(data ?? "");
+    const valor = this.normalizarData(data);
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) return;
 
@@ -41,6 +58,36 @@ export class ServicePresenca {
     if (valor > hojeISO) {
       throw new Error("Não é possível criar uma presença com data futura");
     }
+  }
+
+  private validarDataLetiva(data: Partial<Presenca>["data"]) {
+    const valor = this.normalizarData(data);
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) return;
+
+    const [ano, mes, dia] = valor.split("-").map(Number);
+    const dataLocal = new Date(Date.UTC(ano, mes - 1, dia));
+
+    if (
+      dataLocal.getUTCFullYear() !== ano ||
+      dataLocal.getUTCMonth() !== mes - 1 ||
+      dataLocal.getUTCDate() !== dia
+    ) {
+      throw new Error("Data inválida");
+    }
+
+    const diaDaSemana = dataLocal.getUTCDay();
+
+    if (diaDaSemana === 0 || diaDaSemana === 6) {
+      throw new Error("Não é possível registrar presença aos finais de semana");
+    }
+
+    const feriado = this.listarFeriados(ano).find((item) => item.data === valor);
+
+    if (feriado) {
+      throw new Error(`Não é possível registrar presença em feriados: ${feriado.descricao}`);
+    }
+
   }
 
   // Regra de negócio da observação:
@@ -68,6 +115,21 @@ export class ServicePresenca {
       relations: { aluno: true },
       order: { data: "DESC", id_presenca: "DESC" },
     });
+  }
+
+  listarFeriados(ano: number) {
+    if (!Number.isInteger(ano) || ano < 1900 || ano > 2200) {
+      throw new Error("Ano inválido");
+    }
+
+    return calendarioFeriados
+      .getHolidays(ano)
+      .filter((feriado) => feriado.type === "public")
+      .map((feriado) => ({
+        data: feriado.date.slice(0, 10),
+        descricao: feriado.name,
+      }))
+      .sort((a, b) => a.data.localeCompare(b.data));
   }
 
   // Aceita filtro opcional por turno e, dentro do turno, por tipo
@@ -100,6 +162,7 @@ export class ServicePresenca {
   // alteração, agora também considerando o tipo).
   async criar(dados: Partial<Presenca>) {
     this.validarDataNaoFutura(dados.data);
+    this.validarDataLetiva(dados.data);
 
     if (!dados.id_aluno) {
       throw new Error("Aluno é obrigatório");
@@ -153,9 +216,9 @@ export class ServicePresenca {
       throw new Error("Presença inválida (não encontrada)");
     }
 
-    if (dados.data !== undefined) {
-      this.validarDataNaoFutura(dados.data);
-    }
+    const dataFinal = dados.data !== undefined ? dados.data : presenca.data;
+    this.validarDataNaoFutura(dataFinal);
+    this.validarDataLetiva(dataFinal);
 
     const dadosAtualizados: Partial<Presenca> = { ...dados };
 

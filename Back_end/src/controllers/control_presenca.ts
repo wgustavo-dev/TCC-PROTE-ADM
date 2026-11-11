@@ -32,6 +32,15 @@ export class ControlPresenca {
     }
   }
 
+  listarFeriados(req: Request, res: Response) {
+    try {
+      const ano = Number(req.params.ano);
+      return res.json(service.listarFeriados(ano));
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+
   async criar(req: Request, res: Response) {
     try {
       return res.status(201).json(await service.criar(req.body));

@@ -17,12 +17,140 @@
   margin-bottom: 6px;
 }
 
+.seletor-data-presenca {
+  position: relative;
+  width: 240px;
+}
+
 .input-data {
+  box-sizing: border-box;
+  width: 100%;
   height: 38px;
   border: 1px solid var(--borda);
   border-radius: var(--arredondamento-medio);
   padding: 0 12px;
   font-size: 13px;
+}
+
+.botao-data-presenca {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: #fff;
+  color: var(--texto-principal);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.botao-data-presenca svg {
+  width: 16px;
+  height: 16px;
+  color: var(--texto-secundario);
+}
+
+.calendario-presenca {
+  position: fixed;
+  z-index: 10000;
+  box-sizing: border-box;
+  width: 252px;
+  max-width: calc(100vw - 16px);
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+  color: #111827;
+}
+
+.calendario-presenca-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+  margin-bottom: 8px;
+}
+
+.calendario-presenca-cabecalho strong {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: lowercase;
+}
+
+.calendario-presenca-navegacao {
+  display: flex;
+  gap: 8px;
+}
+
+.calendario-presenca-navegacao button {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #111827;
+  font-size: 25px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.calendario-presenca-navegacao button:disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.calendario-presenca-semana,
+.calendario-presenca-dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  justify-items: center;
+}
+
+.calendario-presenca-semana {
+  margin-bottom: 2px;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.calendario-presenca-semana span,
+.calendario-presenca-dia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 34px;
+}
+
+.calendario-presenca-dia {
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #111827;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.calendario-presenca-dia:hover:not(:disabled) {
+  background: #eff6ff;
+}
+
+.calendario-presenca-dia.selecionado {
+  background: #1683f8;
+  color: #fff;
+  font-weight: 700;
+}
+
+.calendario-presenca-dia:disabled,
+.calendario-presenca-dia.fora-mes {
+  color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.calendario-presenca-dia.fora-mes {
+  pointer-events: none;
 }
 
 .acoes-topo {

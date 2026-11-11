@@ -11,6 +11,10 @@ router.get("/presencas", authMiddleware, roles, (req, res) =>
   controlPresenca.listar(req, res)
 );
 
+router.get("/presencas/feriados/:ano", authMiddleware, roles, (req, res) =>
+  controlPresenca.listarFeriados(req, res)
+);
+
 router.get("/presencas/data/:data/turno/:turno", authMiddleware, roles, (req, res) =>
   controlPresenca.listarPorDataTurno(req, res)
 );

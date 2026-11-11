@@ -5,6 +5,12 @@
   const ROTULO_TIPO = { ida: "Ida", volta: "Volta" };
 
   let turnoAtivo = "MANHA";
+  let calendarioInicializado = false;
+  const feriadosPorAno = new Map();
+  let mesCalendario = new Date().getMonth();
+  let anoCalendario = new Date().getFullYear();
+  let motivoDataBloqueada = "";
+  let ultimaDataValida = "";
 
   // Cada item representa UMA entrada da chamada (aluno + tipo), com seu
   // próprio status e observação — nunca deduplicado por alunoId, porque
@@ -27,6 +33,13 @@
   let progressoLinha = 0;
 
   const campoData = document.getElementById("campoData");
+  const botaoCalendarioData = document.getElementById("botaoCalendarioData");
+  const textoDataSelecionada = document.getElementById("textoDataSelecionada");
+  const calendarioPresenca = document.getElementById("calendarioPresenca");
+  const calendarioTituloMes = document.getElementById("calendarioTituloMes");
+  const calendarioDias = document.getElementById("calendarioDias");
+  const botaoMesAnterior = document.getElementById("calendarioMesAnterior");
+  const botaoMesSeguinte = document.getElementById("calendarioMesSeguinte");
   const listaAlunos = document.getElementById("listaAlunosPresenca");
   const totalPresentes = document.getElementById("totalPresentes");
   const totalAusentes = document.getElementById("totalAusentes");
@@ -81,12 +94,237 @@
       String(hoje.getDate()).padStart(2, "0"),
     ].join("-");
 
-    campoData.max = hojeISO;
     campoData.value = hojeISO;
   }
 
-  function dataEhFutura(data) {
-    return Boolean(data && campoData?.max && data > campoData.max);
+  function formatarDataISO(data) {
+    return [
+      data.getFullYear(),
+      String(data.getMonth() + 1).padStart(2, "0"),
+      String(data.getDate()).padStart(2, "0"),
+    ].join("-");
+  }
+
+  async function carregarFeriados(ano) {
+    if (!feriadosPorAno.has(ano)) {
+      const resposta = await window.API.get(`/presencas/feriados/${encodeURIComponent(ano)}`);
+      feriadosPorAno.set(
+        ano,
+        new Map((Array.isArray(resposta) ? resposta : []).map((feriado) => [feriado.data, feriado.descricao]))
+      );
+    }
+
+    return feriadosPorAno.get(ano);
+  }
+
+  function dataNaoEhLetiva(data) {
+    if (!data) {
+      return false;
+    }
+
+    const [ano, mes, dia] = data.split("-").map(Number);
+    const dataUTC = new Date(Date.UTC(ano, mes - 1, dia));
+    const diaDaSemana = dataUTC.getUTCDay();
+
+    if (diaDaSemana === 0 || diaDaSemana === 6) {
+      return true;
+    }
+
+    if (feriadosPorAno.get(ano)?.has(data)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function definirDataFiltro(data) {
+    campoData.value = data;
+    textoDataSelecionada.textContent = formatarDataBR(data);
+    const [ano, mes] = data.split("-").map(Number);
+    anoCalendario = ano;
+    mesCalendario = mes - 1;
+    atualizarCalendario();
+  }
+
+  function atualizarCalendario() {
+    const primeiroDiaMes = new Date(anoCalendario, mesCalendario, 1);
+    const deslocamentoInicio = primeiroDiaMes.getDay();
+    const hoje = new Date();
+    const primeiroDiaMesAtual = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    const mesExibido = new Intl.DateTimeFormat("pt-BR", {
+      month: "long",
+      year: "numeric",
+    }).format(primeiroDiaMes);
+
+    calendarioTituloMes.textContent = mesExibido;
+    botaoMesSeguinte.disabled =
+      new Date(anoCalendario, mesCalendario, 1) >= primeiroDiaMesAtual;
+
+    const primeiroDiaGrade = new Date(anoCalendario, mesCalendario, 1 - deslocamentoInicio);
+    const dias = [];
+
+    for (let indice = 0; indice < 42; indice += 1) {
+      const data = new Date(primeiroDiaGrade);
+      data.setDate(primeiroDiaGrade.getDate() + indice);
+      const estaNoMes = data.getMonth() === mesCalendario;
+
+      if (!estaNoMes) {
+        dias.push(`<span class="calendario-presenca-dia fora-mes" aria-hidden="true">${data.getDate()}</span>`);
+        continue;
+      }
+
+      const dataISO = formatarDataISO(data);
+      const bloqueado =
+        dataISO > formatarDataISO(hoje) ||
+        dataNaoEhLetiva(dataISO);
+      const selecionado = dataISO === campoData.value;
+      const diaSemana = data.getDay();
+      const nomeFeriado = feriadosPorAno.get(anoCalendario)?.get(dataISO);
+      const descricao = nomeFeriado
+        ? `Feriado: ${nomeFeriado}`
+        : diaSemana === 0 || diaSemana === 6
+          ? "Final de semana"
+          : bloqueado
+            ? "Data indisponível"
+            : "";
+      const classes = [
+        "calendario-presenca-dia",
+        selecionado ? "selecionado" : "",
+      ].filter(Boolean).join(" ");
+
+      dias.push(`
+        <button
+          type="button"
+          class="${classes}"
+          data-data="${dataISO}"
+          aria-label="${formatarDataBR(dataISO)}${descricao ? `, ${descricao}` : ""}"
+          ${bloqueado ? `disabled title="${escaparAtributoHTML(descricao || "Data indisponível")}"` : ""}
+          ${selecionado ? 'aria-current="date"' : ""}
+        >${data.getDate()}</button>
+      `);
+    }
+
+    calendarioDias.innerHTML = dias.join("");
+  }
+
+  async function mudarMesCalendario(diferenca) {
+    const proximoMes = new Date(anoCalendario, mesCalendario + diferenca, 1);
+    const hoje = new Date();
+
+    if (proximoMes > new Date(hoje.getFullYear(), hoje.getMonth(), 1)) {
+      return;
+    }
+
+    try {
+      await carregarFeriados(proximoMes.getFullYear());
+      anoCalendario = proximoMes.getFullYear();
+      mesCalendario = proximoMes.getMonth();
+      atualizarCalendario();
+    } catch (error) {
+      console.error("Erro ao carregar feriados do mês:", error);
+      showError(error.message || "Não foi possível carregar os feriados.");
+    }
+  }
+
+  function inicializarCalendario() {
+    if (calendarioInicializado) return;
+
+    definirDataFiltro(campoData.value);
+    document.body.appendChild(calendarioPresenca);
+
+    botaoCalendarioData.addEventListener("click", () => {
+      const aberto = calendarioPresenca.hidden;
+      calendarioPresenca.hidden = !aberto;
+      botaoCalendarioData.setAttribute("aria-expanded", String(aberto));
+      if (aberto) {
+        atualizarCalendario();
+        posicionarCalendario();
+      }
+    });
+
+    botaoMesAnterior.addEventListener("click", () => mudarMesCalendario(-1));
+    botaoMesSeguinte.addEventListener("click", () => mudarMesCalendario(1));
+
+    calendarioDias.addEventListener("click", (evento) => {
+      const botaoDia = evento.target.closest("[data-data]");
+      if (!botaoDia || botaoDia.disabled) return;
+
+      definirDataFiltro(botaoDia.dataset.data);
+      calendarioPresenca.hidden = true;
+      botaoCalendarioData.setAttribute("aria-expanded", "false");
+      atualizarDadosTela();
+    });
+
+    document.addEventListener("click", (evento) => {
+      if (
+        !calendarioPresenca.hidden &&
+        !botaoCalendarioData.contains(evento.target) &&
+        !calendarioPresenca.contains(evento.target)
+      ) {
+        calendarioPresenca.hidden = true;
+        botaoCalendarioData.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      if (!calendarioPresenca.hidden) posicionarCalendario();
+    });
+
+    window.addEventListener("scroll", () => {
+      if (!calendarioPresenca.hidden) posicionarCalendario();
+    }, true);
+
+    document.addEventListener("keydown", (evento) => {
+      if (evento.key === "Escape" && !calendarioPresenca.hidden) {
+        calendarioPresenca.hidden = true;
+        botaoCalendarioData.setAttribute("aria-expanded", "false");
+        botaoCalendarioData.focus();
+      }
+    });
+
+    calendarioInicializado = true;
+  }
+
+  function posicionarCalendario() {
+    const ancora = botaoCalendarioData.getBoundingClientRect();
+    const largura = calendarioPresenca.offsetWidth;
+    const altura = calendarioPresenca.offsetHeight;
+    const margem = 8;
+    const left = Math.max(
+      margem,
+      Math.min(ancora.left, window.innerWidth - largura - margem)
+    );
+    const abaixo = ancora.bottom + margem;
+    const top = abaixo + altura <= window.innerHeight - margem
+      ? abaixo
+      : Math.max(margem, ancora.top - altura - margem);
+
+    calendarioPresenca.style.left = `${left}px`;
+    calendarioPresenca.style.top = `${top}px`;
+  }
+
+  async function encontrarDataLetivaAnterior(data) {
+    const [ano, mes, dia] = data.split("-").map(Number);
+    const candidata = new Date(Date.UTC(ano, mes - 1, dia));
+
+    for (let tentativas = 0; tentativas < 366; tentativas += 1) {
+      const dataISO = [
+        candidata.getUTCFullYear(),
+        String(candidata.getUTCMonth() + 1).padStart(2, "0"),
+        String(candidata.getUTCDate()).padStart(2, "0"),
+      ].join("-");
+      const anoCandidato = candidata.getUTCFullYear();
+
+      await carregarFeriados(anoCandidato);
+
+      if (!dataNaoEhLetiva(dataISO)) {
+        return dataISO;
+      }
+
+      candidata.setUTCDate(candidata.getUTCDate() - 1);
+    }
+
+    throw new Error("Não foi encontrada uma data letiva no último ano.");
   }
 
   function formatarDataBR(data) {
@@ -312,7 +550,36 @@
       return;
     }
 
+    motivoDataBloqueada = "Validando a data selecionada.";
+    renderizarLista();
+    atualizarResumo();
+
     try {
+      await carregarFeriados(Number(campoData.value.slice(0, 4)));
+      if (!calendarioInicializado) {
+        inicializarCalendario();
+      }
+
+      motivoDataBloqueada = dataNaoEhLetiva(campoData.value)
+        ? "Data não letiva."
+        : "";
+
+      if (motivoDataBloqueada) {
+        if (ultimaDataValida) {
+          definirDataFiltro(ultimaDataValida);
+          motivoDataBloqueada = "";
+          renderizarLista();
+          atualizarResumo();
+          return;
+        }
+
+        definirDataFiltro(await encontrarDataLetivaAnterior(campoData.value));
+        motivoDataBloqueada = "";
+      }
+
+      ultimaDataValida = campoData.value;
+      atualizarCalendario();
+
       const [itensItinerario, presencas, linha] = await Promise.all([
         carregarItensItinerario(),
         carregarPresencasTurno(),
@@ -335,6 +602,10 @@
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
 
+      if (ultimaDataValida) {
+        definirDataFiltro(ultimaDataValida);
+      }
+      motivoDataBloqueada = "Não foi possível validar o calendário de feriados. O registro está bloqueado.";
       itensChamada = [];
 
       linhaTrajetoAtual = {
@@ -396,6 +667,11 @@
     if (barraTaxa) {
       barraTaxa.style.width = `${taxa}%`;
     }
+
+    if (botaoMarcarTodos) {
+      botaoMarcarTodos.hidden = Boolean(motivoDataBloqueada) ||
+        !itensChamada.some((item) => item.status === "AUSENTE");
+    }
   }
 
   // ============================================================
@@ -425,7 +701,7 @@
   }
 
   function linhaAlunoHTML(item) {
-    const desabilitado = item.salvando ? "disabled" : "";
+    const desabilitado = item.salvando || motivoDataBloqueada ? "disabled" : "";
     const badgesAcessibilidade = [];
 
     if (valorBooleano(item.necessidade_acessibilidade_temporaria ?? item.necessidadeAcessibilidadeTemporaria)) {
@@ -580,12 +856,20 @@
     }
 
     if (avisoTextoLista) {
-      avisoTextoLista.textContent = {
+      avisoTextoLista.textContent = ({
         MANHA: "Faça essa chamada após recolher todos os alunos da turma da manhã!",
         TARDE: "",
         NOITE: "Faça essa chamada antes de iniciar o trajeto da noite!",
-      }[turnoAtivo] || "";
+      }[turnoAtivo] || "");
       avisoTextoLista.hidden = !avisoTextoLista.textContent;
+    }
+
+    if (botaoMarcarTodos) {
+      botaoMarcarTodos.disabled = Boolean(motivoDataBloqueada);
+    }
+
+    if (botaoDesmarcarTodos) {
+      botaoDesmarcarTodos.disabled = Boolean(motivoDataBloqueada);
     }
 
     if (!listaAlunos) {
@@ -913,6 +1197,10 @@
   // existir (aluno "sem registro" = PRESENTE) ou atualiza o existente.
 
   async function salvarItem(item) {
+    if (motivoDataBloqueada) {
+      throw new Error(motivoDataBloqueada);
+    }
+
     const payload = {
       id_aluno: item.alunoId,
       data: campoData.value,
@@ -945,6 +1233,11 @@
   // imediatamente, salva no backend imediatamente e atualiza a Linha
   // de Trajeto, sem recarregar a página.
   async function alternarStatus(itemId) {
+    if (motivoDataBloqueada) {
+      showError(motivoDataBloqueada);
+      return;
+    }
+
     const item = encontrarItemPorId(itemId);
 
     if (!item || item.salvando) {
@@ -1130,17 +1423,38 @@
   // individualmente no backend, respeitando o mesmo mecanismo de
   // salvamento automático usado nos cliques individuais.
 
-  async function definirTodos(novoStatus) {
-    const alterados = itensChamada.filter((item) => item.status !== novoStatus);
+  async function definirTodos(novoStatus, observacaoGeral = "") {
+    if (motivoDataBloqueada) {
+      showError(motivoDataBloqueada);
+      return;
+    }
+
+    if (itensChamada.some((item) => item.salvando)) {
+      showWarning("Aguarde o salvamento das alterações em andamento antes de atualizar a chamada.");
+      return;
+    }
+
+    const alterados = itensChamada.filter((item) =>
+      novoStatus === "AUSENTE"
+        ? item.status !== novoStatus || item.observacao !== observacaoGeral
+        : item.status !== novoStatus
+    );
 
     if (!alterados.length) {
       return;
     }
 
+    const estadosAnteriores = alterados.map((item) => ({
+      status: item.status,
+      observacao: item.observacao,
+    }));
+
     alterados.forEach((item) => {
       item.status = novoStatus;
       if (novoStatus === "PRESENTE") {
         item.observacao = "";
+      } else {
+        item.observacao = observacaoGeral;
       }
       item.salvando = true;
     });
@@ -1157,6 +1471,8 @@
 
       if (resultado.status === "rejected") {
         algumFalhou = true;
+        alterados[indice].status = estadosAnteriores[indice].status;
+        alterados[indice].observacao = estadosAnteriores[indice].observacao;
       }
     });
 
@@ -1177,8 +1493,46 @@
   }
 
   if (botaoDesmarcarTodos) {
-    botaoDesmarcarTodos.addEventListener("click", function () {
-      definirTodos("AUSENTE");
+    botaoDesmarcarTodos.addEventListener("click", async function () {
+      if (motivoDataBloqueada) {
+        showError(motivoDataBloqueada);
+        return;
+      }
+
+      if (!itensChamada.length) {
+        showWarning("Não há alunos nesta chamada.");
+        return;
+      }
+
+      if (itensChamada.some((item) => item.salvando)) {
+        showWarning("Aguarde o salvamento das alterações em andamento antes de atualizar a chamada.");
+        return;
+      }
+
+      const resposta = await Swal.fire({
+        icon: "warning",
+        title: "Falta geral",
+        text: "A observação será salva para todos os alunos desta chamada.",
+        input: "textarea",
+        inputLabel: "Observação da falta geral",
+        inputPlaceholder: "Ex.: Nenhum aluno foi. Dia não letivo / Perua em manutenção",
+        inputAttributes: { "aria-label": "Observação da falta geral" },
+        inputValidator: (valor) => String(valor || "").trim() ? undefined : "Informe uma observação.",
+        showCancelButton: true,
+        confirmButtonText: "Salvar falta geral",
+        cancelButtonText: "Cancelar",
+        customClass: {
+          popup: "prote-alert",
+          title: "prote-alert-title",
+          confirmButton: "prote-alert-button",
+          cancelButton: "prote-alert-cancel-button",
+        },
+        buttonsStyling: false,
+      });
+
+      if (resposta.isConfirmed) {
+        await definirTodos("AUSENTE", resposta.value.trim());
+      }
     });
   }
 
@@ -1212,20 +1566,6 @@
   // MUDANÇA DE DATA
   // ============================================================
 
-  if (campoData) {
-    campoData.addEventListener("change", async function () {
-      if (dataEhFutura(campoData.value)) {
-        campoData.value = campoData.max;
-
-        showError("Nao e possivel consultar ou criar uma presenca com data futura.");
-
-        return;
-      }
-
-      await atualizarDadosTela();
-    });
-  }
-
   // ============================================================
   // CTRL + Z
   // ============================================================
@@ -1251,6 +1591,15 @@
 
     if (trajetoLinha) {
       trajetoLinha.addEventListener("dblclick", lidarComDuploClique);
+    }
+
+    try {
+      await carregarFeriados(Number(campoData.value.slice(0, 4)));
+      inicializarCalendario();
+    } catch (error) {
+      console.error("Erro ao inicializar o calendário:", error);
+      motivoDataBloqueada = "Não foi possível validar o calendário de dias letivos.";
+      showError(error.message || "Não foi possível carregar o calendário.");
     }
 
     await atualizarDadosTela();
