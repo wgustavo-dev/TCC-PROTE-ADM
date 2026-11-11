@@ -71,27 +71,13 @@ function validarCnh(valor) {
     (total, digito, indice) => total + digito * (9 - indice),
     0
   ) % 11;
-  let primeiro = restoPrimeiro < 2 ? 0 : 11 - restoPrimeiro;
-  let incremento = 0;
-
-  if (primeiro > 9) {
-    primeiro = 0;
-    incremento = 2;
-  }
+  const primeiro = restoPrimeiro === 10 ? 0 : restoPrimeiro;
 
   const restoSegundo = digitos.reduce(
     (total, digito, indice) => total + digito * (indice + 1),
     0
   ) % 11;
-  let segundo = restoSegundo < 2 ? 0 : 11 - restoSegundo;
-  segundo -= incremento;
-
-  if (segundo < 0) {
-    segundo += 11;
-  }
-  if (segundo > 9) {
-    segundo = 0;
-  }
+  const segundo = restoSegundo === 10 ? 0 : restoSegundo;
 
   const esperado = `${primeiro}${segundo}`;
 
