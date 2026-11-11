@@ -114,38 +114,32 @@ function escaparHTML(texto) {
     .replace(/"/g, '&quot;');
 }
 
-function aplicarMascaraValorDespesa(valor) {
-  var texto = String(valor || '').replace(/[R$\s]/g, '').trim();
-  var numeros = texto.replace(/[^\d,]/g, '');
-
-  if (!numeros) return '';
-
-  var semSeparador = numeros.replace(/\./g, '').replace(',', '.');
-  var numero = Number(semSeparador);
-
-  if (Number.isNaN(numero)) return '';
-
-  var parteInteira = Math.trunc(numero);
-  var parteDecimal = Math.round((numero - parteInteira) * 100);
-  var valorFormatado = (parteInteira + (parteDecimal / 100)).toLocaleString('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-
-  return valorFormatado;
-}
-
 function normalizarValorDespesa(valor) {
-  var texto = String(valor || '').trim();
+  var texto = String(valor || '').replace(/R\$/gi, '').replace(/\s/g, '').trim();
 
   if (!texto) return null;
 
-  var numero = Number(
-    texto
-      .replace(/[R$\s]/g, '')
-      .replace(/\./g, '')
-      .replace(',', '.')
-  );
+  if (/^\d{1,3}(?:([.,])\d{3})+$/.test(texto)) {
+    return Number(texto.replace(/[.,]/g, ''));
+  }
+
+  var separadorDecimal = Math.max(texto.lastIndexOf(','), texto.lastIndexOf('.'));
+  var inteiro = texto;
+  var decimal = '';
+
+  if (separadorDecimal >= 0) {
+    inteiro = texto.slice(0, separadorDecimal);
+    decimal = texto.slice(separadorDecimal + 1);
+    inteiro = inteiro.replace(/[.,]/g, '');
+
+    if ((decimal && !/^\d+$/.test(decimal)) || decimal.length > 2) return null;
+  } else if (!/^\d+$/.test(inteiro)) {
+    return null;
+  }
+
+  if (!/^\d+$/.test(inteiro)) return null;
+
+  var numero = Number(inteiro + (decimal ? '.' + decimal : ''));
 
   if (!Number.isFinite(numero)) return null;
 
@@ -284,7 +278,7 @@ function abrirModal(despesa) {
     tituloModal.textContent    = 'Editar Despesa';
     botaoCadastrar.textContent = 'Salvar';
     campTipo.value             = despesa.tipo;
-    campValor.value            = aplicarMascaraValorDespesa(String(despesa.valor || ''));
+    campValor.value            = String(despesa.valor || '');
     campData.value             = despesa.data;
     campDescricao.value        = despesa.descricao || '';
   } else {
@@ -313,9 +307,15 @@ function fecharModal() {
 campDescricao.addEventListener('input', atualizarContador);
 
 campValor.addEventListener('input', function() {
-  var valorAtual = campValor.value;
-  var valorMascarado = aplicarMascaraValorDespesa(valorAtual);
-  campValor.value = valorMascarado;
+  var valor = campValor.value.replace(/[^\d,]/g, '');
+  var primeiraVirgula = valor.indexOf(',');
+
+  if (primeiraVirgula !== -1) {
+    valor = valor.slice(0, primeiraVirgula + 1) +
+      valor.slice(primeiraVirgula + 1).replace(/,/g, '');
+  }
+
+  campValor.value = valor;
 });
 
 function atualizarContador() {
