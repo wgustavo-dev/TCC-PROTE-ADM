@@ -1,7 +1,21 @@
 -- =====================================================
--- SCHEMA PROTE ADM - v1.18
+-- SCHEMA PROTE ADM - v1.19
 -- =====================================================
 -- Estrutura completa + seed fictícia de janeiro a novembro/2026
+--
+-- Alterações da v1.19:
+-- 1) Nova tabela itinerario_aluno (espelha model_itinerario.ts):
+--    guarda a ORDEM de embarque/desembarque de cada aluno por
+--    período da viagem (turno) e sentido (tipo IDA/VOLTA).
+--    - turno aqui NÃO é o turno escolar (aluno.turno); é o período
+--      em que o carro está na rua fazendo aquele trajeto.
+--    - Chave única: id_aluno + turno + tipo.
+--    - criado_em recebe CURRENT_TIMESTAMP (CreateDateColumn).
+-- 2) Seed do itinerário derivada de aluno.turno + aluno.tipo_trajeto:
+--      Aluno MANHA: IDA -> MANHA | VOLTA -> TARDE
+--      Aluno TARDE: IDA -> TARDE | VOLTA -> NOITE
+--    (16 registros, ordem sequencial por turno + tipo)
+-- 3) Demais tabelas e seeds inalteradas em relação à v1.18.
 --
 -- Alterações da v1.18:
 -- 1) Seed refeita com dados 100% fictícios:
@@ -49,6 +63,7 @@
 -- - 1 condutor
 -- - 2 escolas
 -- - 10 responsáveis e 10 alunos
+-- - 16 registros de itinerario_aluno
 -- - 110 mensalidades (jan/2026 a nov/2026)
 -- - despesas de jan/2026 a nov/2026
 -- - presenca, orcamento, documento e notificacao vazias
@@ -248,6 +263,48 @@ CREATE TABLE aluno (
 
     FOREIGN KEY (id_responsavel)
         REFERENCES responsavel(id_responsavel)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+
+    FOREIGN KEY (id_condutor)
+        REFERENCES condutor(id_condutor)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+
+-- =====================================================
+-- TABELA: ITINERARIO_ALUNO
+-- =====================================================
+-- Ordem de embarque/desembarque dos alunos por viagem.
+-- Mapeada pela entidade ItinerarioAluno (model_itinerario.ts).
+--
+-- ATENÇÃO: turno NÃO é o turno escolar do aluno (aluno.turno).
+-- É o PERÍODO DA VIAGEM: quando o carro está na rua fazendo
+-- aquele trajeto (IDA ou VOLTA) daquele aluno.
+-- Ex.: aluno do turno MANHA que volta da escola à tarde gera
+-- um registro (turno = TARDE, tipo = VOLTA).
+--
+-- ordem: posição do aluno na rota (1 = primeiro a ser atendido).
+-- =====================================================
+
+CREATE TABLE itinerario_aluno (
+    id_itinerario INT AUTO_INCREMENT PRIMARY KEY,
+    id_aluno INT NOT NULL,
+    id_condutor INT NOT NULL,
+    turno ENUM('MANHA','TARDE','NOITE') NOT NULL,
+    tipo ENUM('IDA','VOLTA') NOT NULL,
+    ordem INT NOT NULL,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT uk_aluno_turno_tipo
+        UNIQUE (id_aluno, turno, tipo),
+
+    CONSTRAINT chk_itinerario_ordem
+        CHECK (ordem >= 1),
+
+    FOREIGN KEY (id_aluno)
+        REFERENCES aluno(id_aluno)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
 
@@ -531,6 +588,42 @@ INSERT INTO aluno (nome, bairro, id_escola, turno, endereco_embarque, endereco_d
 ('Miguel Moreira',     'Pedra Branca',     2, 'TARDE', 'Rua Sol Nascente, 233 - Pedra Branca',        'Rua das Palmeiras, 220 - Vila Amélia',             'AMBOS', NULL, 20, FALSE, FALSE, NULL, 10, 1);
 
 
+-- =====================================================
+-- ITINERÁRIO (16 registros)
+-- Derivação a partir de aluno.turno + aluno.tipo_trajeto:
+--   Aluno MANHA: IDA -> turno MANHA | VOLTA -> turno TARDE
+--   Aluno TARDE: IDA -> turno TARDE | VOLTA -> turno NOITE
+-- Ordem sequencial (1..N) por turno + tipo.
+--
+-- IDA   / MANHA : alunos 1, 2, 3, 5, 6, 7  (6)
+-- VOLTA / TARDE : alunos 1, 3, 4, 5, 7     (5)
+-- IDA   / TARDE : alunos 8, 10             (2)
+-- VOLTA / NOITE : alunos 8, 9, 10          (3)
+-- =====================================================
+
+INSERT INTO itinerario_aluno (id_aluno, id_condutor, turno, tipo, ordem) VALUES
+-- IDA / MANHA
+(1, 1, 'MANHA', 'IDA', 1),
+(2, 1, 'MANHA', 'IDA', 2),
+(3, 1, 'MANHA', 'IDA', 3),
+(5, 1, 'MANHA', 'IDA', 4),
+(6, 1, 'MANHA', 'IDA', 5),
+(7, 1, 'MANHA', 'IDA', 6),
+-- VOLTA / TARDE (alunos do turno da manhã)
+(1, 1, 'TARDE', 'VOLTA', 1),
+(3, 1, 'TARDE', 'VOLTA', 2),
+(4, 1, 'TARDE', 'VOLTA', 3),
+(5, 1, 'TARDE', 'VOLTA', 4),
+(7, 1, 'TARDE', 'VOLTA', 5),
+-- IDA / TARDE (alunos do turno da tarde)
+(8,  1, 'TARDE', 'IDA', 1),
+(10, 1, 'TARDE', 'IDA', 2),
+-- VOLTA / NOITE (alunos do turno da tarde)
+(8,  1, 'NOITE', 'VOLTA', 1),
+(9,  1, 'NOITE', 'VOLTA', 2),
+(10, 1, 'NOITE', 'VOLTA', 3);
+
+
 -- PRESENÇA, ORÇAMENTO, DOCUMENTO e NOTIFICAÇÃO: mantidas vazias.
 
 
@@ -778,6 +871,10 @@ SELECT * FROM escola;
 SELECT * FROM aluno;
 
 SELECT *
+FROM itinerario_aluno
+ORDER BY turno, tipo, ordem;
+
+SELECT *
 FROM presenca
 ORDER BY data, turno, id_aluno;
 
@@ -813,6 +910,27 @@ ORDER BY e.nome, a.turno;
 SELECT tipo_trajeto, COUNT(*) AS total_alunos
 FROM aluno
 GROUP BY tipo_trajeto;
+
+-- Itinerário legível: rota por turno da viagem e sentido
+SELECT i.turno, i.tipo, i.ordem, a.nome AS aluno, a.bairro,
+       CASE WHEN i.tipo = 'IDA' THEN a.endereco_embarque
+            ELSE a.endereco_desembarque END AS endereco_aluno
+FROM itinerario_aluno i
+JOIN aluno a ON a.id_aluno = i.id_aluno
+ORDER BY FIELD(i.turno, 'MANHA', 'TARDE', 'NOITE'), i.tipo, i.ordem;
+
+-- Itinerário x trajeto: toda IDA/VOLTA esperada deve ter registro (deve retornar 0 linhas)
+SELECT a.id_aluno, a.nome, 'IDA' AS tipo_faltando
+FROM aluno a
+WHERE a.tipo_trajeto IN ('IDA','AMBOS')
+  AND NOT EXISTS (SELECT 1 FROM itinerario_aluno i
+                   WHERE i.id_aluno = a.id_aluno AND i.tipo = 'IDA')
+UNION ALL
+SELECT a.id_aluno, a.nome, 'VOLTA'
+FROM aluno a
+WHERE a.tipo_trajeto IN ('VOLTA','AMBOS')
+  AND NOT EXISTS (SELECT 1 FROM itinerario_aluno i
+                   WHERE i.id_aluno = a.id_aluno AND i.tipo = 'VOLTA');
 
 -- Mensalidades por mês e status
 SELECT mes_referencia, status, COUNT(*) AS quantidade, SUM(valor) AS total
