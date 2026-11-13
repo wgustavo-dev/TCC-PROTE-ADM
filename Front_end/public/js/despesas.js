@@ -153,7 +153,7 @@ function normalizarValorDespesa(valor) {
 */
 function obterDespesasFiltradas() {
   var busca = campoBusca.value.trim().toLowerCase();
-  var porMesAno = filtroMesAno.value;
+    var porMesAno = filtroMesAno.value || obterMesAnoAtual(); 
   var minVal = parseFloat(filtroMin.value) || 0;
   var maxVal = parseFloat(filtroMax.value) || Infinity;
 
@@ -164,11 +164,7 @@ function obterDespesasFiltradas() {
       d.tipo.toLowerCase().includes(busca) ||
       (d.descricao && d.descricao.toLowerCase().includes(busca));
 
-    var bateData = true;
-
-    if (porMesAno) {
-      bateData = d.data.startsWith(porMesAno);
-    }
+     var bateData = d.data.startsWith(porMesAno); 
 
     var bateMin = d.valor >= minVal;
     var bateMax = maxVal === Infinity || d.valor <= maxVal;
@@ -248,7 +244,7 @@ botaoFiltro.addEventListener('click', function() {
 });
 
 botaoLimparFiltros.addEventListener('click', function() {
-  filtroMesAno.value = '';
+  filtroMesAno.value = obterMesAnoAtual(); 
   filtroMin.value = '';
   filtroMax.value = '';
   renderizar();
@@ -523,6 +519,7 @@ function initMenuMobile() {
 
 window.addEventListener('load', function() {
   initMenuMobile();
+  filtroMesAno.value = obterMesAnoAtual(); 
   carregarDespesas().then(function(lista) {
     despesas = lista;
     renderizar();
