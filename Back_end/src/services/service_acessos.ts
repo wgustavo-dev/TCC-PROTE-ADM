@@ -88,27 +88,13 @@ export class ServiceAcessos {
       (total, digito, indice) => total + digito * (9 - indice),
       0
     ) % 11;
-    let primeiroDigito = restoPrimeiro < 2 ? 0 : 11 - restoPrimeiro;
-    let incremento = 0;
-
-    if (primeiroDigito > 9) {
-      primeiroDigito = 0;
-      incremento = 2;
-    }
+    const primeiroDigito = restoPrimeiro === 10 ? 0 : restoPrimeiro;
 
     const restoSegundo = digitos.reduce(
       (total, digito, indice) => total + digito * (indice + 1),
       0
     ) % 11;
-    let segundoDigito = restoSegundo < 2 ? 0 : 11 - restoSegundo;
-    segundoDigito -= incremento;
-
-    if (segundoDigito < 0) {
-      segundoDigito += 11;
-    }
-    if (segundoDigito > 9) {
-      segundoDigito = 0;
-    }
+    const segundoDigito = restoSegundo === 10 ? 0 : restoSegundo;
 
     const esperado = `${primeiroDigito}${segundoDigito}`;
 
