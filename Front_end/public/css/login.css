@@ -707,3 +707,7 @@ body {
 .swal2-backdrop-show {
   z-index: 999998 !important;
 }
+
+body.pagina-redefinir-senha svg {
+  stroke: #ffffff !important;
+}
