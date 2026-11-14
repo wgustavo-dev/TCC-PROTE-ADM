@@ -4,6 +4,14 @@ import { AppDataSource } from "../config/database";
 import { Mensalidade } from "../models/model_mensalidade";
 import { Aluno } from "../models/model_aluno";
 import { Condutor } from "../models/model_condutor";
+import { QueryFailedError } from "typeorm";
+
+export class MensalidadeDuplicadaError extends Error {
+  constructor() {
+    super("Já existe uma mensalidade para este aluno neste mês. Edite o registro existente.");
+    this.name = "MensalidadeDuplicadaError";
+  }
+}
 
 // "YYYY-MM" a partir de uma data "YYYY-MM-DD"
 function mesReferenciaDe(dataISO: string): string {
@@ -35,6 +43,43 @@ export class ServiceMensalidade {
 
   private get condutorRepository() {
     return AppDataSource.getRepository(Condutor);
+  }
+
+  private async validarReferenciaDisponivel(
+    idAluno: number,
+    mesReferencia: string,
+    idMensalidadeAtual?: number
+  ) {
+    const existente = await this.mensalidadeRepository.findOneBy({
+      id_aluno: idAluno,
+      mes_referencia: mesReferencia,
+    });
+
+    if (existente && existente.id_mensalidade !== idMensalidadeAtual) {
+      throw new MensalidadeDuplicadaError();
+    }
+  }
+
+  private async salvarMensalidade(mensalidade: Mensalidade) {
+    try {
+      await this.mensalidadeRepository.save(mensalidade);
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        const driverError = error.driverError as {
+          code?: string;
+          sqlMessage?: string;
+        };
+
+        if (
+          driverError.code === "ER_DUP_ENTRY" &&
+          driverError.sqlMessage?.includes("uk_aluno_mes_referencia")
+        ) {
+          throw new MensalidadeDuplicadaError();
+        }
+      }
+
+      throw error;
+    }
   }
 
   private async validarAluno(id_aluno: any) {
@@ -195,6 +240,8 @@ export class ServiceMensalidade {
 
     const valor = this.validarValor(dados.valor);
     const dataVencimento = this.validarDataVencimento(dados.data_vencimento);
+    const mesReferencia = mesReferenciaDe(dataVencimento);
+    await this.validarReferenciaDisponivel(aluno.id_aluno, mesReferencia);
 
     /*
       REMOVIDO (pedido do usuário): o formulário de mensalidade não pede
@@ -210,10 +257,10 @@ export class ServiceMensalidade {
       data_pagamento: null,
       status: "PENDENTE",
       id_condutor: condutor ? condutor.id_condutor : null,
-      mes_referencia: mesReferenciaDe(dataVencimento),
+      mes_referencia: mesReferencia,
     });
 
-    await this.mensalidadeRepository.save(mensalidade);
+    await this.salvarMensalidade(mensalidade);
 
     // Guarda o dia de vencimento escolhido no próprio aluno, para a
     // rotina de renovação mensal saber que dia usar nos meses seguintes.
@@ -279,7 +326,12 @@ export class ServiceMensalidade {
         : null;
     }
 
-    await this.mensalidadeRepository.save(mensalidade);
+    await this.validarReferenciaDisponivel(
+      mensalidade.id_aluno,
+      mensalidade.mes_referencia,
+      mensalidade.id_mensalidade
+    );
+    await this.salvarMensalidade(mensalidade);
 
     return await this.buscarPorId(mensalidade.id_mensalidade);
   }

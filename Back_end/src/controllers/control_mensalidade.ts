@@ -1,7 +1,10 @@
 // Back_end/src/controllers/control_mensalidade.ts
 
 import { Request, Response } from "express";
-import { ServiceMensalidade } from "../services/service_mensalidade";
+import {
+  MensalidadeDuplicadaError,
+  ServiceMensalidade,
+} from "../services/service_mensalidade";
 
 const serviceMensalidade = new ServiceMensalidade();
 
@@ -40,6 +43,10 @@ export class ControlMensalidade {
 
       return res.status(201).json(mensalidade);
     } catch (error: any) {
+      if (error instanceof MensalidadeDuplicadaError) {
+        return res.status(409).json({ error: error.message });
+      }
+
       return res.status(400).json({
         error: error.message || "Erro ao criar mensalidade",
       });
@@ -55,6 +62,10 @@ export class ControlMensalidade {
 
       return res.status(200).json(mensalidade);
     } catch (error: any) {
+      if (error instanceof MensalidadeDuplicadaError) {
+        return res.status(409).json({ error: error.message });
+      }
+
       return res.status(400).json({
         error: error.message || "Erro ao atualizar mensalidade",
       });

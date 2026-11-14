@@ -100,13 +100,14 @@ async function iniciarFluxoCadastro() {
       (aluno) => Number(aluno.idResponsavel) === Number(idResponsavelFluxo)
     );
 
-    if (alunosResponsavel.length > 0 && idOrcamentoFluxo) {
-      const primeiroAluno = alunosResponsavel[0];
+    const alunoExistente = alunosResponsavel[alunoAtualFluxo - 1];
+
+    if (alunoExistente && idOrcamentoFluxo) {
       const params = new URLSearchParams();
       params.set("fluxo", "orcamento");
       params.set("id_responsavel", String(idResponsavelFluxo));
-      params.set("id_aluno", String(primeiroAluno.id));
-      params.set("alunoAtual", "1");
+      params.set("id_aluno", String(alunoExistente.id));
+      params.set("alunoAtual", String(alunoAtualFluxo));
       params.set("totalAlunos", String(Math.max(alunosResponsavel.length, Number(totalAlunosFluxo || 1))));
       params.set("id_orcamento", String(idOrcamentoFluxo));
       window.location.href = `mensalidade.html?${params.toString()}`;

@@ -56,7 +56,9 @@
       const message =
         (payload && (payload.error || payload.erro || payload.message)) ||
         `Erro HTTP ${response.status}`;
-      throw new Error(message);
+      const error = new Error(message);
+      error.status = response.status;
+      throw error;
     }
 
     return payload;

@@ -568,6 +568,14 @@
   color: var(--texto-primario);
 }
 
+.modal-card-mensalidade select.input-filtro.somente-leitura {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: none;
+  cursor: default;
+  opacity: 1;
+}
+
 .modal-card-mensalidade .input-filtro:focus {
   border-color: var(--cor-principal);
   box-shadow: 0 0 0 3px rgba(36, 70, 184, 0.12);

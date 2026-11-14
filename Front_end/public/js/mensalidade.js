@@ -5,6 +5,7 @@
 let mensalidades = [];
 let alunos = [];
 let idEditando = null;
+let salvandoMensalidade = false;
 
 let fluxoCadastro = null;
 let idResponsavelFluxo = null;
@@ -37,7 +38,13 @@ function definirValorCampo(id, value, readOnly = false) {
   const campo = document.getElementById(id);
   if (!campo) return;
   campo.value = value ?? "";
-  campo.readOnly = readOnly;
+
+  if (campo.tagName === "SELECT") {
+    campo.disabled = readOnly;
+    campo.classList.toggle("somente-leitura", readOnly);
+  } else {
+    campo.readOnly = readOnly;
+  }
 }
 
 async function proximoPassoFluxo() {
@@ -696,6 +703,7 @@ function preencherDadosModal(item) {
 
 function abrirModalNova() {
   idEditando = null;
+  definirValorCampo("campoAlunoMensalidade", "", false);
   const titulo = document.getElementById("tituloModalMensalidade");
   if (titulo) titulo.textContent = "Nova mensalidade";
   if (botaoSalvar) botaoSalvar.textContent = "Cadastrar";
@@ -719,6 +727,7 @@ function abrirModalEditar(id) {
   if (!item) return;
 
   idEditando = item.id;
+  definirValorCampo("campoAlunoMensalidade", "", false);
   const titulo = document.getElementById("tituloModalMensalidade");
   if (titulo) titulo.textContent = "Editar mensalidade";
   if (botaoSalvar) botaoSalvar.textContent = "Editar";
@@ -767,6 +776,8 @@ function idAlunoPorNome(nomeAluno) {
 }
 
 async function salvarMensalidade() {
+  if (salvandoMensalidade) return;
+
   const idAlunoSelecionado = document.getElementById("campoAlunoMensalidade")?.value || "";
   const valorTexto = document.getElementById("campoValorMensalidade")?.value || "";
   const valorNumerico = normalizarValorMensalidade(valorTexto);
@@ -799,6 +810,18 @@ async function salvarMensalidade() {
     ? new Date(`${mensalidadeEditando.vencimento}T12:00:00`)
     : new Date();
   const vencimento = montarDataVencimento(diaVencimento, referenciaMesAno);
+  const mesReferencia = vencimento.slice(0, 7);
+  const mensalidadeExistente = mensalidades.find(
+    (item) =>
+      Number(item.idAluno) === Number(idAlunoFinal) &&
+      String(item.vencimento).startsWith(mesReferencia) &&
+      Number(item.id) !== Number(idEditando)
+  );
+
+  if (mensalidadeExistente) {
+    showWarning("Já existe uma mensalidade deste aluno para esse mês. Edite o registro existente.");
+    return;
+  }
 
   /*
     REMOVIDO: status e data de pagamento não fazem mais parte deste
@@ -814,6 +837,9 @@ async function salvarMensalidade() {
     valor: valorNumerico,
     data_vencimento: vencimento,
   };
+
+  salvandoMensalidade = true;
+  if (botaoSalvar) botaoSalvar.disabled = true;
 
   try {
     if (idEditando) {
@@ -837,7 +863,14 @@ async function salvarMensalidade() {
     fecharModal();
   } catch (error) {
     console.error(error);
-    showError("Não foi possível salvar a mensalidade.");
+    if (error.status === 409) {
+      showWarning(error.message);
+    } else {
+      showError("Não foi possível salvar a mensalidade.");
+    }
+  } finally {
+    salvandoMensalidade = false;
+    if (botaoSalvar) botaoSalvar.disabled = false;
   }
 }
 

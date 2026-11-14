@@ -390,8 +390,14 @@ body {
 
 /* Ícone escudo (redefinir senha) */
 .icone-escudo {
-  font-size: 36px;
   margin-bottom: 10px;
+}
+
+.icone-escudo svg {
+  display: block;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
 }
 
 /* Lista de dicas de segurança */
@@ -411,8 +417,13 @@ body {
 }
 
 .icone-dica {
-  font-size: 16px;
   flex-shrink: 0;
+}
+
+.icone-dica svg {
+  display: block;
+  width: 16px;
+  height: 16px;
 }
 
 .dica-titulo {
