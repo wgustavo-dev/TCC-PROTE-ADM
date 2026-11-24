@@ -406,6 +406,7 @@ function mapearMensalidade(item, alunosPorId = new Map()) {
   return {
     id: item.id_mensalidade,
     idAluno: item.id_aluno,
+    idResponsavel: responsavelRelacionado.id_responsavel ?? null,
     aluno: alunoRelacionado.nome || `Aluno #${item.id_aluno}`,
     responsavel: responsavelRelacionado.nome || "Responsável não informado",
     valor: Number(item.valor || 0),
@@ -563,18 +564,62 @@ function renderizarTabela() {
   const escola = filtroEscola ? filtroEscola.value : "";
   const ordem = filtroOrdem ? filtroOrdem.value : "alfabetica";
 
-  let listaFiltrada = mensalidades.filter((item) => {
+  const combinaFiltros = (item) => {
     const matchBusca = item.aluno.toLowerCase().includes(busca);
     const matchVenc = !venc || item.vencimento.startsWith(venc);
     const matchEscola = !escola || String(item.idEscola || item.escola) === String(escola);
     return matchBusca && matchVenc && matchEscola;
-  });
+  };
+
+  /*
+    Irmãos (alunos do mesmo responsável) sempre aparecem juntos: se a busca
+    ou qualquer filtro do painel encontra 1 aluno de um responsável, todas as
+    outras mensalidades desse mesmo responsável entram na lista também,
+    mesmo que elas sozinhas não batessem com o texto digitado ou com os
+    filtros de escola/mês selecionados.
+  */
+  const responsaveisEncontrados = new Set(
+    mensalidades
+      .filter(combinaFiltros)
+      .map((item) => item.idResponsavel)
+      .filter((idResponsavel) => idResponsavel !== null && idResponsavel !== undefined)
+  );
+
+  let listaFiltrada = mensalidades.filter(
+    (item) =>
+      combinaFiltros(item) ||
+      (item.idResponsavel !== null &&
+        item.idResponsavel !== undefined &&
+        responsaveisEncontrados.has(item.idResponsavel))
+  );
 
   if (ordem === "vencimento") {
     listaFiltrada.sort((a, b) => a.vencimento.localeCompare(b.vencimento));
   } else {
     listaFiltrada.sort((a, b) => a.aluno.localeCompare(b.aluno, "pt-BR"));
   }
+
+  /*
+    Agrupa os irmãos lado a lado na tabela (mesma chave de responsável),
+    preservando entre os grupos a ordenação escolhida acima (cada grupo é
+    posicionado pelo melhor valor de ordenação entre seus integrantes).
+  */
+  const grupos = new Map();
+  listaFiltrada.forEach((item) => {
+    const chave = item.idResponsavel !== null && item.idResponsavel !== undefined
+      ? `resp-${item.idResponsavel}`
+      : `solo-${item.id}`;
+    if (!grupos.has(chave)) grupos.set(chave, []);
+    grupos.get(chave).push(item);
+  });
+
+  listaFiltrada = [...grupos.values()]
+    .sort((grupoA, grupoB) =>
+      ordem === "vencimento"
+        ? grupoA[0].vencimento.localeCompare(grupoB[0].vencimento)
+        : grupoA[0].aluno.localeCompare(grupoB[0].aluno, "pt-BR")
+    )
+    .flat();
 
   const tabela = document.getElementById("tabelaMensalidades");
   const avisoVazio = document.getElementById("avisoVazioMensalidade");
