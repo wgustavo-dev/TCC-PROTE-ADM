@@ -1572,3 +1572,290 @@
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* =========================================================
+   MOBILE ACCORDION - RESPONSÁVEIS
+   Mantém a tabela no desktop e transforma cada linha em card
+   expansível no celular, seguindo o padrão da tela de Alunos.
+   O JS existente já insere o painel de detalhes logo abaixo
+   da linha clicada; aqui apenas adaptamos a apresentação.
+   ========================================================= */
+
+@media (max-width: 600px) {
+    .pagina-responsaveis .table-card,
+    .pagina-responsaveis .tabela-alunos-wrapper {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 10px;
+        overflow: hidden;
+    }
+
+    .pagina-responsaveis .aviso-accordion {
+        display: block;
+        margin: 0 0 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: var(--cor-principal-clara, #eff6ff);
+        color: var(--cor-principal, #2563eb);
+        font-size: 12px;
+        line-height: 1.4;
+        text-align: center;
+    }
+
+    .pagina-responsaveis .table-wrapper {
+        width: 100%;
+        max-width: 100%;
+        overflow: visible;
+    }
+
+    .pagina-responsaveis .tabela-alunos {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        border-collapse: separate;
+    }
+
+    .pagina-responsaveis .tabela-alunos thead {
+        display: none;
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    /* Cada linha vira um card compacto e clicável. */
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "nome acoes"
+            "qtd qtd"
+            "contato contato"
+            "mensalidade mensalidade";
+        gap: 7px 10px;
+        width: 100%;
+        padding: 13px;
+        background: var(--fundo-card, #fff);
+        border: 1px solid var(--borda, #e5e7eb);
+        border-radius: 10px;
+        box-shadow: var(--sombra-card, 0 1px 4px rgba(0,0,0,.04));
+        cursor: pointer;
+        transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes):active {
+        border-color: var(--cor-principal, #2563eb);
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes) > td {
+        display: block;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--texto-primario, #111827);
+        overflow-wrap: anywhere;
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes) > td:nth-child(1) {
+        grid-area: nome;
+        align-self: center;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes) > td:nth-child(2) {
+        grid-area: qtd;
+        font-size: 12px;
+        color: var(--texto-secundario, #4b5563);
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes) > td:nth-child(2)::before {
+        content: "Alunos: ";
+        font-weight: 600;
+        color: var(--texto-primario, #111827);
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes) > td:nth-child(3) {
+        grid-area: contato;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--texto-secundario, #4b5563);
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes) > td:nth-child(3)::before {
+        content: "Contato: ";
+        font-weight: 600;
+        color: var(--texto-primario, #111827);
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes) > td:nth-child(4) {
+        grid-area: mensalidade;
+        padding-top: 7px;
+        border-top: 1px solid var(--borda, #e5e7eb);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes) > td:nth-child(4)::before {
+        content: "Mensalidade: ";
+        font-weight: 600;
+        color: var(--texto-secundario, #4b5563);
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes) > td:nth-child(5) {
+        grid-area: acoes;
+        align-self: center;
+        justify-self: end;
+    }
+
+    .pagina-responsaveis .acoes {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        gap: 5px;
+    }
+
+    .pagina-responsaveis .acao-btn {
+        min-width: 32px;
+        min-height: 32px;
+        width: auto;
+        padding: 4px 7px;
+        border-radius: 6px;
+        font-size: 11px;
+    }
+
+    .pagina-responsaveis .acao-btn.ver {
+        width: 32px;
+        padding: 0;
+        background: var(--cor-principal-clara, #eff6ff);
+        color: var(--cor-principal, #2563eb);
+        font-size: 17px;
+    }
+
+    /* A linha de detalhes fica imediatamente abaixo do card clicado. */
+    .pagina-responsaveis .tabela-alunos tbody > tr.responsavel-detalhes {
+        display: block;
+        width: 100%;
+        margin-top: -5px;
+        margin-bottom: 5px;
+        padding: 0 2px;
+        border: 0;
+        background: transparent;
+    }
+
+    .pagina-responsaveis .tabela-alunos tbody > tr.responsavel-detalhes > td {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    .pagina-responsaveis #painelDetalhes {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 !important;
+        padding: 12px;
+        border: 1px solid var(--borda, #e5e7eb);
+        border-top: 3px solid var(--cor-principal, #2563eb);
+        border-radius: 10px;
+        background: var(--fundo-card, #fff);
+        box-shadow: var(--sombra-card, 0 2px 8px rgba(0,0,0,.05));
+        overflow: hidden;
+        animation: responsavelExpandir .2s ease-out;
+    }
+
+    .pagina-responsaveis .responsavel-detalhes-painel {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .pagina-responsaveis .accordion-detalhes-cabecalho {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 7px;
+        padding-bottom: 10px;
+    }
+
+    .pagina-responsaveis .accordion-detalhes-cabecalho strong {
+        font-size: 13px;
+    }
+
+    .pagina-responsaveis .accordion-detalhes-cabecalho span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-size: 11px;
+    }
+
+    .pagina-responsaveis .accordion-detalhes-fechar {
+        margin-left: auto;
+        min-height: 32px;
+    }
+
+    .pagina-responsaveis .responsavel-detalhes-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .pagina-responsaveis .responsavel-identificacao,
+    .pagina-responsaveis .subsecao,
+    .pagina-responsaveis .cards-alunos,
+    .pagina-responsaveis .cards-financeiro {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .pagina-responsaveis .cards-alunos,
+    .pagina-responsaveis .cards-financeiro {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .pagina-responsaveis .subsecao-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pagina-responsaveis .btn-adicionar-aluno {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .pagina-responsaveis .mini-card,
+    .pagina-responsaveis .aluno-card {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+}
+
+@keyframes responsavelExpandir {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 360px) {
+    .pagina-responsaveis .tabela-alunos tbody > tr:not(.responsavel-detalhes) {
+        padding: 11px;
+    }
+
+    .pagina-responsaveis .acoes {
+        gap: 3px;
+    }
+
+    .pagina-responsaveis .acao-btn {
+        padding: 3px 5px;
+    }
+}

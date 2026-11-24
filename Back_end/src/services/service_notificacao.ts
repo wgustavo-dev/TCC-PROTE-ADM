@@ -1,3 +1,4 @@
+
 import { AppDataSource } from "../config/database";
 import { Notificacao } from "../models/model_notificacao";
 import { IsNull } from "typeorm";
@@ -25,39 +26,31 @@ export class ServiceNotificacao {
 
         let existente: Notificacao | null = null;
 
+        // =====================================================
+        // NOTIFICAÇÃO DE FALTAS
+        // =====================================================
+
+        if (dados.tipo === "ALUNO_FALTAS_SEMANA") {
+
+            existente = await this.repository.findOne({
+                where: {
+                    id_condutor: dados.id_condutor,
+                    tipo: dados.tipo,
+                    titulo: dados.titulo,
+                    resolvida: false
+                }
+            });
+
+        }
 
         // =====================================================
         // NOTIFICAÇÃO VINCULADA A UMA ENTIDADE
         // =====================================================
 
-        if (dados.tipo === "ALUNO_FALTAS_SEMANA") {
-            existente = await this.repository.findOne({
-                where: {
-                    id_condutor: dados.id_condutor,
-                    tipo: dados.tipo,
-                    titulo: dados.titulo
-                }
-            });
-        } else if (
-            dados.entidade_tipo !== undefined &&
-            dados.entidade_tipo !== null &&
-            dados.entidade_id !== undefined &&
-            dados.entidade_id !== null
+        else if (
+            dados.entidade_tipo != null &&
+            dados.entidade_id != null
         ) {
-
-            /*
-             * Procuramos a ocorrência pela entidade,
-             * e NÃO pelo tipo.
-             *
-             * Isso é importante porque uma mesma ocorrência
-             * pode mudar de:
-             *
-             * DOCUMENTO_PROXIMO_VENCIMENTO
-             *        ↓
-             * DOCUMENTO_VENCIDO
-             *
-             * sem criar uma segunda notificação.
-             */
 
             existente = await this.repository.findOne({
                 where: {
@@ -68,11 +61,13 @@ export class ServiceNotificacao {
                 }
             });
 
-        } else {
+        }
 
-            // =================================================
-            // NOTIFICAÇÃO SEM ENTIDADE
-            // =================================================
+        // =====================================================
+        // NOTIFICAÇÃO SEM ENTIDADE
+        // =====================================================
+
+        else {
 
             existente = await this.repository.findOne({
                 where: {
@@ -95,18 +90,34 @@ export class ServiceNotificacao {
         if (existente) {
 
             let houveAlteracao = false;
-            const expiracaoAnterior = existente.data_expiracao?.getTime() ?? null;
-            const expiracaoAtual = dados.data_expiracao?.getTime() ?? null;
 
-            if (
-                existente.data_expiracao &&
-                existente.data_expiracao.getTime() <= Date.now()
-            ) {
+            const agora = new Date();
+
+            const expirou =
+                existente.data_expiracao !== null &&
+                existente.data_expiracao !== undefined &&
+                existente.data_expiracao.getTime() <= agora.getTime();
+
+
+            // =================================================
+            // REATIVAR NOTIFICAÇÃO EXPIRADA
+            // =================================================
+
+            if (expirou) {
+
                 existente.lida = false;
                 existente.data_leitura = null;
+
                 existente.resolvida = false;
                 existente.data_resolucao = null;
+
+                // Se não foi informada uma nova expiração,
+                // remove a expiração antiga.
+                existente.data_expiracao =
+                    dados.data_expiracao ?? null;
+
                 houveAlteracao = true;
+
             }
 
 
@@ -119,6 +130,7 @@ export class ServiceNotificacao {
                 existente.tipo = dados.tipo;
 
                 houveAlteracao = true;
+
             }
 
 
@@ -131,6 +143,7 @@ export class ServiceNotificacao {
                 existente.titulo = dados.titulo;
 
                 houveAlteracao = true;
+
             }
 
 
@@ -143,6 +156,7 @@ export class ServiceNotificacao {
                 existente.mensagem = dados.mensagem;
 
                 houveAlteracao = true;
+
             }
 
 
@@ -151,18 +165,14 @@ export class ServiceNotificacao {
             // =================================================
 
             const novaPrioridade =
-                dados.prioridade || "MEDIA";
+                dados.prioridade ?? "MEDIA";
 
+            if (existente.prioridade !== novaPrioridade) {
 
-            if (
-                existente.prioridade !==
-                novaPrioridade
-            ) {
-
-                existente.prioridade =
-                    novaPrioridade;
+                existente.prioridade = novaPrioridade;
 
                 houveAlteracao = true;
+
             }
 
 
@@ -170,42 +180,65 @@ export class ServiceNotificacao {
             // DATA DE EXPIRAÇÃO
             // =================================================
 
-            if (
-                dados.data_expiracao !== undefined &&
-                existente.data_expiracao?.getTime() !==
-                    dados.data_expiracao?.getTime()
-            ) {
+            if (dados.data_expiracao !== undefined) {
 
-                existente.data_expiracao =
-                    dados.data_expiracao ?? null;
+                const expiracaoAnterior =
+                    existente.data_expiracao?.getTime() ?? null;
 
-                houveAlteracao = true;
+                const expiracaoNova =
+                    dados.data_expiracao?.getTime() ?? null;
+
+                if (expiracaoAnterior !== expiracaoNova) {
+
+                    existente.data_expiracao =
+                        dados.data_expiracao ?? null;
+
+                    houveAlteracao = true;
+
+                }
+
             }
 
 
             // =================================================
-            // SALVAR SOMENTE SE HOUVE ALTERAÇÃO
+            // ENTIDADE
+            // =================================================
+
+            if (dados.tipo === "ALUNO_FALTAS_SEMANA") {
+
+                const entidadeTipo =
+                    dados.entidade_tipo ?? null;
+
+                const entidadeId =
+                    dados.entidade_id ?? null;
+
+                if (
+                    existente.entidade_tipo !== entidadeTipo ||
+                    existente.entidade_id !== entidadeId
+                ) {
+
+                    existente.entidade_tipo = entidadeTipo;
+                    existente.entidade_id = entidadeId;
+
+                    houveAlteracao = true;
+
+                }
+
+            }
+
+
+            // =================================================
+            // SALVAR SE HOUVE ALTERAÇÃO
             // =================================================
 
             if (houveAlteracao) {
 
-                if (dados.tipo === "ALUNO_FALTAS_SEMANA") {
-                    existente.entidade_tipo = dados.entidade_tipo ?? null;
-                    existente.entidade_id = dados.entidade_id ?? null;
-                }
-
-                if (expiracaoAnterior !== expiracaoAtual) {
-                    existente.data_expiracao = dados.data_expiracao ?? null;
-                }
-
-                return await this.repository.save(
-                    existente
-                );
+                return await this.repository.save(existente);
 
             }
 
-
             return existente;
+
         }
 
 
@@ -216,41 +249,31 @@ export class ServiceNotificacao {
         const notificacao =
             this.repository.create({
 
-                id_condutor:
-                    dados.id_condutor,
+                id_condutor: dados.id_condutor,
 
-                tipo:
-                    dados.tipo,
+                tipo: dados.tipo,
 
-                titulo:
-                    dados.titulo,
+                titulo: dados.titulo,
 
-                mensagem:
-                    dados.mensagem,
+                mensagem: dados.mensagem,
 
-                prioridade:
-                    dados.prioridade || "MEDIA",
+                prioridade: dados.prioridade ?? "MEDIA",
 
-                lida:
-                    false,
+                lida: false,
 
-                resolvida:
-                    false,
+                resolvida: false,
 
-                entidade_tipo:
-                    dados.entidade_tipo ?? null,
+                entidade_tipo: dados.entidade_tipo ?? null,
 
-                entidade_id:
-                    dados.entidade_id ?? null,
+                entidade_id: dados.entidade_id ?? null,
 
-                data_expiracao:
-                    dados.data_expiracao ?? null
+                data_expiracao: dados.data_expiracao ?? null
+
             });
 
 
-        return await this.repository.save(
-            notificacao
-        );
+        return await this.repository.save(notificacao);
+
     }
 
 
@@ -262,22 +285,51 @@ export class ServiceNotificacao {
         id_condutor: number,
         apenasNaoLidas: boolean = false
     ) {
+
         const query = this.repository
             .createQueryBuilder("notificacao")
-            .where("notificacao.id_condutor = :id_condutor", { id_condutor })
+            .where(
+                "notificacao.id_condutor = :id_condutor",
+                { id_condutor }
+            )
             .andWhere(
-                "(notificacao.data_expiracao IS NULL OR notificacao.data_expiracao > :agora)",
+                `(
+                    notificacao.data_expiracao IS NULL
+                    OR notificacao.data_expiracao > :agora
+                )`,
                 { agora: new Date() }
             );
 
+
         if (apenasNaoLidas) {
-            query.andWhere("notificacao.lida = :lida", { lida: false });
+
+            query.andWhere(
+                "notificacao.lida = :lida",
+                { lida: false }
+            );
+
         }
+
+
+        // Ordem personalizada de prioridade:
+        // CRITICA > ALTA > MEDIA > BAIXA
 
         return query
             .orderBy("notificacao.lida", "ASC")
-            .addOrderBy("notificacao.prioridade", "DESC")
-            .addOrderBy("notificacao.data_criacao", "DESC")
+            .addOrderBy(
+                `CASE
+                    WHEN notificacao.prioridade = 'CRITICA' THEN 4
+                    WHEN notificacao.prioridade = 'ALTA' THEN 3
+                    WHEN notificacao.prioridade = 'MEDIA' THEN 2
+                    WHEN notificacao.prioridade = 'BAIXA' THEN 1
+                    ELSE 0
+                END`,
+                "DESC"
+            )
+            .addOrderBy(
+                "notificacao.data_criacao",
+                "DESC"
+            )
             .getMany();
 
     }
@@ -293,11 +345,23 @@ export class ServiceNotificacao {
 
         return this.repository
             .createQueryBuilder("notificacao")
-            .where("notificacao.id_condutor = :id_condutor", { id_condutor })
-            .andWhere("notificacao.lida = :lida", { lida: false })
-            .andWhere("notificacao.resolvida = :resolvida", { resolvida: false })
+            .where(
+                "notificacao.id_condutor = :id_condutor",
+                { id_condutor }
+            )
             .andWhere(
-                "(notificacao.data_expiracao IS NULL OR notificacao.data_expiracao > :agora)",
+                "notificacao.lida = :lida",
+                { lida: false }
+            )
+            .andWhere(
+                "notificacao.resolvida = :resolvida",
+                { resolvida: false }
+            )
+            .andWhere(
+                `(
+                    notificacao.data_expiracao IS NULL
+                    OR notificacao.data_expiracao > :agora
+                )`,
                 { agora: new Date() }
             )
             .getCount();
@@ -314,7 +378,7 @@ export class ServiceNotificacao {
         id_condutor: number
     ) {
 
-        return await this.repository.findOne({
+        return this.repository.findOne({
 
             where: {
 
@@ -358,18 +422,15 @@ export class ServiceNotificacao {
 
             notificacao.lida = true;
 
-            notificacao.data_leitura =
-                new Date();
+            notificacao.data_leitura = new Date();
 
-
-            return await this.repository.save(
-                notificacao
-            );
+            return await this.repository.save(notificacao);
 
         }
 
 
         return notificacao;
+
     }
 
 
@@ -400,27 +461,20 @@ export class ServiceNotificacao {
 
         const agora = new Date();
 
-
         notificacao.lida = true;
 
         notificacao.resolvida = true;
 
-
         if (!notificacao.data_leitura) {
 
-            notificacao.data_leitura =
-                agora;
+            notificacao.data_leitura = agora;
 
         }
 
-
-        notificacao.data_resolucao =
-            agora;
+        notificacao.data_resolucao = agora;
 
 
-        return await this.repository.save(
-            notificacao
-        );
+        return await this.repository.save(notificacao);
 
     }
 
@@ -433,8 +487,9 @@ export class ServiceNotificacao {
         id_condutor: number
     ) {
 
-        const notificacoes = (await this.buscar(id_condutor, true))
-            .filter((notificacao) => !notificacao.resolvida);
+        const notificacoes =
+            (await this.buscar(id_condutor, true))
+                .filter(notificacao => !notificacao.resolvida);
 
 
         if (notificacoes.length === 0) {
@@ -447,21 +502,16 @@ export class ServiceNotificacao {
         const agora = new Date();
 
 
-        notificacoes.forEach(
-            (notificacao) => {
+        notificacoes.forEach(notificacao => {
 
-                notificacao.lida = true;
+            notificacao.lida = true;
 
-                notificacao.data_leitura =
-                    agora;
+            notificacao.data_leitura = agora;
 
-            }
-        );
+        });
 
 
-        return await this.repository.save(
-            notificacoes
-        );
+        return await this.repository.save(notificacoes);
 
     }
 
@@ -491,17 +541,14 @@ export class ServiceNotificacao {
         }
 
 
-        await this.repository.remove(
-            notificacao
-        );
+        await this.repository.remove(notificacao);
 
 
         return {
 
             sucesso: true,
 
-            mensagem:
-                "Notificação excluída com sucesso."
+            mensagem: "Notificação excluída com sucesso."
 
         };
 
